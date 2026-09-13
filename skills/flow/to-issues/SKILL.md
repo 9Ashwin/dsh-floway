@@ -246,7 +246,7 @@ Two caveats to state out loud:
 - A long-running objective may not auto-close the ticket — update its state yourself when done.
 - Parallel dispatch is only safe when the frontier's Issues do **not** edit the same files. `/graph` enforces that with one worktree per node plus a fan-in barrier; if scopes overlap, run those Issues sequentially instead.
 
-Host-specific tool names for the "One Issue, right now" row, and how each host discovers and invokes this skill, are in [`references/dsh-runtime.md`](references/dsh-runtime.md) (DSH) and [`references/codex-runtime.md`](references/codex-runtime.md) (Codex).
+Host-specific tool names for the "One Issue, right now" row, and how each host discovers and invokes this skill, are in [`references/dsh-runtime.md`](references/dsh-runtime.md) (DSH), [`references/codex-runtime.md`](references/codex-runtime.md) (Codex) and [`references/claude-code-runtime.md`](references/claude-code-runtime.md) (Claude Code).
 
 ---
 

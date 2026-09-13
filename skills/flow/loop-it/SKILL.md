@@ -129,7 +129,7 @@ python3 <SKILL_DIR>/scripts/loop_state.py summary
 - 长构建/测试作为**后台任务**运行，不要阻塞在单次调用里。
 - 严格串行：一次只处理一个 issue（实现会改工作树）。依赖图里有真并行分支时改用 `/graph`。
 
-宿主侧的工具名与配置键见 [`references/dsh-runtime.md`](references/dsh-runtime.md)（DSH）与 [`references/codex-runtime.md`](references/codex-runtime.md)（Codex）。
+宿主侧的工具名与配置键见 [`references/dsh-runtime.md`](references/dsh-runtime.md)（DSH）、[`references/codex-runtime.md`](references/codex-runtime.md)（Codex）与 [`references/claude-code-runtime.md`](references/claude-code-runtime.md)（Claude Code）。
 
 ## References
 
@@ -137,6 +137,7 @@ python3 <SKILL_DIR>/scripts/loop_state.py summary
 - [`references/edge-cases.md`](references/edge-cases.md) — 边界情况处理表。
 - [`references/dsh-runtime.md`](references/dsh-runtime.md) — DSH 侧的发现/调用方式与委派工具映射。
 - [`references/codex-runtime.md`](references/codex-runtime.md) — Codex 侧的发现/调用方式与委派工具映射。
+- [`references/claude-code-runtime.md`](references/claude-code-runtime.md) — Claude Code 侧的发现/调用方式、`Agent` 委派、任务清单与后台工作，以及缺失的续跑/审计原语。
 - `scripts/loop_state.py` — `scan` / `set` / `next` / `summary`，顺序与检查点的唯一实现。
 - `scripts/test_loop_state.py` — 自测：`python3 <SKILL_DIR>/scripts/test_loop_state.py`。
 

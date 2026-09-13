@@ -124,6 +124,7 @@ Load only the file for the harness you are running under:
 
 - [`references/dsh-runtime.md`](references/dsh-runtime.md) — DSH skill loading, delegation mechanics, and why no external review command applies
 - [`references/codex-runtime.md`](references/codex-runtime.md) — Codex skill loading, delegation, and the `codex review` path
+- [`references/claude-code-runtime.md`](references/claude-code-runtime.md) — Claude Code skill loading, `Agent` delegation, and the built-in `/review` path
 - [`references/other-clis.md`](references/other-clis.md) — the per-CLI review-command matrix and the runner's host probes
 
 ## Final Report

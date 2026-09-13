@@ -1,0 +1,25 @@
+{
+  "name": "stream-it",
+  "owner": {
+    "name": "9Ashwin",
+    "url": "https://github.com/9Ashwin"
+  },
+  "description": "An AI-driven development workflow — from PRD to shipped code, on DeepSeek Harness, Codex and Claude Code.",
+  "plugins": [
+    {
+      "name": "stream-it-skills",
+      "source": "./",
+      "description": "PRD → SPEC → Issues → implement → review → ship, plus refactor, modernize and diagram skills — one skill per step.",
+      "category": "engineering",
+      "keywords": [
+        "workflow",
+        "prd",
+        "spec",
+        "issues",
+        "code-review",
+        "refactor",
+        "go"
+      ]
+    }
+  ]
+}

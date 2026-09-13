@@ -31,6 +31,7 @@ Exit code 1 when anything fails.
 
 from __future__ import annotations
 
+import json
 import os
 import re
 import sys
@@ -39,6 +40,7 @@ DESCRIPTION_CAP = 500
 KEBAB = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
 BUCKETS = ("flow", "practice", "meta", "bonus")
 OPENAI_YAML = os.path.join("agents", "openai.yaml")
+PLUGIN_MANIFEST = os.path.join(".claude-plugin", "plugin.json")
 # A DSH loader string. It belongs in `references/dsh-runtime.md`; a body that
 # names it has leaked harness mechanics into the harness-neutral half.
 DSH_LOADER_STRING = "Base directory for this skill"
@@ -144,6 +146,35 @@ def check_bundle_patch(repo_root: str, buckets: set[str]) -> list[str]:
     return problems
 
 
+def check_plugin_manifest(repo_root: str, relative_dirs: set[str]) -> list[str]:
+    """A Claude Code plugin manifest enumerates its skills by path.
+
+    A skill dropped from that list is invisible to a plugin install while
+    everything else keeps working, which is the same class of silent failure as
+    a bucket missing from the bundle patch.
+    """
+    path = os.path.join(repo_root, PLUGIN_MANIFEST)
+    if not os.path.isfile(path):
+        return []
+    try:
+        data = json.load(open(path, encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        return [f"{PLUGIN_MANIFEST} is not readable JSON: {exc}"]
+    listed = data.get("skills")
+    if not isinstance(listed, list) or not listed:
+        return [f"{PLUGIN_MANIFEST} has no `skills` list"]
+    normalised = {os.path.normpath(str(entry)).replace(os.sep, "/") for entry in listed}
+    problems = [
+        f"{PLUGIN_MANIFEST} does not list {missing} — a plugin install would not serve it"
+        for missing in sorted(relative_dirs - normalised)
+    ]
+    problems += [
+        f"{PLUGIN_MANIFEST} lists {extra}, which is not a skill directory"
+        for extra in sorted(normalised - relative_dirs)
+    ]
+    return problems
+
+
 def main() -> int:
     root = sys.argv[1] if len(sys.argv) > 1 else os.path.join(
         os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "skills"
@@ -152,7 +183,11 @@ def main() -> int:
     if not skills and not failures:
         print(f"no skills found under {root}", file=sys.stderr)
         return 1
-    failures.extend(check_bundle_patch(os.path.dirname(root), {b for b, _, _ in skills}))
+    repo_root = os.path.dirname(root)
+    failures.extend(check_bundle_patch(repo_root, {b for b, _, _ in skills}))
+    failures.extend(
+        check_plugin_manifest(repo_root, {f"skills/{bucket}/{name}" for bucket, name, _ in skills})
+    )
 
     for bucket, name, path in skills:
         text = open(path, encoding="utf-8").read()
@@ -186,7 +221,7 @@ def main() -> int:
     )
     print(f"ok: {len(skills)} skills valid ({per_bucket}; frontmatter parses, names match, "
           f"descriptions <= {DESCRIPTION_CAP} chars, bodies harness-neutral, "
-          f"implicit-invocation declared for both hosts)")
+          f"implicit-invocation declared per host)")
     return 0
 
 

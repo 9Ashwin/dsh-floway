@@ -203,6 +203,7 @@ as a fresh node, then drop.
 
 - `references/dsh-runtime.md` — the DSH side: delegation mechanics, the two workspace traps in DSH terms, depth/concurrency/cost, branch layout, state schema, and why review and ship are wave-scoped.
 - `references/codex-runtime.md` — the Codex side: skill discovery and loading, V1/V2 delegation mapping, depth and concurrency defaults, and the optional `git push` guard. Read it before running a wave under Codex.
+- `references/claude-code-runtime.md` — the Claude Code side: plugin/skill discovery, `Agent` dispatch, the missing continuation/audit primitives, depth and concurrency, and the optional `allowed-tools` pre-approval. Read it before running a wave under Claude Code.
 - `references/node-prompt.md` — the node prompt template, how to fill it, and how to read a node's report.
 - `references/lean-subagent.md` — DSH-only deployment patch that strips a node child's skill catalog (optional cost lever), with its caveats.
 - `scripts/graph_state.py` (`plan` / `set` / `show`) — validation, layering and checkpoints.

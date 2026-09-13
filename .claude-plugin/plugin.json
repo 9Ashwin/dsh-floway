@@ -1,0 +1,48 @@
+{
+  "name": "stream-it-skills",
+  "version": "1.0.0",
+  "description": "An AI-driven development workflow — from PRD to shipped code.",
+  "author": {
+    "name": "9Ashwin",
+    "url": "https://github.com/9Ashwin"
+  },
+  "homepage": "https://github.com/9Ashwin/stream-it",
+  "repository": "https://github.com/9Ashwin/stream-it",
+  "license": "MIT",
+  "keywords": [
+    "workflow",
+    "prd",
+    "spec",
+    "issues",
+    "code-review",
+    "refactor",
+    "go"
+  ],
+  "skills": [
+    "./skills/flow/prd",
+    "./skills/flow/prd-to-spec",
+    "./skills/flow/to-issues",
+    "./skills/flow/loop-it",
+    "./skills/flow/graph",
+    "./skills/flow/implement",
+    "./skills/flow/review-it",
+    "./skills/flow/ship-it",
+    "./skills/flow/note-it",
+    "./skills/practice/test-first",
+    "./skills/practice/diagnose",
+    "./skills/practice/refactor",
+    "./skills/practice/modern-go",
+    "./skills/practice/smell",
+    "./skills/practice/conflict",
+    "./skills/practice/triage",
+    "./skills/meta/ask-flow",
+    "./skills/bonus/code-to-spec",
+    "./skills/bonus/to-design",
+    "./skills/bonus/design-it",
+    "./skills/bonus/understand",
+    "./skills/bonus/insight-diagram",
+    "./skills/bonus/humanize-it",
+    "./skills/bonus/listenhub-tts",
+    "./skills/bonus/article-icons"
+  ]
+}
