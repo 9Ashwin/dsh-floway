@@ -206,7 +206,8 @@ def test_keep_shipped_carries_outcome():
             gs.cmd_plan(gs.argparse.Namespace(nodes=nodes_path, state=state_path,
                                               max_parallel=None, keep_shipped=False))
             gs.cmd_set(gs.argparse.Namespace(state=state_path, node="1", status="shipped",
-                                             commit="abc1234", branch=None, error=None))
+                                             commit="abc1234", branch="feat/issue-9-reworked",
+                                             error=None))
         with open(nodes_path, "w", encoding="utf-8") as handle:
             json.dump({"task": "t", "nodes": [{"id": 1, "title": "a", "scope": "x"},
                                               {"id": 2, "title": "b", "scope": "y"},
@@ -218,6 +219,11 @@ def test_keep_shipped_carries_outcome():
         check("shipped survives a re-plan", carried["nodes"]["1"]["status"] == "shipped",
               str(carried["nodes"]["1"]))
         check("the commit survives too", carried["nodes"]["1"].get("commit") == "abc1234")
+        # A recorded branch must survive a re-layer even when the nodes file no
+        # longer mentions it — otherwise `prompt` falls back to a derived name.
+        check("the real branch survives a re-plan",
+              carried["nodes"]["1"].get("branch") == "feat/issue-9-reworked",
+              str(carried["nodes"]["1"]))
         check("a newly added node starts pending", carried["nodes"]["3"]["status"] == "pending")
 
         # Negative control: without the flag a re-plan resets the shipped node.
