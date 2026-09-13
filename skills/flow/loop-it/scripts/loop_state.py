@@ -496,7 +496,7 @@ def cmd_scan(args: argparse.Namespace) -> int:
     if failed:
         print("❌ failed:  " + ", ".join(
             f"{ref(n)}({issues[str(n)].get('error_class') or 'unknown'})" for n in failed))
-    print(f"\ncheckpoint: {args.state}  (add it to .git/info/exclude)")
+    print(f"\ncheckpoint: {args.state}  (add it to .gitignore, then commit that rule)")
     return 0
 
 

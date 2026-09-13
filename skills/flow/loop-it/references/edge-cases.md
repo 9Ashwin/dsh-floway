@@ -18,7 +18,7 @@
 | 上次运行留下 `in_progress` 的 issue | `next` 会把它作为「恢复 in_progress」返回；检查分支与已有改动后决定继续或重跑 |
 | 用户在循环中途放弃 | 检查点已是最新，下次 `scan` + `next` 即可恢复 |
 | 循环期间新建了 issue | 本批不重新拉取；跑完当前批次后再开一次 `/loop-it` |
-| `.loop-state.json` 被 git 跟踪 | `git rm --cached`，并把路径写进未被跟踪的 `.git/info/exclude`（不是 `.gitignore`：它是被跟踪文件，追加会让工作树变脏） |
+| `.loop-state.json` 被 git 跟踪 | `git rm --cached`，并确认忽略规则已提交（未提交的忽略规则会让前置的「工作树干净」检查失败） |
 | 误以为需要外部 goal 命令 | 没有外部 goal 命令可用；「实现 issue」由 agent 内联完成，不要因此中止循环 |
 | issue 之间真并行（互不共享文件） | 本 skill 仍串行；改用 `/graph` 做波次并行（每节点独立 worktree） |
 | 长时间构建 / 测试 | 作为后台任务运行，拿到任务标识后继续别的工作 |

@@ -85,11 +85,12 @@ The planner validates (cycles are fatal, phantom and self edges are dropped with
 layers the waves so dependencies and disjoint scopes both hold, writes `.graph_state`, and
 prints the plan, a Mermaid diagram and the wave-0 dispatch list.
 
-Keep the plan input out of git along with the checkpoint it produces, in the *untracked* local
-ignore file so the entries cannot dirty the tree themselves:
-`grep -qxF 'nodes.json' .git/info/exclude || printf 'nodes.json\n.graph_state\ngraph.html\n' >> .git/info/exclude`.
-`.gitignore` is tracked, so appending there would leave a modified tracked file for the Step 4
-leak check to flag. The nodes file is per-run working state, like `.graph_state`.
+Keep the plan input out of git along with the checkpoint it produces:
+`grep -qxF 'nodes.json' .gitignore || printf 'nodes.json\n.graph_state\ngraph.html\n' >> .gitignore`,
+then **commit that ignore rule before the first wave**. Step 4's leak check wants a clean shared
+checkout, and an uncommitted `.gitignore` edit would make the orchestrator flag itself as the leak.
+(If you would rather not commit an ignore rule, put the same three lines in the untracked
+`.git/info/exclude` instead.) The nodes file is per-run working state, like `.graph_state`.
 
 Show the user the plan and let them adjust nodes, edges or the concurrency cap **before** any
 child starts. Then hand `graph.html` to the user so they can watch it live.
@@ -138,9 +139,9 @@ nodes; with one node it is pure ceremony.
 1. **Leak check, then mark.** `git status --porcelain` on the shared checkout must be clean and
    each node's files must exist only on its branch — that is the evidence the absolute-path
    discipline held. (Untracked files belonging to *another* session are not a leak; a modified
-   *tracked* file is.) That is exactly why Step 2 puts the ignore entries in the untracked
-   `.git/info/exclude` and not in the tracked `.gitignore`: they must not dirty the tree
-   themselves. Record each outcome with the planner:
+   *tracked* file is.) That is exactly why Step 2 commits the ignore rule up front: an
+   uncommitted `.gitignore` edit would make the orchestrator flag itself as the leak.
+   Record each outcome with the planner:
    ```bash
    python3 <SKILL_DIR>/scripts/graph_state.py set --node {N} --status shipped --commit {sha}
    ```

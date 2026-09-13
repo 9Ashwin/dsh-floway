@@ -48,13 +48,16 @@ description: "Serial GitHub issue loop with checkpoint/resume: order open issues
 | 远程可达 | `git ls-remote --heads origin` | 停止，检查网络与权限 |
 | 恢复还是重来 | `.loop-state.json` 是否存在 | 恢复 / 删除重来 / 中止；`scan` 会自动合并旧状态，只有损坏文件才要求用户处理 |
 
-`.loop-state.json` 要排除出版本库，但**不要**追加进 `.gitignore`——它是被跟踪文件，追加会让工作树变脏，正好触发上面「工作树干净」那条前置检查。用未被跟踪的本地排除文件：
+`.loop-state.json` 要排除出版本库，并**在开跑前把忽略规则提交掉**：
 
 ```bash
-grep -qxF '.loop-state.json' .git/info/exclude || echo '.loop-state.json' >> .git/info/exclude
+grep -qxF '.loop-state.json' .gitignore || echo '.loop-state.json' >> .gitignore
+git add .gitignore && git commit -m "chore: ignore the loop checkpoint"
 ```
 
-若它已经被 git 跟踪，提醒用户 `git rm --cached`。
+上面的前置检查要求工作树干净，留着未提交的忽略规则会让循环卡在第一步。（不想往 `.gitignore`
+里加规则，就把同一行写进未被跟踪的 `.git/info/exclude`。）若它已经被 git 跟踪，提醒用户
+`git rm --cached`。
 
 ## 执行循环
 

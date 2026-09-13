@@ -96,9 +96,9 @@ the default branch (`$BASE`), and that branch is what gets reviewed and shipped.
 
 ## State file and tracker
 
-`.graph_state` lives at the repo root and must be ignored via the untracked `.git/info/exclude`
-(never the tracked `.gitignore`, which would itself dirty the leak check). The planner script owns
-it — never hand-write it. Its schema:
+`.graph_state` lives at the repo root and must be in `.gitignore`. Commit that ignore rule before
+the first wave: it is a tracked file, so an uncommitted edit would make the Step 4 leak check flag
+the orchestrator itself. The planner script owns it — never hand-write it. Its schema:
 
 ```json
 {
