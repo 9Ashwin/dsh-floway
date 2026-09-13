@@ -8,9 +8,13 @@ renderer is stdlib-only on purpose, so its test is too.
 
 from __future__ import annotations
 
+import contextlib
 import importlib.util
+import io
 import os
 import re
+import sys
+import tempfile
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 
@@ -115,10 +119,67 @@ def test_snapshot_is_stated_and_stamped():
           "not a live feed" in html, html[:200])
 
 
+def test_both_argument_spellings_work():
+    """`--state x` used to be read as a *path*, so the run died on
+    FileNotFoundError: '--state' and said nothing about the real mistake."""
+    positional = rh.parse_args(["a.json", "b.html"])
+    check("positional STATE is the state", positional.state == "a.json", str(positional))
+    check("positional OUT is the output", positional.out == "b.html", str(positional))
+    flagged = rh.parse_args(["--state", "a.json", "--out", "b.html"])
+    check("--state names the same field", flagged.state == "a.json", str(flagged))
+    check("--out names the same field", flagged.out == "b.html", str(flagged))
+    check("flags are never mistaken for a filename",
+          not any(value.startswith("--") for value in (flagged.state, flagged.out)), str(flagged))
+    defaulted = rh.parse_args([])
+    check("no arguments falls back to the documented defaults",
+          defaulted.state == rh.STATE_DEFAULT and defaulted.out == "graph.html", str(defaulted))
+
+
+def test_a_repeated_value_is_refused():
+    # Each value has two spellings, so giving both is ambiguous rather than a
+    # silent last-one-wins. The positional OUT case needs a leading positional
+    # STATE, otherwise the first bare argument fills STATE instead.
+    for argv in (["a.json", "--state", "b.json"],
+                 ["a.json", "b.html", "--out", "c.html"]):
+        try:
+            with contextlib.redirect_stderr(io.StringIO()):
+                rh.parse_args(argv)
+            check(f"{argv} refused", False, "parse_args accepted the value twice")
+        except SystemExit as exc:
+            check(f"{argv} refused", exc.code == 2, str(exc.code))
+
+
+def test_an_unknown_flag_is_refused():
+    try:
+        with contextlib.redirect_stderr(io.StringIO()) as err:
+            rh.parse_args(["--bogus", "a.json"])
+        check("unknown flag refused", False, "parse_args accepted --bogus")
+    except SystemExit as exc:
+        check("unknown flag refused", exc.code == 2, str(exc.code))
+        check("and argparse names it", "--bogus" in err.getvalue(), err.getvalue())
+
+
+def test_missing_checkpoint_reports_instead_of_raising():
+    with tempfile.TemporaryDirectory() as tmp:
+        missing = os.path.join(tmp, "nope.json")
+        err = io.StringIO()
+        saved_argv = sys.argv
+        sys.argv = ["render_graph_html.py", missing, os.path.join(tmp, "out.html")]
+        try:
+            with contextlib.redirect_stderr(err), contextlib.redirect_stdout(io.StringIO()):
+                code = rh.main()
+        finally:
+            sys.argv = saved_argv
+        check("a missing checkpoint exits non-zero", code == 1, str(code))
+        check("and says how to produce one", "graph_state.py plan" in err.getvalue(), err.getvalue())
+
+
 def main() -> int:
     print("render_graph_html.py tests")
     for test in (test_current_wave_is_derived_not_read, test_finished_graph_says_so,
-                 test_footer_names_the_real_source, test_snapshot_is_stated_and_stamped):
+                 test_footer_names_the_real_source, test_snapshot_is_stated_and_stamped,
+                 test_both_argument_spellings_work, test_a_repeated_value_is_refused,
+                 test_an_unknown_flag_is_refused, test_missing_checkpoint_reports_instead_of_raising):
         print(f"- {test.__name__}")
         test()
     if failures:

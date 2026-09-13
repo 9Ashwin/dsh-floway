@@ -61,9 +61,11 @@ Return your report in two parts.
 anything the orchestrator needs to know that the block below cannot carry.
 
 **Then the structured block**, as the very last thing in your reply: a fenced ```json block
-holding exactly these keys and nothing else. It is parsed, so it has to be valid JSON and it has
-to be last — a missing key, a second block after it, or prose after it means the orchestrator has
-to read the whole report by hand, which is the cost this block exists to remove.
+holding the six keys shown in the example below — `node`, `status`, `commit`, `files`, `gates`,
+`new_work` — and nothing else. Name them exactly; do not add keys of your own, because the block
+is parsed by key name and a substituted set reads as missing data. It has to be valid JSON and it
+has to be last — a missing key, a second block after it, or prose after it means the orchestrator
+has to read the whole report by hand, which is the cost this block exists to remove.
 
 ```json
 {

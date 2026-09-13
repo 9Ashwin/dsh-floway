@@ -2,13 +2,20 @@
 """Render a light-theme graph.html dashboard from a .graph_state.json state file.
 
 Usage:
-    render_graph_html.py [.graph_state.json] [graph.html]
+    render_graph_html.py [state.json] [graph.html]
+    render_graph_html.py --state state.json --out graph.html
 
-Defaults to reading ./.graph_state.json and writing ./graph.html.
-Called by the /graph skill at every checkpoint (initial plan + each fan-in barrier),
-so opening graph.html in a browser (it self-refreshes) tracks execution live.
+Defaults to reading ./.graph_state.json and writing ./graph.html. Both spellings
+work because the skill's docs use positional arguments while people reach for
+flags; before this, `--state x` was taken as a *path* and the run died on
+FileNotFoundError: '--state', which says nothing about the real mistake.
+
+Called by the /graph skill at every checkpoint (initial plan + each fan-in barrier).
+The state is inlined, so the page is a snapshot of the moment it was rendered —
+re-run this after each wave rather than expecting an open tab to follow along.
 No third-party dependencies — stdlib only.
 """
+import argparse
 import html
 import json
 import os
@@ -207,16 +214,46 @@ def resolve_state(path: str) -> str:
     return path
 
 
+def parse_args(argv: list[str]) -> argparse.Namespace:
+    """Accept the documented positionals and the flags people actually type.
+
+    `nargs="?"` on both positionals keeps `render.py a.json b.html` working while
+    `--state`/`--out` name the same two values. An unknown flag now fails with
+    argparse's own message instead of being read as a filename.
+    """
+    parser = argparse.ArgumentParser(
+        description="Render graph.html from a /graph checkpoint.",
+        epilog="Positional and flag spellings are equivalent.")
+    parser.add_argument("state_pos", nargs="?", metavar="STATE", help="checkpoint to read")
+    parser.add_argument("out_pos", nargs="?", metavar="OUT", help="dashboard to write")
+    parser.add_argument("--state", dest="state_flag", help="checkpoint to read")
+    parser.add_argument("--out", dest="out_flag", help="dashboard to write")
+    args = parser.parse_args(argv)
+    if args.state_pos and args.state_flag:
+        parser.error("give the checkpoint once, as STATE or --state, not both")
+    if args.out_pos and args.out_flag:
+        parser.error("give the output once, as OUT or --out, not both")
+    args.state = args.state_flag or args.state_pos or STATE_DEFAULT
+    args.out = args.out_flag or args.out_pos or "graph.html"
+    return args
+
+
 def main():
-    src = resolve_state(sys.argv[1] if len(sys.argv) > 1 else STATE_DEFAULT)
-    dst = sys.argv[2] if len(sys.argv) > 2 else "graph.html"
+    args = parse_args(sys.argv[1:])
+    src = resolve_state(args.state)
+    dst = args.out
+    if not os.path.exists(src):
+        print(f"render_graph_html: no checkpoint at {src} — run graph_state.py plan first",
+              file=sys.stderr)
+        return 1
     with open(src, encoding="utf-8") as f:
         state = json.load(f)
     state.setdefault("updated_at", datetime.now().isoformat(timespec="seconds"))
     with open(dst, "w", encoding="utf-8") as f:
         f.write(render(state, source=src))
     print(f"wrote {dst} from {src}")
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())

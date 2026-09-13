@@ -329,4 +329,7 @@ as a fresh node, then drop.
   checkpoints, and the node prompt rendered from them. `set --branch` records where a node
   actually lives; `prompt` prefers that over a name derived from the title.
 - `scripts/test_graph_state.py` — the planner's unit tests; run them after any edit to it.
-- `scripts/render_graph_html.py` — the live `graph.html` dashboard.
+- `scripts/render_graph_html.py [state.json] [graph.html]` — renders the `graph.html`
+  dashboard. `--state` / `--out` name the same two values. It inlines the checkpoint, so the
+  page is a snapshot of when it ran: **re-render it after every wave**, because an open tab
+  does not follow along. `scripts/test_render_graph_html.py` covers it; run it after any edit.
