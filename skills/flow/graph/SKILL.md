@@ -151,6 +151,14 @@ already carries its whole contract, while the full-strength path is what a wave 
 research child needs. The optional lean-delegation cost lever lives in
 `references/lean-subagent.md` and `references/dsh-runtime.md`.
 
+Every node reports back in two parts: prose, then a structured block with a fixed key set
+(`node` / `status` / `commit` / `files` / `gates` / `new_work`). Read the block for the mechanical
+fields — it transcribes straight into the checkpoint — and read the prose for what the block
+cannot carry. The block is the node's own account, so it is **not** evidence: the leak check, the
+diffstat against the `files` it claims, and the integrated gates are what actually verify the
+wave. A report whose `files` list disagrees with its diffstat is the cheapest possible catch, and
+it only works if you compare rather than trust.
+
 Two facts the node prompt must carry, because **a child gets no working directory of its own**
 (both harnesses behave the same way): file tools resolve relative paths against the
 **orchestrator's** checkout, and every shell call is a fresh shell. Both are why the worktree

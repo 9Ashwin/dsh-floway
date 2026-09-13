@@ -55,10 +55,36 @@ Constraints:
 - If you cannot satisfy a criterion, STOP and report what's blocking — don't fake it. A
   clean FAIL with a precise reason is worth more than a green claim the gates contradict.
 
-Return: node id, PASS/FAIL, commit sha, files changed, the exact gate command you ran and
-its final line, and — if you discovered new required work or a dependency the graph did not
-capture — a `NEW_WORK:` line (title + which nodes it blocks). Emit `NEW_WORK: none` if
-there is nothing.
+Return your report in two parts.
+
+**Prose first**, for the human reading it: what you did, anything that surprised you, and
+anything the orchestrator needs to know that the block below cannot carry.
+
+**Then the structured block**, as the very last thing in your reply: a fenced ```json block
+holding exactly these keys and nothing else. It is parsed, so it has to be valid JSON and it has
+to be last — a missing key, a second block after it, or prose after it means the orchestrator has
+to read the whole report by hand, which is the cost this block exists to remove.
+
+```json
+{
+  "node": 3,
+  "status": "PASS",
+  "commit": "a1b2c3d",
+  "files": ["src/text.py", "tests/test_text.py"],
+  "gates": [{"command": "python3 -m unittest discover -s tests -q", "exit": 0}],
+  "new_work": []
+}
+```
+
+- `node` — the node id, as a number.
+- `status` — `"PASS"` only if every acceptance criterion is met and the gates are green.
+  Anything else is `"FAIL"`, with the reason in your prose.
+- `commit` — the commit sha on your branch, or `null` if you did not commit.
+- `files` — every file you changed, as repo-relative paths.
+- `gates` — the exact commands you ran and their exit codes. Empty only if the project has no
+  gates, and then say so in the prose.
+- `new_work` — titles of work you discovered that the graph does not capture, or `[]`. Do not
+  invent entries to look thorough; `[]` is the normal answer.
 ```
 
 ## Filling the placeholders
