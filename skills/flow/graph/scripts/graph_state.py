@@ -254,14 +254,14 @@ def cmd_plan(args: argparse.Namespace) -> int:
 
     max_par = max(len(wave) for wave in waves)
     print(render(state))
-    print(f"\nmax parallelism: {max_par} subagent(s) in one wave")
+    print(f"\nmax parallelism: {max_par} child agent(s) in one wave")
     print(f"checkpoint: {args.state}")
     for warning in warnings:
         print(f"warning: {warning}")
     for note in notes:
         print(f"note: {note}")
     print("\n" + mermaid(state))
-    print("\nwave 0 — dispatch these together, one subagent each:")
+    print("\nwave 0 — dispatch these together, one child each:")
     for line in dispatch_list(state, 0):
         print(line)
     print("\nnext: render the tracker with render_graph_html.py, then dispatch wave 0.")
@@ -301,10 +301,16 @@ def cmd_set(args: argparse.Namespace) -> int:
     if all(state["nodes"][str(nid)]["status"] in WAVE_DONE for nid in wave):
         print(f"\nwave {node_wave} is closed. Fan-in now:")
         print("  1. leak check: git status --porcelain must be clean on the shared checkout")
-        print(f"  2. integrate: git checkout main && git pull && git checkout -b wave-{node_wave}-<slug>")
-        print("     then merge each node branch with --no-ff and run the project's gates")
-        print("  3. review the wave ONCE (git diff main...wave branch), fix, re-run the gates")
-        print("  4. ship the wave ONCE via /ship-it, close the issues it satisfied")
+        print('  2. integrate: git checkout "$BASE"')
+        print("     pull only when an upstream is configured — a bare `git pull` exits 1 without one:")
+        print("     git rev-parse --abbrev-ref --symbolic-full-name '@{u}' >/dev/null 2>&1 && git pull")
+        if len(wave) > 1:
+            print(f"     git checkout -b wave-{node_wave}-<slug>, then merge each node branch with --no-ff")
+        else:
+            print("     merge the one node branch with --no-ff (a one-node wave skips the wave branch)")
+        print("     and run the project's gates on the integrated tree")
+        print("  3. review the wave ONCE (git diff against the default branch), fix, re-run the gates")
+        print("  4. ship the wave ONCE with the ship-it skill, close the issues it satisfied")
         next_index = node_wave + 1
         if next_index < len(state["waves"]):
             print(f"  5. render the tracker, then dispatch wave {next_index}:")

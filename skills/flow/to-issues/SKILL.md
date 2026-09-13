@@ -21,9 +21,9 @@ This is the rule that matters most, and the one models break most often.
 
 **The test for every Issue: "What can I demo when this is done?"** If the answer is a layer ("the database has a priority column") rather than a behaviour ("a user can set a task's priority and see it persist"), it is a horizontal slice — re-slice it.
 
-**Sizing floor:** if the whole change fits in one context window, you don't need Issues at all. Say so and implement it directly — in DSH `/goal` is a UI command the model cannot type, so either do the work inline or tell the user to run `/goal <objective>` themselves.
+**Sizing floor:** if the whole change fits in one context window, you don't need Issues at all. Say so and implement it directly — starting a long-running autonomous objective is something only the human can do, so either do the work inline or tell the user to start that objective themselves.
 
-**Consumption contract (DSH):** a `subagent` starts a **fresh** child that does NOT see this conversation, so an Issue body must be self-contained. That is the "agent-ready by construction" rule above, now enforced by the runtime instead of by convention. `subagent_fork` is the variant that inherits context — use it only for follow-ups, never as a substitute for a well-written Issue.
+**Consumption contract:** a **fresh child** does NOT see this conversation, so an Issue body must be self-contained. That is the "agent-ready by construction" rule above, now enforced by the runtime instead of by convention. A **forked child** inherits context — use it only for follow-ups, never as a substitute for a well-written Issue.
 
 > Keep this skill in the **same context window** as `/prd-to-spec`. Don't clear or compact between them, or the SPEC has to be re-fetched and may truncate.
 
@@ -171,7 +171,7 @@ Where should I save the Issue files? (default: .autoresearch/issues/[feature-slu
 
 **Actions:**
 1. Create the feature folder with `mkdir -p` if it doesn't exist. One folder per feature keeps parallel agents from racing on a shared file.
-2. For each Issue, in **dependency order**, save `NN-[slug].md` (zero-padded, `NN` is a real ticket ID so a dispatcher can name it when handing the Issue to a `subagent` or a worktree branch):
+2. For each Issue, in **dependency order**, save `NN-[slug].md` (zero-padded, `NN` is a real ticket ID so a dispatcher can name it when handing the Issue to a fresh child or a worktree branch):
    ```markdown
    # [Title — a behaviour]
 
@@ -233,18 +233,20 @@ Frontier (no open blockers, start now): #1
 
 Then tell the user **how to dispatch** — the dependency shape decides it:
 
-| Shape | How to run it (DSH) |
-|-------|---------------------|
-| One Issue, right now | a `subagent` with the Issue body as a self-contained prompt — or just implement it inline |
+| Shape | How to run it |
+|-------|---------------|
+| One Issue, right now | a **fresh child** with the Issue body as a self-contained prompt — or just implement it inline |
 | Sequential batch | `/loop-it` — checkpointed, one Issue at a time |
 | Genuinely parallel frontier (no shared file scope) | `/graph` — DAG → waves → one worktree per node, fan-in barrier between waves |
-| One long objective that should keep running on its own | the **human** types `/goal <objective>`. `/goal` is a UI command, the model cannot type it, and subagents cannot call `create_goal` |
-| Large model-driven orchestration | `workflow` — only when the user explicitly asks for it |
+| One long objective that should keep running on its own | the **human** starts the objective in their client; the model cannot start it for them |
+| Large model-driven orchestration | only when the user explicitly asks for it |
 
 Two caveats to state out loud:
 
-- `/goal` may not auto-close the ticket — update its state yourself when done.
+- A long-running objective may not auto-close the ticket — update its state yourself when done.
 - Parallel dispatch is only safe when the frontier's Issues do **not** edit the same files. `/graph` enforces that with one worktree per node plus a fan-in barrier; if scopes overlap, run those Issues sequentially instead.
+
+Host-specific tool names for the "One Issue, right now" row, and how each host discovers and invokes this skill, are in [`references/dsh-runtime.md`](references/dsh-runtime.md) (DSH) and [`references/codex-runtime.md`](references/codex-runtime.md) (Codex).
 
 ---
 
@@ -264,7 +266,7 @@ Two caveats to state out loud:
 
 | Scenario | Handling |
 |----------|----------|
-| Whole change fits one context window | Say so; skip Issues, implement it inline (or have the human run `/goal <objective>`) |
+| Whole change fits one context window | Say so; skip Issues, implement it inline (or have the human start a long-running objective) |
 | No PRD/SPEC found in tasks/ | Ask user to provide file path or paste requirements |
 | PRD has no User Stories | Derive Issues from Functional Requirements instead |
 | SPEC has Issue Mapping (Section 10.2) | Use it as primary source, cross-reference with PRD |
@@ -293,4 +295,4 @@ Two caveats to state out loud:
 - **/to-issues** — produces the vertically-sliced Issues (this skill)
 - **/loop-it** — implements Issues sequentially with checkpoint/resume
 - **/graph** — implements the dependency graph in parallel waves, one worktree per node
-- **/goal** — a human-facing UI command (persisted objective with autonomous rounds in DSH); not something the model invokes
+- **/goal** — a human-facing client command (persisted objective with autonomous rounds); not something the model invokes

@@ -1,6 +1,6 @@
 MIT License
 
-Copyright (c) 2026 smallnest
+Copyright (c) 2026 9Ashwin
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -19,11 +19,3 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
-
----
-
-Portions of this work are adapted from these MIT-licensed projects, whose
-copyright and permission notices are retained under the terms above:
-
-- smallnest/goal-workflow — Copyright (c) 2026 smallnest
-- snarktank/ralph (skills/prd) — Copyright (c) 2026

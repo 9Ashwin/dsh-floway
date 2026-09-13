@@ -1,8 +1,10 @@
 # review-it under other CLIs
 
-`review-it` is DSH-first: under DSH the calling agent is the reviewer and `SKILL.md` is the
-whole procedure. This file only matters when the same skill is loaded by one of the CLIs below,
-each of which has its own review command.
+The per-CLI review-command matrix and the runner's host probes. Skill loading and delegation are
+host mechanics and live in [`dsh-runtime.md`](dsh-runtime.md) and
+[`codex-runtime.md`](codex-runtime.md); this file is only the commands.
+
+## Review commands
 
 | Agent | Review Command | Notes |
 |-------|---------------|-------|
@@ -13,8 +15,10 @@ each of which has its own review command.
 | DeepSeek TUI | `/review` or manual diff review | Pass diff content for analysis |
 | Antigravity CLI | `/code-review` | Built-in slash command, auto-detects diff |
 
-The helper takes `--agent auto|dsh|claude|antigravity|codex`; `auto` detects DSH from
-`DSH_SESSION_ID` / `DSH_HOME` first and only then the others, and falls back to `dsh`.
+The helper takes `--agent auto|dsh|claude|antigravity|codex`; `auto` probes the harness
+environment — DSH from `DSH_SESSION_ID` / `DSH_HOME`, Codex from `CODEX_HOME`, Antigravity from
+`ANTIGRAVITY_CLI` / `GEMINI_CLI`, Claude Code from `CLAUDE_CODE` / `CLAUDE_CLI` — and falls back
+to `dsh`.
 
 ## Claude Code / OpenCode / DeepSeek TUI
 
@@ -74,9 +78,12 @@ git diff "origin/$(git symbolic-ref -q --short refs/remotes/origin/HEAD | sed 's
 codex review /tmp/review-it.diff
 ```
 
+`<SKILL_DIR>/scripts/review-it --agent codex` prints exactly these two forms, and `auto` selects
+it when `$CODEX_HOME` is set; the loading and delegation mechanics are in
+[`codex-runtime.md`](codex-runtime.md).
+
 ## Per-agent branch diff base
 
 All of the above share one rule: the diff base comes from the open PR when there is one
 (`gh pr view --json baseRefName`), otherwise `origin/main`. Keep the assignment and the use in a
-single shell invocation — in DSH and in every one of these CLIs, a separate bash call is a fresh
-shell.
+single shell invocation — in each of these harnesses, a separate bash call is a fresh shell.

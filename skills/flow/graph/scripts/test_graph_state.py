@@ -140,6 +140,33 @@ def test_closing_a_wave_announces_fan_in_for_that_wave():
         check("fan-in announced for wave 0", "wave 0 is closed. Fan-in now:" in text, text[-300:])
         check("next wave dispatch listed", "dispatch wave 1" in text, text[-300:])
         check("no bogus wave-1 fan-in", "wave 1 is closed" not in text)
+        check("pull guarded by an upstream check",
+              "git rev-parse --abbrev-ref --symbolic-full-name '@{u}'" in text, text[-400:])
+        check("no bare git checkout+pull", "git checkout main && git pull" not in text, text[-400:])
+        check("multi-node wave keeps the wave branch",
+              "git checkout -b wave-0-<slug>" in text, text[-400:])
+
+
+def test_single_node_wave_skips_wave_branch():
+    """Regression: a one-node wave must not be told to create a wave branch (D4)."""
+    import io, contextlib, tempfile
+    with tempfile.TemporaryDirectory() as tmp:
+        state_path = os.path.join(tmp, ".graph_state")
+        state = {"version": 1, "task": "t", "repo": "", "waves": [[1], [2]], "current_wave": 0,
+                 "nodes": {"1": {"title": "n1", "deps": [], "status": "in_progress"},
+                           "2": {"title": "n2", "deps": [1], "status": "pending"}}}
+        with open(state_path, "w", encoding="utf-8") as handle:
+            json.dump(state, handle)
+        args = type("A", (), {"state": state_path, "node": "1", "status": "shipped",
+                              "commit": "abc1234", "error": None})()
+        out = io.StringIO()
+        with contextlib.redirect_stdout(out):
+            gs.cmd_set(args)
+        text = out.getvalue()
+        check("single-node fan-in announced", "wave 0 is closed. Fan-in now:" in text, text[-300:])
+        check("no wave branch for one node", "wave-0-<slug>" not in text, text[-300:])
+        check("no wave branch command at all", "git checkout -b wave-" not in text, text[-300:])
+        check("single node merges straight in", "a one-node wave skips the wave branch" in text, text[-400:])
 
 
 def main() -> int:
@@ -148,7 +175,8 @@ def main() -> int:
                  test_cycle_is_fatal, test_missing_dep_is_dropped_with_warning,
                  test_self_dep_is_dropped, test_end_to_end_plan_and_set,
                  test_max_parallel_split_preserves_order,
-                 test_closing_a_wave_announces_fan_in_for_that_wave):
+                 test_closing_a_wave_announces_fan_in_for_that_wave,
+                 test_single_node_wave_skips_wave_branch):
         print(f"- {test.__name__}")
         test()
     if failures:

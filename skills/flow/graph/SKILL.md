@@ -7,8 +7,9 @@ description: "Parallel implementation: plan the DAG by script, one subagent per 
 # graph — DAG → parallel waves
 
 Turn a task (or PRD / SPEC / issue set) into a directed acyclic graph of work units, layer it
-into waves, and implement each wave's independent nodes concurrently with `subagent` children,
-one git worktree each. Between waves a fan-in barrier integrates, reviews and ships **once**.
+into waves, and implement each wave's independent nodes concurrently by dispatching one fresh
+child per node, one git worktree each. Between waves a fan-in barrier integrates, reviews and
+ships **once**.
 
 **This skill is guidance, not a script.** The ordering arithmetic — cycle detection, scope
 collisions, wave layering, checkpoint transitions — belongs to `scripts/graph_state.py`, which
@@ -23,7 +24,8 @@ the nodes inside it are truly independent.
 Do not use it when:
 
 - the whole change fits one context window — just implement it;
-- there is one unit, or two that share files — call `subagent` directly, or use `/loop-it`;
+- there is one unit, or two that share files — dispatch one fresh child directly, or use the
+  **loop-it** skill;
 - the units are layered rather than independent (schema → API → UI, each waiting on the last) —
   that is a chain, and `/loop-it` is the right shape;
 - you would be spawning a node for something you could finish inline in a few tool calls. Every
@@ -71,6 +73,9 @@ such files merge cleanly, and listing them would serialize the whole graph into 
 
 ## Step 2: Plan, then confirm with the user
 
+`<SKILL_DIR>` is this skill's own directory (absolute) — resolve it from the path the harness
+reported when it loaded this skill. The bundled default is `~/.agents/skills/graph`.
+
 ```bash
 python3 <SKILL_DIR>/scripts/graph_state.py plan --nodes nodes.json --max-parallel 4
 python3 <SKILL_DIR>/scripts/render_graph_html.py .graph_state graph.html
@@ -78,16 +83,16 @@ python3 <SKILL_DIR>/scripts/render_graph_html.py .graph_state graph.html
 
 The planner validates (cycles are fatal, phantom and self edges are dropped with warnings),
 layers the waves so dependencies and disjoint scopes both hold, writes `.graph_state`, and
-prints the plan, a Mermaid diagram and the wave-0 dispatch list. `<SKILL_DIR>` is this skill's
-own directory — the loader states it as `Base directory for this skill`.
+prints the plan, a Mermaid diagram and the wave-0 dispatch list.
 
-Keep the plan input out of git along with the checkpoint it produces:
-`grep -qxF 'nodes.json' .gitignore || printf 'nodes.json\n.graph_state\ngraph.html\n' >> .gitignore`.
-The nodes file is per-run working state, like `.graph_state`; committing it would make every
-wave look dirty.
+Keep the plan input out of git along with the checkpoint it produces, in the *untracked* local
+ignore file so the entries cannot dirty the tree themselves:
+`grep -qxF 'nodes.json' .git/info/exclude || printf 'nodes.json\n.graph_state\ngraph.html\n' >> .git/info/exclude`.
+`.gitignore` is tracked, so appending there would leave a modified tracked file for the Step 4
+leak check to flag. The nodes file is per-run working state, like `.graph_state`.
 
 Show the user the plan and let them adjust nodes, edges or the concurrency cap **before** any
-subagent starts. Then `present` `graph.html` so they can watch it live.
+child starts. Then hand `graph.html` to the user so they can watch it live.
 
 ## Step 3: Run a wave
 
@@ -104,26 +109,27 @@ WT="$(cd "$(dirname "$ROOT")/.graph-worktrees" && pwd)/node-{N}"
 git worktree add -b feat/node-{N}-{slug} "$WT" "$BASE"
 ```
 
-Then dispatch: **one delegation call per node, all in a single assistant message** — that is
-what makes them concurrent. Each prompt is self-contained (a fresh child sees none of this
-conversation); copy `references/node-prompt.md` and fill the placeholders.
+Then dispatch: **one child per node, all in a single assistant message** — that is what makes
+them concurrent. Each prompt is self-contained (a fresh child sees none of this conversation);
+copy `references/node-prompt.md` and fill the placeholders.
 
-If your tool list carries **`subagent_lean`** (a deployment-provided lean delegation tool that
-withholds the skill catalog and the spawning tools), use it for nodes — a node needs no skill,
-because the node prompt already carries its whole contract. Otherwise use `subagent`. Keep the
-normal `subagent` for children that *do* load skills: a wave reviewer, a research child.
+A deployment may trim a node child's tools — a node needs no skill, because the node prompt
+already carries its whole contract, while the full-strength path is what a wave reviewer or a
+research child needs. The optional lean-delegation cost lever lives in
+`references/lean-subagent.md` and `references/dsh-runtime.md`.
 
-Two facts the node prompt must carry, because DSH gives a child no cwd of its own: file tools
-resolve relative paths against **this** checkout, and every bash call is a fresh shell. Both are
-why the worktree path is passed as an absolute path and every command runs with
-`workdir=<abs worktree>` or `cd <abs worktree> && …`.
+Two facts the node prompt must carry, because **a child gets no working directory of its own**
+(both harnesses behave the same way): file tools resolve relative paths against the
+**orchestrator's** checkout, and every shell call is a fresh shell. Both are why the worktree
+path is passed as an absolute path and every command runs with the worktree as its working
+directory (`cd <abs worktree> && …`).
 
-Do not poll. Do the wave bookkeeping while the children run; each one reports back with a
-settlement notice. `list_agents(scope="descendants")` audits who is still running.
+Do not poll. Do the wave bookkeeping while the children run; **the parent is notified when a
+child settles**. **Audit the children** you started to see who is still running.
 
 ## Step 4: Fan in — barrier, integrate, review, ship
 
-The barrier is the arrival of **every** node's settlement notice. Then, in order:
+The barrier is **every** node's child having settled. Then, in order:
 
 **A wave of one node has nothing to integrate.** Skip the wave branch and the merge ceremony
 for it — review and ship that node's branch directly against the default branch (`$BASE`). The wave exists to combine
@@ -132,7 +138,9 @@ nodes; with one node it is pure ceremony.
 1. **Leak check, then mark.** `git status --porcelain` on the shared checkout must be clean and
    each node's files must exist only on its branch — that is the evidence the absolute-path
    discipline held. (Untracked files belonging to *another* session are not a leak; a modified
-   *tracked* file is.) Record each outcome with the planner:
+   *tracked* file is.) That is exactly why Step 2 puts the ignore entries in the untracked
+   `.git/info/exclude` and not in the tracked `.gitignore`: they must not dirty the tree
+   themselves. Record each outcome with the planner:
    ```bash
    python3 <SKILL_DIR>/scripts/graph_state.py set --node {N} --status shipped --commit {sha}
    ```
@@ -140,7 +148,8 @@ nodes; with one node it is pure ceremony.
 2. **Integrate and verify the combination, not the parts.** Merge only the nodes that `shipped`
    — a `failed` node's branch is never merged:
    ```bash
-   git checkout "$BASE" && git pull
+   git checkout "$BASE"
+   git rev-parse --abbrev-ref --symbolic-full-name '@{u}' >/dev/null 2>&1 && git pull   # only with an upstream
    git checkout -b wave-{K}-{slug}              # skipped when the wave has one node
    git merge --no-ff feat/node-{N}-{slug}      # once per shipped node in the wave
    <the project's gates>                        # e.g. ./run_all.sh, on the integrated tree
@@ -153,12 +162,12 @@ nodes; with one node it is pure ceremony.
    *seams* — shared interfaces, wiring/setup files, config and state that two nodes both touch —
    more attention than the nodes' interiors: that is the class of defect a per-node review
    structurally cannot see. The orchestrator reads it inline when it is small — it already holds
-   the context, so it is the cheapest reader — and hands it to **one** fresh `subagent` when the
+   the context, so it is the cheapest reader — and hands it to **one** fresh child when the
    diff is large or independence matters more. Apply `/review-it`'s Review Focus section by
    section, fix what is accepted, re-run the gates. This is the only review the wave gets; never
    skip it, and never let one feature's section absorb the whole pass.
-4. **Ship the wave once** with `/ship-it`: one commit/PR, merge, close the issues the wave
-   satisfied. One squash commit buries N features, so the PR body must carry `ship-it`'s
+4. **Ship the wave once** with the **ship-it** skill: one commit/PR, merge, close the issues the
+   wave satisfied. One squash commit buries N features, so the PR body must carry `ship-it`'s
    per-item evidence table (commit, issue, the test that proves it, manual-acceptance status) —
    without it neither you nor the user can audit or revert a single feature afterwards.
 5. Remove finished worktrees (keep failed ones), re-render the tracker, and checkpoint.
@@ -167,11 +176,11 @@ nodes; with one node it is pure ceremony.
 
 ## Step 5: When a node fails
 
-Retry in place first — `send_message(child_id, "<what failed + what to fix>")` reuses that
-node's own context instead of paying for a fresh child. If it fails again, keep its worktree,
-mark it `failed`, and mark every dependent node `blocked` (the planner prints them). Reuse
-`/loop-it`'s error classes from `../loop-it/references/error-recovery.md` rather than inventing
-new ones.
+Retry in place first — **continue that child** with a follow-up that names what failed and what
+to fix: it reuses the node's own context instead of paying for a fresh child. If it fails again,
+keep its worktree, mark it `failed`, and mark every dependent node `blocked` (the planner prints
+them). Reuse `/loop-it`'s error classes from `../loop-it/references/error-recovery.md` rather
+than inventing new ones.
 
 **A wave is not all-or-nothing.** Once the failed node's dependents are `blocked`, drop that
 node from the wave branch and ship the rest — its siblings are independent by construction, so
@@ -186,15 +195,16 @@ as a fresh node, then drop.
 - **Leak check before every merge** — a modified *tracked* file in the shared checkout means a node escaped its worktree; untracked files from another session are not a leak.
 - **One review and one ship per wave** — per-node review is self-review; per-node PRs are the expensive mode.
 - **Never force-push to the default branch.** Nodes commit to their own branches; the wave ships one PR.
-- **Respect the depth budget** — nodes are depth 1 and must not spawn their own subagents.
+- **Respect the depth budget** — a node must not dispatch children of its own; a node is a leaf.
 - **Cap concurrency** (3–4 by default), **prefer waves of 2–3 nodes**, and **keep the child count honest** — the wave is the blast radius of one bad integration, so do trivia inline.
 - **Confirm the plan** before the first fan-out, and keep `.graph_state` + `graph.html` current.
 
 ## References
 
-- `references/dsh-runtime.md` — delegation mechanics, the two workspace traps, depth/concurrency/cost, branch layout, state schema, and why review and ship are wave-scoped.
+- `references/dsh-runtime.md` — the DSH side: delegation mechanics, the two workspace traps in DSH terms, depth/concurrency/cost, branch layout, state schema, and why review and ship are wave-scoped.
+- `references/codex-runtime.md` — the Codex side: skill discovery and loading, V1/V2 delegation mapping, depth and concurrency defaults, and the optional `git push` guard. Read it before running a wave under Codex.
 - `references/node-prompt.md` — the node prompt template, how to fill it, and how to read a node's report.
-- `references/lean-subagent.md` — the deployment patch that strips a node child's skill catalog (optional cost lever), with its caveats.
+- `references/lean-subagent.md` — DSH-only deployment patch that strips a node child's skill catalog (optional cost lever), with its caveats.
 - `scripts/graph_state.py` (`plan` / `set` / `show`) — validation, layering and checkpoints.
 - `scripts/test_graph_state.py` — the planner's unit tests; run them after any edit to it.
 - `scripts/render_graph_html.py` — the live `graph.html` dashboard.

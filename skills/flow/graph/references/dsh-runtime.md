@@ -23,17 +23,17 @@ busy-wait; when the notice arrives, that node is done.
 | Long build or test inside a node | background jobs (`job_*`) |
 | Wave progress | `todo_write`, and `present` for `graph.html` |
 
-## The two traps
+## The two traps, in DSH terms
 
-DSH has **no per-child cwd or worktree argument**, and both of these are true:
+The body states the harness-independent facts; this is how they bite in DSH:
 
-1. **Children inherit the orchestrator's workspace.** `read` / `write` / `edit` resolve a
-   *relative* path against the calling session's cwd — the main checkout, not the caller's
-   worktree. A node that writes `internal/foo.go` writes into the shared tree. **Inside a node,
-   always pass absolute paths under its worktree.**
-2. **Every bash call is a fresh shell.** `cd` does not persist between calls. Pass
-   `workdir=<abs worktree>`, or prefix `cd <abs worktree> && …` in the same command. A bare
-   `go test ./...` runs in the main checkout.
+1. **Relative paths.** `read` / `write` / `edit` resolve a *relative* path against the calling
+   session's cwd — the main checkout, not the caller's worktree. A node that writes
+   `internal/foo.go` writes into the shared tree. **Inside a node, always pass absolute paths
+   under its worktree.**
+2. **Fresh shells.** `cd` does not persist between calls. Pass `workdir=<abs worktree>`, or
+   prefix `cd <abs worktree> && …` in the same command. A bare `go test ./...` runs in the main
+   checkout.
 
 The orchestrator's own leak check (`git status --porcelain` on the shared checkout before
 merging) is what proves the discipline held.
@@ -64,13 +64,17 @@ merging) is what proves the discipline held.
 
 ## `/goal` and other skills
 
-`/goal` is a **UI command**, not a skill: the model cannot invoke it, and typing it is a human
-action. "Implement" always means the node child writes the code. `/review-it` and `/ship-it` ARE
-real skills and are callable — by the orchestrator, once per wave.
+`/goal` is a DSH **command**, not a skill: typing it is a human action. The model side of the
+same surface is the goal tools (`create_goal` / `update_goal`), but `create_goal` only runs in a
+**direct top-level human turn** — a node child, whose authority is a subagent's, cannot mint a
+long-horizon goal for itself, and neither can the orchestrator mid-wave. "Implement" always means
+the node child writes the code. `/review-it` and `/ship-it` ARE real skills and are callable — by
+the orchestrator, once per wave.
 
-`<SKILL_DIR>` in commands means this skill's own directory. DSH prepends a resource block on
-every skill load (`<skill_resources>` / `Base directory for this skill: <path>`) telling you to
-resolve the skill's relative paths against it. The bundled default is `~/.agents/skills/graph`.
+`<SKILL_DIR>` in commands is defined once in `SKILL.md`: this skill's own directory (absolute).
+DSH prepends a resource block on every skill load (`<skill_resources>` /
+`Base directory for this skill: <path>`) telling you to resolve the skill's relative paths
+against it. The bundled default is `~/.agents/skills/graph`.
 
 ## Branch and worktree layout
 
@@ -92,8 +96,9 @@ the default branch (`$BASE`), and that branch is what gets reviewed and shipped.
 
 ## State file and tracker
 
-`.graph_state` lives at the repo root and must be in `.gitignore`. The planner script owns it —
-never hand-write it. Its schema:
+`.graph_state` lives at the repo root and must be ignored via the untracked `.git/info/exclude`
+(never the tracked `.gitignore`, which would itself dirty the leak check). The planner script owns
+it — never hand-write it. Its schema:
 
 ```json
 {

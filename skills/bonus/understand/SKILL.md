@@ -18,7 +18,7 @@ metadata:
 
 ## 组成
 
-skill 目录下三件套（都在本技能自己的目录，即下面用的 `$SKILL_DIR`；DSH 加载时会给出 `Base directory for this skill`，默认安装位置 `~/.agents/skills/understand`）：
+skill 目录下三件套，都在本技能自己的目录，即下面用的 `$SKILL_DIR`——它是本技能目录的绝对路径，从加载本技能时 harness 报告的路径解析，内置默认位置是 `~/.agents/skills/understand`：
 
 - `understand.py` — 纯标准库生成器，两个子命令：`scan`（解析 git diff → `data.json` + `annotations.json` 骨架）、`render`（合并注释 → `report.html`）。
 - `template.html` — 浅色双栏主题页面（占位符 `__UNDERSTAND_PAYLOAD__` 注入数据），Prism.js 走 CDN 做语法高亮。
@@ -43,7 +43,7 @@ python3 "$SKILL_DIR/understand.py" scan
 
 先把改动读懂，再落注释。建议：
 
-- `Read` 每个变更文件（结合 `data.json` 里的 hunks 看具体增删行号），必要时读周边未改代码补足上下文。
+- 读取每个变更文件（结合 `data.json` 里的 hunks 看具体增删行号），必要时读周边未改代码补足上下文。
 - 判断每处改动**对应的单位需求**：优先从仓库线索找真实依据——commit message、`docs/` 需求文档、代码注释里写的需求编号/背景、相关 issue。**找到真实需求就照写**；确实找不到，就基于代码逻辑写「推测意图」并在注释里把 `inferred` 置为 `true`（前端会标成灰色「推测意图」而非「需求」，避免把猜测伪装成事实）。
 
 然后**编辑 `.understand/annotations.json`**（scan 已生成骨架，保留其 `files[].path` 顺序，逐个填充）。结构：

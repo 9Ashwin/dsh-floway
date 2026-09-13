@@ -17,6 +17,14 @@ a skill is gone:
 
 This script fails loudly on both, and on any bucket it does not know.
 
+It also guards the two-host split. A skill body must stay harness-neutral, and
+the two hosts express "keep this out of the model catalog" in different places:
+DSH reads `disable-model-invocation` from the frontmatter, Codex ignores that key
+and reads `<skill>/agents/openai.yaml` instead. Shipping only one of the two
+silently reverses the intent on the other host, so both are required together —
+and the DSH loader string that belongs in a platform reference file, never in a
+body, is rejected outright.
+
 Usage: python3 scripts/check_skills.py [skills_root]
 Exit code 1 when anything fails.
 """
@@ -30,6 +38,43 @@ import sys
 DESCRIPTION_CAP = 500
 KEBAB = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
 BUCKETS = ("flow", "practice", "meta", "bonus")
+OPENAI_YAML = os.path.join("agents", "openai.yaml")
+# A DSH loader string. It belongs in `references/dsh-runtime.md`; a body that
+# names it has leaked harness mechanics into the harness-neutral half.
+DSH_LOADER_STRING = "Base directory for this skill"
+ALLOW_IMPLICIT_FALSE = "allow_implicit_invocation: false"
+
+
+def check_platform_split(skill_dir: str, bucket: str, name: str, fm: dict, text: str) -> list[str]:
+    """Enforce the invariants that keep one body usable on both hosts."""
+    problems = []
+    if "user-invocable" in fm:
+        problems.append(
+            f"{bucket}/{name}: `user-invocable` is a no-op on DSH (it defaults to true) and "
+            f"unknown to Codex — drop it"
+        )
+    if DSH_LOADER_STRING in text:
+        problems.append(
+            f"{bucket}/{name}: SKILL.md mentions '{DSH_LOADER_STRING}' — that is a DSH loader "
+            f"detail; move it to references/dsh-runtime.md and define <SKILL_DIR> neutrally"
+        )
+    declared = fm.get("disable-model-invocation") is True
+    path = os.path.join(skill_dir, OPENAI_YAML)
+    has_meta = os.path.isfile(path)
+    if declared and not has_meta:
+        problems.append(
+            f"{bucket}/{name}: frontmatter sets disable-model-invocation but {OPENAI_YAML} is "
+            f"missing — Codex ignores that key and would let the model invoke the skill "
+            f"implicitly; add `policy: {{allow_implicit_invocation: false}}`"
+        )
+    if has_meta and not declared:
+        problems.append(
+            f"{bucket}/{name}: {OPENAI_YAML} exists without `disable-model-invocation: true` — "
+            f"the two hosts would disagree about implicit invocation; fix one of them"
+        )
+    if has_meta and ALLOW_IMPLICIT_FALSE not in open(path, encoding="utf-8").read():
+        problems.append(f"{bucket}/{name}: {OPENAI_YAML} must set `{ALLOW_IMPLICIT_FALSE}`")
+    return problems
 
 
 def load_frontmatter(path: str) -> dict | str:
@@ -110,10 +155,12 @@ def main() -> int:
     failures.extend(check_bundle_patch(os.path.dirname(root), {b for b, _, _ in skills}))
 
     for bucket, name, path in skills:
+        text = open(path, encoding="utf-8").read()
         fm = load_frontmatter(path)
         if isinstance(fm, str):
             failures.append(f"{bucket}/{name}: {fm}")
             continue
+        failures.extend(check_platform_split(os.path.dirname(path), bucket, name, fm, text))
         if fm.get("name") != name:
             failures.append(f"{bucket}/{name}: frontmatter name {fm.get('name')!r} != directory name")
         if not KEBAB.match(str(fm.get("name", ""))):
@@ -138,7 +185,8 @@ def main() -> int:
         f"{bucket}: {sum(1 for b, _, _ in skills if b == bucket)}" for bucket in BUCKETS
     )
     print(f"ok: {len(skills)} skills valid ({per_bucket}; frontmatter parses, names match, "
-          f"descriptions <= {DESCRIPTION_CAP} chars)")
+          f"descriptions <= {DESCRIPTION_CAP} chars, bodies harness-neutral, "
+          f"implicit-invocation declared for both hosts)")
     return 0
 
 

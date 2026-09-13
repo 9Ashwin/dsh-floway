@@ -52,7 +52,7 @@ description: "Serial GitHub issue loop with checkpoint/resume: order open issues
 
 ## 执行循环
 
-`<SKILL_DIR>` = 本技能目录，取自 loader 每次加载技能时给出的 `Base directory for this skill` 资源块。
+`<SKILL_DIR>` 是本技能自己的目录（绝对路径）——从加载本技能时 harness 报告的路径解析；内置默认位置是 `~/.agents/skills/loop-it`。
 
 ### 1. 取 issue、排序、建检查点（全部交给脚本）
 
@@ -87,7 +87,7 @@ BASE="${BASE:-$(git rev-parse --abbrev-ref HEAD)}"
 git checkout "$BASE" && git pull && git checkout -b feat/issue-N-slug
 ```
 
-然后**内联实现**：读 issue 标题与正文，提取全部验收条件；正文引用的 PRD/SPEC（如 `tasks/prd-*.md`）一并读；按目标仓库既有风格改代码；跑该项目的门禁自证；长时间构建/测试交给 `job_*` 后台任务。持续到验收条件全部满足、门禁通过，然后在该 issue 的分支上 commit。
+然后**内联实现**：读 issue 标题与正文，提取全部验收条件；正文引用的 PRD/SPEC（如 `tasks/prd-*.md`）一并读；按目标仓库既有风格改代码；跑该项目的门禁自证；长时间构建/测试作为**后台任务**运行。持续到验收条件全部满足、门禁通过，然后在该 issue 的分支上 commit。
 
 收尾时记录结果（脚本据此重算下一项）：
 
@@ -121,18 +121,22 @@ python3 <SKILL_DIR>/scripts/loop_state.py summary
 
 错误类别（build / test / lint / merge / ci / auth / rate-limit / network / unknown）、恢复策略与最大重试次数见 [`references/error-recovery.md`](references/error-recovery.md)——它是查找表，按需加载。分类后按上限重试；重试耗尽就 `set --status failed --error-class <class> --error "<msg>"` 并继续下一项，**绝不无限重试，绝不 force-push**。
 
-## 运行须知（DSH）
+## 运行须知
 
-- **`/goal` 是 DSH 的 UI 命令，模型调不到**；「实现 issue」就是 agent 自己读 issue、写代码、跑门禁。**不要在循环里调用 `create_goal`**。
-- 每次 bash 调用都是全新 shell：`cd`、变量不跨调用保留；`git checkout "$BASE" && git pull` 这类多步（含解析默认分支那两行）必须写在同一条命令里。
-- 用 `todo_write` 维护每个 issue 一条的可见进度；它与 `.loop-state.json` 在同一状态转换后更新，冲突时以脚本为准。
-- 长构建/测试用 `job_*` 后台任务，不要阻塞在单次调用里。
+- 「实现 issue」就是 agent 自己读 issue、写代码、跑门禁；不依赖任何外部命令替你完成，**也不要在循环里另起一个长期目标**。
+- 每次 shell 调用都是全新 shell：`cd`、变量不跨调用保留；`git checkout "$BASE" && git pull` 这类多步（含解析默认分支那两行）必须写在同一条命令里。
+- 维护每个 issue 一条的**任务清单**；它与 `.loop-state.json` 在同一状态转换后更新，冲突时以脚本为准。
+- 长构建/测试作为**后台任务**运行，不要阻塞在单次调用里。
 - 严格串行：一次只处理一个 issue（实现会改工作树）。依赖图里有真并行分支时改用 `/graph`。
+
+宿主侧的工具名与配置键见 [`references/dsh-runtime.md`](references/dsh-runtime.md)（DSH）与 [`references/codex-runtime.md`](references/codex-runtime.md)（Codex）。
 
 ## References
 
 - [`references/error-recovery.md`](references/error-recovery.md) — 错误分类表与恢复协议。
 - [`references/edge-cases.md`](references/edge-cases.md) — 边界情况处理表。
+- [`references/dsh-runtime.md`](references/dsh-runtime.md) — DSH 侧的发现/调用方式与委派工具映射。
+- [`references/codex-runtime.md`](references/codex-runtime.md) — Codex 侧的发现/调用方式与委派工具映射。
 - `scripts/loop_state.py` — `scan` / `set` / `next` / `summary`，顺序与检查点的唯一实现。
 - `scripts/test_loop_state.py` — 自测：`python3 <SKILL_DIR>/scripts/test_loop_state.py`。
 

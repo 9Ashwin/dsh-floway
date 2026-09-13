@@ -64,7 +64,7 @@ disable-model-invocation: true
 
 ### 参考规则
 
-1. **生成前必读**: 先用 Read 工具阅读对应类型的示例文件，从中提取：
+1. **生成前必读**: 先阅读对应类型的示例文件，从中提取：
    - SVG 布局策略（节点间距、分组方式、箭头走向）
    - 节点样式层级（核心节点 accent 高亮、普通节点实线边框、可选节点虚线边框）
    - 标注风格（阶段标签、Legend 图例、卡片摘要）
@@ -85,11 +85,11 @@ disable-model-invocation: true
 
 读取项目关键文件，提取架构信息：
 
-1. 读取项目根目录的 `AGENTS.md`（DSH / Codex 的主约定）或 `CLAUDE.md`（DSH 也把它作为候选指令文件加载），以及 `AGENTS.local.md` / `CLAUDE.local.md` 覆盖文件（如存在）获取项目概览
+1. 读取项目根目录的 `AGENTS.md`（项目主约定）或 `CLAUDE.md`，以及 `AGENTS.local.md` / `CLAUDE.local.md` 覆盖文件（如存在）获取项目概览
 2. 读取各子目录的同类文件（如存在）获取模块细节
-3. 用 Glob 扫描源码文件结构（`**/*.go`, `**/*.py`, `**/*.ts` 等）
+3. 扫描源码文件结构（`**/*.go`, `**/*.py`, `**/*.ts` 等）
 4. 读取入口文件（`main.go`, `app.py`, `index.ts` 等）识别顶层组件
-5. 用 Grep 搜索关键模式：接口定义、函数签名、依赖注入、配置项
+5. 搜索关键模式：接口定义、函数签名、依赖注入、配置项
 
 从以上信息中提炼出：
 - **组件清单**: 服务、模块、外部依赖
@@ -100,7 +100,7 @@ disable-model-invocation: true
 
 ### 步骤 2：选择图表
 
-使用 AskUserQuestion 让用户选择要生成的图表（multiSelect: true），分4组展示：
+向用户提问，让用户多选要生成的图表，分4组展示：
 
 **第1组 — 结构性图形（静态）：**
 - 系统架构图 (architecture)
@@ -133,7 +133,7 @@ disable-model-invocation: true
 
 对每个选中的图表类型：
 
-1. **先读示例**: 用 Read 工具阅读 `examples/<标识>.html`（如 `examples/architecture.html`），提取布局模式、节点样式、标注方式
+1. **先读示例**: 阅读 `examples/<标识>.html`（如 `examples/architecture.html`），提取布局模式、节点样式、标注方式
 2. 根据步骤 1 提取的架构信息，整理出该图表应展示的元素和关系
 3. **渲染**: 若环境中确实装有 `architecture-diagram` skill，就调用它并传入图表类型、标题、内容描述、输出路径，**必须指定 light 风格**；否则直接以本技能 `examples/<标识>.html` 为模板自行写出 HTML+SVG（本仓库不随附 `architecture-diagram`，不要假定它存在，更不要因为找不到它就中止）
 4. 输出文件保存到 `docs/<标识>.html`（如 `docs/architecture.html`）
@@ -158,7 +158,7 @@ architecture → component → deployment → package → composite-structure �
 生成的 SVG 常见三类几何缺陷，必须用脚本逐张校验并修正：
 
 ```bash
-# <SKILL_DIR> = 本技能自己的目录（DSH 加载技能时会给出 "Base directory for this skill"）
+# <SKILL_DIR> = 本技能自己的目录（绝对路径）——从加载本技能时报告的路径解析，内置默认 ~/.agents/skills/insight-diagram
 python3 <SKILL_DIR>/scripts/review_svg.py docs/<标识>.html --min-gap 8
 # 批量： python3 <SKILL_DIR>/scripts/review_svg.py docs/*.html --min-gap 8
 ```

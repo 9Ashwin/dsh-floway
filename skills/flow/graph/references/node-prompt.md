@@ -1,6 +1,6 @@
 # Node prompt template
 
-Paste this into each wave's `subagent` call, substituting every `{…}` placeholder. It is
+Paste this into each wave's child dispatch, substituting every `{…}` placeholder. It is
 self-contained on purpose: a fresh child sees none of the orchestrator's conversation, so
 anything it needs must be in the prompt.
 
@@ -21,8 +21,9 @@ WORKING-DIRECTORY DISCIPLINE (read this twice — getting it wrong corrupts othe
 - Your file tools resolve RELATIVE paths against the ORCHESTRATOR's checkout, NOT this
   worktree. ALWAYS pass absolute paths: `{WT}/internal/foo.go`, never `internal/foo.go`.
 - Every bash call starts a FRESH shell; `cd` does NOT persist between calls.
-  Pass `workdir={WT}`, or prefix `cd {WT} && …` in the same command.
-- Never run a bare `go test ./...` / `npm test` / `cargo test` without one of those two,
+  Pass `workdir={WT}` if your shell tool takes a working directory, or prefix
+  `cd {WT} && …` in the same command.
+- Never run a bare `go test ./...` / `npm test` / `cargo test` without one of those,
   or you will build and test the main checkout while a sibling node edits it.
 - Sanity check before you finish: `git -C {WT} status --short` must list your own edits.
 
@@ -42,17 +43,15 @@ Your job — implement, prove, commit. Nothing else:
 3. COMMIT on your branch: `git -C {WT} add -A`, then commit with a message that names
    the node (`feat(node-{N}): {title}`). Check `git -C {WT} status --short` first and
    keep build junk out of the commit.
-   Do NOT push, do NOT open a PR, do NOT merge, and do NOT run /review-it or /ship-it —
-   nor `/implement`, whose last two steps are the wave's job:
-   the orchestrator reviews and ships the whole wave once, after integration. Reviewing
-   here would only be you re-reading your own work.
+   Do NOT push, do NOT open a PR, do NOT merge, and do NOT run the **review-it**,
+   **ship-it** or **implement** skills — the orchestrator reviews and ships the whole wave
+   once, after integration. Reviewing here would only be you re-reading your own work.
    Those three numbered steps above ARE your whole contract.
 
 Constraints:
 - Work ONLY inside your worktree. Do NOT edit files outside {scope_hint}.
-- `/goal` is a UI command, not a skill — you cannot invoke it and must not try.
-  "implement" means YOU write the code.
-- Do NOT spawn your own subagents (delegation depth is capped at 3 and this node is depth 1).
+- "implement" means YOU write the code — there is no command that does it for you.
+- Do NOT dispatch your own child agents: this node is a leaf.
 - If you cannot satisfy a criterion, STOP and report what's blocking — don't fake it. A
   clean FAIL with a precise reason is worth more than a green claim the gates contradict.
 

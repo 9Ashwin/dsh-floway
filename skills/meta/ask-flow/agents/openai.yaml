@@ -1,0 +1,7 @@
+# Codex reads this file; DSH ignores it and uses the SKILL.md frontmatter instead.
+interface:
+  display_name: "Ask Flow"
+  short_description: "Route to the right flow skill"
+# Human-only tool: keep it out of the model's implicit-invocation catalog.
+policy:
+  allow_implicit_invocation: false

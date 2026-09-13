@@ -5,7 +5,7 @@ description: "Two-axis code review closeout: Spec (did the diff do what was aske
 
 # review-it — Code Review Closeout
 
-Run the review closeout before committing or shipping. **Under DSH there is no external review CLI: the agent that loaded this skill is the reviewer.** It generates the diff, applies the Review Focus below to it directly, and reports findings by severity.
+Run the review closeout before committing or shipping. **The agent that loaded this skill is the reviewer** — by default it generates the diff itself, applies the Review Focus below directly, and reports findings by severity. A harness that ships its own review CLI overrides that default; the invocations live in the platform reference files.
 
 Use when:
 - user asks for code review / review-it / autoreview
@@ -76,11 +76,13 @@ git diff "origin/$base"...HEAD > /tmp/review-it.diff
 
 **Integrated wave** (called by `/graph` at fan-in) — target `git diff <default-branch>...wave-{K}-{slug}` (or the single node's branch) and review it **one section per node**, spending the pass on the seams between nodes: shared interfaces, wiring/setup files, config and state that two nodes both touch. That is the class of defect a per-node review cannot see.
 
-To have a *child* do the review instead, hand the diff path to a `subagent` with a fully self-contained prompt — it sees none of this conversation.
+To have a *child* do the review instead, hand the diff path to a **fresh child** with a fully self-contained prompt — it sees none of this conversation.
 
-Two DSH mechanics matter here: bash starts a **fresh shell per call** (a `base=…` assignment does not survive into the next call, so keep the two lines in one invocation or pass an explicit `workdir`), and `review-it` has no external command to shell out to, so never invent one.
+Two mechanics matter here: bash starts a **fresh shell per call** (a `base=…` assignment does not survive into the next call, so keep the two lines in one invocation or pass an explicit working directory), and never invent an external review command — the ones that exist are listed in the platform reference files.
 
 ## Parallel Closeout
+
+`<SKILL_DIR>` is this skill's own directory (absolute) — resolve it from the path the harness reported when it loaded this skill. The bundled default is `~/.agents/skills/review-it`.
 
 Format first if formatting can change line locations. Then it's OK to run tests and review in parallel:
 
@@ -88,7 +90,7 @@ Format first if formatting can change line locations. Then it's OK to run tests 
 <SKILL_DIR>/scripts/review-it --parallel-tests "<focused test command>"
 ```
 
-`<SKILL_DIR>` is this skill's own directory — DSH states it on load as `Base directory for this skill`. The path is never a bare `scripts/review-it`: that resolves against the project cwd, not the skill.
+Never write a bare `scripts/review-it`: that resolves against the project cwd, not the skill.
 
 Tradeoff: tests may force code changes that stale the review. If tests or review lead to code edits, rerun the affected tests and rerun review until no accepted/actionable findings remain.
 
@@ -108,17 +110,21 @@ Bundled helper for target detection and parallel test + review orchestration:
 ```
 
 The helper:
-- Detects the running agent (`--agent auto`): DSH via `DSH_SESSION_ID` / `DSH_HOME`, and it **defaults to DSH** when nothing else matches
+- Detects the running harness (`--agent auto`) from its environment and selects the matching review path; the per-harness probes and defaults are in the platform reference files
 - Detects whether to use uncommitted review or branch diff review
 - For branch mode: generates the diff against the default branch (`origin/main` or `origin/master` — resolved, not assumed) or the PR base
-- Prints what to review instead of an external command — DSH has no review CLI, so the calling agent does the review
+- Prints what to review when no external review CLI applies, so the calling agent does the review
 - Supports `--parallel-tests` for concurrent test + review execution
 - Supports `--dry-run` for checking what command would be used
 - Prints `review-it clean: no accepted/actionable findings reported` when review is clean
 
-## Other CLIs
+## Platform Reference Files
 
-Claude Code, Codex, OpenCode, DeepSeek TUI and Antigravity CLI each have their own review command; the matrix, their exact invocations, and the `--agent` values that force them are in [`references/other-clis.md`](references/other-clis.md). Load that file only when you are running under one of them.
+Load only the file for the harness you are running under:
+
+- [`references/dsh-runtime.md`](references/dsh-runtime.md) — DSH skill loading, delegation mechanics, and why no external review command applies
+- [`references/codex-runtime.md`](references/codex-runtime.md) — Codex skill loading, delegation, and the `codex review` path
+- [`references/other-clis.md`](references/other-clis.md) — the per-CLI review-command matrix and the runner's host probes
 
 ## Final Report
 

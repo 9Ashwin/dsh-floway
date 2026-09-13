@@ -19,7 +19,7 @@
 | 用户在循环中途放弃 | 检查点已是最新，下次 `scan` + `next` 即可恢复 |
 | 循环期间新建了 issue | 本批不重新拉取；跑完当前批次后再开一次 `/loop-it` |
 | `.loop-state.json` 被 git 跟踪 | 提醒用户加入 `.gitignore` 并 `git rm --cached` |
-| 误以为需要外部 `goal` 命令 | DSH 的 `/goal` 是 UI 命令、模型调不到；「实现 issue」由 agent 内联完成，不要因此中止循环 |
+| 误以为需要外部 goal 命令 | 没有外部 goal 命令可用；「实现 issue」由 agent 内联完成，不要因此中止循环 |
 | issue 之间真并行（互不共享文件） | 本 skill 仍串行；改用 `/graph` 做波次并行（每节点独立 worktree） |
-| 长时间构建 / 测试 | 用 `job_*` 后台任务，拿到 job id 后继续别的工作 |
+| 长时间构建 / 测试 | 作为后台任务运行，拿到任务标识后继续别的工作 |
 | `/ship-it` 在批末失败 | 按 `error-recovery.md` 分类；批次分支与检查点都还在，修好后重新 ship，不必重跑已 shipped 的 issue |

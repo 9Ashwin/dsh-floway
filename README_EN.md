@@ -4,29 +4,29 @@
 </div>
 
 <div align="center">
-  <h1>dsh-floway</h1>
-  <p>A complete software workflow inside DeepSeek Harness: requirements → design → breakdown → parallel implementation → review → shipping.<br>
+  <h1>streamsmith</h1>
+  <p>A complete software workflow inside your coding agent: requirements → design → breakdown → parallel implementation → review → shipping.<br>
   Skills make the judgment calls; ordering and checkpoints go to tested scripts; implementation goes to subagents isolated in their own git worktree.</p>
   <div align="center">
-    <a href="https://9ashwin.github.io/dsh-floway/"><img src="https://img.shields.io/badge/%E5%9C%A8%E7%BA%BF%E6%96%87%E6%A1%A3-9ashwin.github.io-d97757" alt="Online docs" /></a>
-    <img src="https://img.shields.io/github/license/9Ashwin/dsh-floway" alt="License" />
-    <img src="https://img.shields.io/github/stars/9Ashwin/dsh-floway?style=social" alt="Stars" />
-    <img src="https://img.shields.io/github/forks/9Ashwin/dsh-floway?style=social" alt="Forks" />
-    <img src="https://img.shields.io/github/last-commit/9Ashwin/dsh-floway" alt="Last commit" />
+    <a href="https://9ashwin.github.io/streamsmith/"><img src="https://img.shields.io/badge/%E5%9C%A8%E7%BA%BF%E6%96%87%E6%A1%A3-9ashwin.github.io-d97757" alt="Online docs" /></a>
+    <img src="https://img.shields.io/github/license/9Ashwin/streamsmith" alt="License" />
+    <img src="https://img.shields.io/github/stars/9Ashwin/streamsmith?style=social" alt="Stars" />
+    <img src="https://img.shields.io/github/forks/9Ashwin/streamsmith?style=social" alt="Forks" />
+    <img src="https://img.shields.io/github/last-commit/9Ashwin/streamsmith" alt="Last commit" />
   </div>
   <h3>
-    <a href="https://9ashwin.github.io/dsh-floway/">Online docs</a> ·
+    <a href="https://9ashwin.github.io/streamsmith/">Online docs</a> ·
     <a href="#quick-start">Install</a> ·
     <a href="#skills">Skills</a> ·
     <a href="#how-it-runs">Workflow</a> ·
     <a href="#project-status">Project Status</a>
   </h3>
-  <img src="docs/workflow.png" alt="dsh-floway workflow infographic" width="1000">
+  <img src="docs/workflow.png" alt="streamsmith workflow infographic" width="1000">
 </div>
 
-## What is dsh-floway?
+## What is streamsmith?
 
-dsh-floway is a set of development-workflow skills for **DeepSeek Harness (DSH)**: 25 skills that take a change from "an idea" to "shipped code" through standard steps — requirements, design, breakdown, implementation, review, shipping — each owned by one skill. You say what you want; the agent asks the questions, writes the PRD, splits it into Issues with blocking edges, implements in parallel inside isolated worktrees, reviews, opens the PR and merges.
+streamsmith is a set of development-workflow skills: 25 skills that take a change from "an idea" to "shipped code" through standard steps — requirements, design, breakdown, implementation, review, shipping — each owned by one skill. You say what you want; the agent asks the questions, writes the PRD, splits it into Issues with blocking edges, implements in parallel inside isolated worktrees, reviews, opens the PR and merges.
 
 **An implementation node is a subagent** in its own git worktree, and its job stops at "implement → prove it against the project's gates → commit on its own branch". Leak check, integration, gates on the integrated tree, review and shipping are one step, done **once per wave**: a single PR closes every Issue the wave satisfies.
 
@@ -37,31 +37,37 @@ Ordering, layering, cycle detection and checkpointing are arithmetic, and they l
 ### Option 1: Install as a skill directory (recommended)
 
 ```bash
-npx skills add 9Ashwin/dsh-floway       # installs globally (~/.agents/skills)
+npx skills add 9Ashwin/streamsmith       # installs globally (~/.agents/skills)
 npx skills update -g                    # update from source later
 ```
 
-The skills land in `~/.agents/skills`, which DSH scans at session start. This is the least-effort route: it changes nothing in the profile's dependencies and works for every profile.
+The skills land in `~/.agents/skills`, and this route changes nothing in any profile's dependencies.
 
-### Option 2: Install as a DSH bundle (optional)
+`npx skills` scans recursively and flattens `skills/<bucket>/<skill>` into `~/.agents/skills/<skill>` — a skill root is scanned only one level deep, so the flattening is required. Copying by hand means doing that step yourself:
 
 ```bash
-dsh plugin --profile web add -w github:9Ashwin/dsh-floway
+cp -R <streamsmith>/skills/flow/graph ~/.agents/skills/graph   # flattened, not the bucket
+```
+
+### Option 2: Install as a bundle (optional)
+
+```bash
+dsh plugin --profile web add -w github:9Ashwin/streamsmith
 ```
 
 The package's `dsh.bundle` declaration makes `dsh` append it to the profile's `bundles` layer; the skills are then served by the **provider shipped inside the package**.
 
 ```bash
-dsh --profile web --dump-config | grep -A3 dsh-floway   # expect a "# == dsh-floway-skills" layer
+dsh --profile web --dump-config | grep -A3 streamsmith   # expect a "# == streamsmith-skills" layer
 ```
 
 <details>
 <summary><strong>More install details (pnpm errors / pinning a version / local checkout)</strong></summary>
 
 - If pnpm reports `ERR_PNPM_ADDING_TO_ROOT`, the profile is being treated as a workspace root — re-run with `-w` (pnpm 9 requires it).
-- Pin the commit in production: `dsh plugin --profile web add -w github:9Ashwin/dsh-floway#<sha>`.
+- Pin the commit in production: `dsh plugin --profile web add -w github:9Ashwin/streamsmith#<sha>`.
 - This is a **config-only package** (no build scripts), so no `allowBuilds` grant is needed.
-- Working from a local checkout: `dsh plugin --profile demo add -w /path/to/dsh-floway`.
+- Working from a local checkout: `dsh plugin --profile demo add -w /path/to/streamsmith`.
 
 </details>
 
@@ -72,7 +78,7 @@ Installing both never lists a skill twice; on a Web-like surface the bundle copy
 > [!TIP]
 > Not sure which skill to reach for? Type **`/ask-flow`** — it names the next thing to type and the decisions that are yours to make.
 >
-> The full usage guide (installation, how to trigger each step, acceptance criteria, FAQ) lives at **<https://9ashwin.github.io/dsh-floway/>**, which redirects to the Chinese or English version based on your browser language; in the repo it is [docs/index_cn.html](docs/index_cn.html) and [docs/index_en.html](docs/index_en.html).
+> The full usage guide (installation, how to trigger each step, acceptance criteria, FAQ) lives at **<https://9ashwin.github.io/streamsmith/>**, which redirects to the Chinese or English version based on your browser language; in the repo it is [docs/index_cn.html](docs/index_cn.html) and [docs/index_en.html](docs/index_en.html).
 
 ## How It Runs
 
@@ -88,14 +94,14 @@ A few deliberate design choices:
 
 - **Use `/graph` only when there is real parallelism.** One unit, two units that share a file, or chained work like "schema → API → UI" belongs in `/loop-it` or done inline — all of `/graph`'s value comes from nodes within a wave being genuinely independent.
 - **A single-node wave skips the wave branch.** There is nothing to integrate, so that node's branch goes straight to review and shipping.
-- **Failed nodes are retried in place first.** `send_message` reuses that node's own context; if the retry still fails, the node is re-run, and if it fails again it is dropped from the wave branch — its siblings were independent all along, so the rest ship as usual.
+- **Failed nodes are retried in place first.** A follow-up message reuses that node's own context instead of paying for a fresh child; if the retry still fails, the node is re-run, and if it fails again it is dropped from the wave branch — its siblings were independent all along, so the rest ship as usual.
 - **When one PR closes several Issues, list the evidence per item**: the commit, the Issue it closes, the test names that prove it, and the manual acceptance status. After a squash those commits are invisible on `main`, and without this table there is no way to roll back or audit one Issue on its own.
 
-## Why dsh-floway
+## Why streamsmith
 
 - **Cost is counted per wave, not per node.** Every subagent pays for the parent's system prompt, tool schemas, and skill catalog across its entire lifetime, and a `/review-it` + `/ship-it` per node means N PRs, N CI runs, and N chances to get stuck on a merge conflict. So nodes stop at commit, and review and shipping are collected at the wave level.
 - **The arithmetic lives in scripts.** Dependency ordering, wave layering, scope-conflict serialization, and the checkpoint state machine all sit in `scripts/`, each with self-tests; the skills describe when to use them and where the boundaries are, not how the algorithm works.
-- **Designed around DSH's real constraints, not an idealized model.** Subagents have no cwd of their own, every bash call is a fresh shell, delegation depth defaults to a cap of 3, and the skill catalog is billed to every subagent — all of which became hard rules in the skills (absolute-path discipline plus leak checks against the shared checkout, nodes may not spawn further subagents, and an optional [lean-subagent patch](skills/flow/graph/references/lean-subagent.md)).
+- **Designed around real constraints, not an idealized model.** Subagents have no cwd of their own, every shell call is a fresh shell, delegation depth is capped, and the skill catalog is billed to every subagent — all of which became hard rules in the skills (absolute-path discipline plus leak checks against the shared checkout, nodes may not spawn further subagents, and an optional [lean-subagent patch](skills/flow/graph/references/lean-subagent.md)).
 
 ## Skills
 
@@ -113,9 +119,9 @@ A few deliberate design choices:
 | Reverse engineering & docs | `/code-to-spec` · `/understand` · `/insight-diagram` | Reverse a SPEC out of code · turn the current change into an interactive review page · UML/architecture diagrams |
 | Content | `/humanize-it` · `/article-icons` · `/listenhub-tts` | De-AI-ify documents · article icons · text to speech |
 
-Five skills carry `disable-model-invocation` (`/ask-flow`, `/insight-diagram`, and the three content tools in the last row) and stay **out of the model catalog**: the model will not reach for them on its own, you type the command — which saves the fixed cost every session **and every subagent** would otherwise pay. Across the current 25 skills the catalog is 4,818 characters, of which the model actually sees **3,651**.
+Five skills carry `disable-model-invocation` (`/ask-flow`, `/insight-diagram`, and the three content tools in the last row) and stay **out of the model catalog**: the model will not reach for them on its own, you type the command — which saves the fixed cost every session **and every subagent** would otherwise pay. Across the current 25 skills the catalog is 4,818 characters, of which the model actually sees **3,651**. Those five also ship an `agents/openai.yaml` (`policy.allow_implicit_invocation: false`).
 
-`/goal` is a DSH **UI command**, not a skill: you type it at the prompt to create a persisted goal with automatic continuation rounds; the model cannot create one for you.
+`/goal` is a DSH **command**, not a skill: you type it at the prompt to create a persisted goal with automatic continuation rounds. The model side of that surface is `create_goal` / `update_goal`, but `create_goal` only runs in a **direct top-level human turn** — a subagent or a mid-orchestration step cannot mint a long-horizon goal for itself.
 
 ## Repository layout
 
@@ -133,14 +139,14 @@ A DSH skill root is scanned **exactly one level deep** (`<root>/<name>/SKILL.md`
 
 ## Project Status
 
-![License](https://img.shields.io/github/license/9Ashwin/dsh-floway) ![Last Commit](https://img.shields.io/github/last-commit/9Ashwin/dsh-floway) ![Commit Activity](https://img.shields.io/github/commit-activity/m/9Ashwin/dsh-floway) ![Issues](https://img.shields.io/github/issues/9Ashwin/dsh-floway) ![Pull Requests](https://img.shields.io/github/issues-pr/9Ashwin/dsh-floway)
+![License](https://img.shields.io/github/license/9Ashwin/streamsmith) ![Last Commit](https://img.shields.io/github/last-commit/9Ashwin/streamsmith) ![Commit Activity](https://img.shields.io/github/commit-activity/m/9Ashwin/streamsmith) ![Issues](https://img.shields.io/github/issues/9Ashwin/streamsmith) ![Pull Requests](https://img.shields.io/github/issues-pr/9Ashwin/streamsmith)
 
 ## Community & Feedback
 
-- 🌐 [**Online docs**](https://9ashwin.github.io/dsh-floway/) — usage guides in Chinese and English
-- 🐛 [**Issues**](https://github.com/9Ashwin/dsh-floway/issues) — bugs, feature requests, and skill improvements
+- 🌐 [**Online docs**](https://9ashwin.github.io/streamsmith/) — usage guides in Chinese and English
+- 🐛 [**Issues**](https://github.com/9Ashwin/streamsmith/issues) — bugs, feature requests, and skill improvements
 - 🧩 [**DeepSeek Harness**](https://github.com/deepseek-ai/DeepSeek-Harness) — the host these skills run on
 
 ## License
 
-MIT — see [LICENSE](./LICENSE).
+MIT — see [LICENSE](./LICENSE); upstream copyright notices are in [THIRD-PARTY-NOTICES.md](./THIRD-PARTY-NOTICES.md).

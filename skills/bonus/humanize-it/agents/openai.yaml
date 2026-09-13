@@ -1,0 +1,7 @@
+# Codex reads this file; DSH ignores it and uses the SKILL.md frontmatter instead.
+interface:
+  display_name: "Humanize It"
+  short_description: "Rewrite a document to remove AI tells"
+# Human-only tool: keep it out of the model's implicit-invocation catalog.
+policy:
+  allow_implicit_invocation: false

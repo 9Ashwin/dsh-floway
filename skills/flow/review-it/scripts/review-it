@@ -79,10 +79,13 @@ detect_agent() {
         echo "antigravity"
     elif [[ -n "${CLAUDE_CODE:-}" ]] || [[ -n "${CLAUDE_CLI:-}" ]]; then
         echo "claude"
+    elif [[ -n "${CODEX_HOME:-}" ]]; then
+        # Codex host: its state dir is exported, so the CLI is not required on PATH.
+        echo "codex"
     elif command -v codex &>/dev/null && [[ -n "${CODEX_CLI:-}" ]]; then
         echo "codex"
     else
-        # Default to dsh: this bundle is DSH-first.
+        # Nothing else matched: fall back to dsh, the default host.
         echo "dsh"
     fi
 }

@@ -35,7 +35,7 @@ Do not use this skill when:
 ## The Job
 
 1. Understand the scope — ask what part of the project to analyze (full project, specific module, or recent changes)
-2. Scan the codebase with the `grep`/`glob` tools (plus shell `find`/`grep` where useful), delegating breadth to `subagent` children, to gather candidate signals and evidence
+2. Scan the codebase — search files by name and by content, plus shell `find`/`grep` where useful — delegating breadth to **fresh children**, to gather candidate signals and evidence
 3. Validate candidates against context, callers, history, workload, and measurements before confirming findings
 4. Generate a detailed markdown report saved to `tasks/smell-report-[timestamp].md`
 5. Present a summary of confirmed findings and separate candidates to the user
@@ -60,7 +60,7 @@ If the user doesn't specify, default to option A for small projects (< 100 files
 
 ## Step 2: Evidence Gathering
 
-**Delegate the scan to `subagent` children.** DSH has no built-in subagent *types* — there is no `Explore` agent to select, and a child sees none of this conversation, so every prompt must be self-contained (state the directory to scan and exactly what to report). Fire several `subagent` calls in **one** assistant message to run them concurrently; each returns a child id immediately and reports back with a settlement notice, so collect them at the end rather than polling. Delegation depth is capped at 3 — children should scan, not delegate further. Run these explorations:
+**Delegate the scan to fresh children.** There are no built-in child *types* to select, and a fresh child sees none of this conversation, so every prompt must be self-contained (state the directory to scan and exactly what to report). Dispatch them **all in one assistant message** to run them concurrently; the parent is **notified when a child settles**, so collect them at the end rather than polling. Keep children shallow — they should scan, not delegate further. Run these explorations:
 
 ### Exploration Commands
 

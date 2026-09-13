@@ -134,7 +134,7 @@ Order work by impact, confidence, dependency sequence, and verification cost—n
 ```
 🔍 Architecture Smell Analysis Complete
 
-Project: dsh-floway
+Project: streamsmith
 Style: Modular Monolith (with some layering violations)
 Files Analyzed: 47
 Health: 🟡 Fair
