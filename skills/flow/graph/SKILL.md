@@ -70,6 +70,19 @@ Write a nodes file — this is the planner's only input:
 `scope` is the comma-separated set of files/directories the node expects to touch. It is how
 the planner detects that two dependency-free nodes are not actually independent.
 
+`criteria` is the node's acceptance checklist, copied into the child's prompt verbatim. Put it in
+**this file**, not only in the checkpoint: re-planning rebuilds every node from the nodes file, so a
+criterion that lives only in the checkpoint used to vanish on the next `plan` and the child was then
+told to "write them from the issue" — a silent quality loss on exactly the nodes that were
+re-planned. (The planner now falls back to the checkpoint, but the nodes file is the source of
+truth; keep it there.)
+
+`context` is the orchestrator's briefing for the child: one or two lines per dependency — what it
+added, where, and anything this node must know. The child cannot read the earlier nodes'
+conversations, so this is the only channel the graph has, and a node dispatched without it starts
+by re-deriving facts the graph already knew. Write it here rather than pasting it into a temp copy
+of the prompt, where the next dispatch silently drops it.
+
 `hot_files` is the opposite list: shared *wiring* files (a router, a `main`, a route table, a DI
 container, a type union) the node **will** touch but that must stay **out** of `scope`, because
 listing them there would serialize the whole graph into a chain. The planner does not serialize on
@@ -126,7 +139,17 @@ that is not the default, add those exact names too (`nodes-prd015.json`, `graph-
 `git status --porcelain` after the first write is the check that nothing slipped through.
 
 Show the user the plan and let them adjust nodes, edges or the concurrency cap **before** any
-child starts. Then hand `graph.html` to the user so they can watch it live.
+child starts. Then render and hand over `graph.html`:
+
+```
+python3 <SKILL_DIR>/scripts/render_graph_html.py .graph_state.json graph.html
+```
+
+Be precise about what that file is, because the page reloads itself every 5s and that invites the
+wrong assumption: **it is a snapshot**. The state is inlined at render time, so reloading shows the
+same board until you re-run the render command. Say so when you hand it over, and treat
+re-rendering as part of closing a wave (step 5) rather than an optional courtesy — a board that
+silently shows the previous wave is worse than no board, because the user believes it.
 
 ## Step 3: Run a wave
 
@@ -238,7 +261,16 @@ nodes; with one node it is pure ceremony.
    skill then opens: one commit/PR, merge, close the issues the wave satisfied. One squash commit buries N features, so the PR body must carry `ship-it`'s
    per-item evidence table (commit, issue, the test that proves it, manual-acceptance status) —
    without it neither you nor the user can audit or revert a single feature afterwards.
-5. Remove finished worktrees (keep failed ones), re-render the tracker, and checkpoint.
+5. Remove finished worktrees (keep failed ones), then **checkpoint and re-render the board**:
+
+   ```
+   python3 <SKILL_DIR>/scripts/graph_state.py plan --state .graph_state.json --nodes nodes.json --keep-shipped
+   python3 <SKILL_DIR>/scripts/render_graph_html.py .graph_state.json graph.html
+   ```
+
+   Both commands are the closing act of every wave, not a one-off at plan time. Skipping the render
+   leaves the user reading a stale board until they happen to ask about it; skipping the checkpoint
+   loses the wave boundary a crash would resume from.
 6. **Re-plan.** Read each node's `NEW_WORK:` line; if any is not `none`, add the node(s) and
    re-layer the remaining work with the planner before the next wave. Show the user the delta.
 

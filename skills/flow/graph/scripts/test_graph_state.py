@@ -285,6 +285,62 @@ def test_hot_file_colliding_with_a_scope_is_reported():
           not any("merges cleanly" in n for n in quiet), str(quiet))
 
 
+def test_node_context_fills_the_dependency_slot():
+    """The dependency briefing had no way in: a `context` on the node fills it.
+
+    Before this, the slot rendered an unfillable placeholder and the orchestrator had to
+    paste the briefing into a temp copy of the prompt — which the next dispatch dropped.
+    """
+    with tempfile.TemporaryDirectory() as tmp:
+        state_path = os.path.join(tmp, ".graph_state.json")
+        worktrees = os.path.join(tmp, "wt")
+        briefing = "#191 landed migration 012 in internal/storage; the table already exists."
+        state = {"version": 1, "task": "t", "repo": "", "waves": [[7]], "current_wave": 0,
+                 "nodes": {"7": {"title": "wire the router", "deps": [3], "type": "frontend",
+                                 "scope": ["src/app.ts"], "criteria": ["the route resolves"],
+                                 "context": briefing, "status": "pending"}}}
+        with open(state_path, "w", encoding="utf-8") as handle:
+            json.dump(state, handle)
+        buffer = io.StringIO()
+        with contextlib.redirect_stdout(buffer):
+            gs.cmd_prompt(gs.argparse.Namespace(state=state_path, node="7",
+                                                worktrees=worktrees, template=None))
+        out = buffer.getvalue()
+        check("the briefing reaches the child", briefing in out, out[-600:])
+        check("and the placeholder is gone", "FILL THIS IN" not in out, out[-600:])
+
+
+def test_replan_keeps_criteria_and_context_only_the_checkpoint_holds():
+    """Regression: a re-plan rebuilt every node from the nodes file, so a criterion
+    recorded only in the checkpoint was silently erased and the child was told to
+    "write them from the issue"."""
+    with tempfile.TemporaryDirectory() as tmp:
+        nodes_path = os.path.join(tmp, "nodes.json")
+        state_path = os.path.join(tmp, ".graph_state.json")
+        with open(nodes_path, "w", encoding="utf-8") as handle:
+            json.dump({"task": "t", "nodes": [{"id": 1, "title": "a", "scope": "src/a.ts"}]}, handle)
+        with contextlib.redirect_stdout(io.StringIO()):
+            gs.cmd_plan(gs.argparse.Namespace(nodes=nodes_path, state=state_path,
+                                              max_parallel=None, keep_shipped=False))
+        # the way the orchestrator records them once the issue is filed
+        state = json.load(open(state_path, encoding="utf-8"))
+        state["nodes"]["1"]["criteria"] = ["migration applies on a fresh database"]
+        state["nodes"]["1"]["context"] = "#191 landed migration 012; do not create the table again."
+        with open(state_path, "w", encoding="utf-8") as handle:
+            json.dump(state, handle)
+
+        with contextlib.redirect_stdout(io.StringIO()):
+            gs.cmd_plan(gs.argparse.Namespace(nodes=nodes_path, state=state_path,
+                                              max_parallel=None, keep_shipped=True))
+        again = json.load(open(state_path, encoding="utf-8"))
+        check("criteria survive a re-plan",
+              again["nodes"]["1"].get("criteria") == ["migration applies on a fresh database"],
+              str(again["nodes"]["1"]))
+        check("context survives a re-plan",
+              "migration 012" in (again["nodes"]["1"].get("context") or ""),
+              str(again["nodes"]["1"]))
+
+
 def test_recorded_branch_beats_the_synthesized_name():
     """Regression: `prompt` must not invent a branch a node is not actually on."""
     with tempfile.TemporaryDirectory() as tmp:
@@ -491,6 +547,8 @@ def main() -> int:
                  test_hot_file_colliding_with_a_scope_is_reported,
                  test_keep_shipped_carries_outcome,
                  test_prompt_renders_from_the_checkpoint,
+                 test_node_context_fills_the_dependency_slot,
+                 test_replan_keeps_criteria_and_context_only_the_checkpoint_holds,
                  test_recorded_branch_beats_the_synthesized_name,
                  test_set_records_the_branch_for_later_prompts,
                  test_max_parallel_persists_and_is_reused_on_replan,

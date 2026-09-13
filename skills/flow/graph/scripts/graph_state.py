@@ -375,6 +375,11 @@ def cmd_plan(args: argparse.Namespace) -> int:
     # re-planning without it would silently re-layer the waves and nobody would
     # see the change, because every node's status is preserved either way.
     previous, legacy_note = read_previous(args.state)
+    # The checkpoint is the only place a criterion sometimes lives (issues are filed
+    # and criteria pasted straight into it). Re-planning must not be destructive.
+    checkout_nodes = (previous or {}).get("nodes") or {}
+    previous_criteria = {k: v.get("criteria") for k, v in checkout_nodes.items() if v.get("criteria")}
+    previous_context = {k: v.get("context") for k, v in checkout_nodes.items() if v.get("context")}
     if legacy_note:
         notes.append(legacy_note)
     recorded = int((previous or {}).get("max_parallel") or 0)
@@ -412,7 +417,14 @@ def cmd_plan(args: argparse.Namespace) -> int:
                 "type": node.get("type", "task"),
                 "scope": sorted(scope_set(node)),
                 "hot_files": sorted(hot_set(node)),
-                "criteria": node.get("criteria") or [],
+                # Re-planning rebuilds every node from the nodes file, so anything
+                # recorded only in the checkpoint is silently lost. Criteria are the
+                # case that bites: they are usually written straight into the
+                # checkpoint when the issue is filed, and a later re-plan used to
+                # erase them (the child prompt then says "write them from the issue").
+                # Fall back to the checkpoint so re-planning is not destructive.
+                "criteria": node.get("criteria") or previous_criteria.get(str(nid)) or [],
+                "context": node.get("context") or previous_context.get(str(nid)) or "",
                 # A branch is recorded only when it is known. Synthesizing one at
                 # plan time would put a name in the checkpoint that nothing has
                 # created yet, and `prompt` would then present it as fact.
@@ -571,11 +583,16 @@ def cmd_prompt(args: argparse.Namespace) -> int:
         "- [ ] {criterion 1}\n- [ ] {criterion 2}",
         "\n".join(f"- [ ] {criterion}" for criterion in criteria)
         or "- [ ] (no criteria recorded — write them from the issue before dispatching)")
+    # `context` on a node is the orchestrator's dependency briefing. It existed as a
+    # placeholder with no way to fill it, which meant every dispatch had the text
+    # hand-appended to a temp copy of the prompt — an easy step to skip and a silent
+    # quality loss (the child cannot read the earlier nodes' conversations).
+    context = str(node.get("context") or "").strip()
     prompt = prompt.replace(
         "{summaries of dependency nodes' outputs, or the referenced PRD/SPEC excerpt}",
-        "(FILL THIS IN: one or two lines per dependency — what it added, where, and anything this "
-        "node must know. The child cannot read the earlier nodes' conversations, so this is the "
-        "only channel the graph has.)")
+        context or "(FILL THIS IN: one or two lines per dependency — what it added, where, and "
+        "anything this node must know. The child cannot read the earlier nodes' conversations, so "
+        "this is the only channel the graph has.)")
     for token, value in (
         ("{WT}", worktree),
         ("{N}", key),
