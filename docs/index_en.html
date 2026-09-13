@@ -930,8 +930,8 @@
 <span class="comment"># Update from the same source later</span>
 <span class="cmd">npx skills update</span> <span class="flag">-g</span>
 
-<span class="comment"># Install to a specific agent</span>
-<span class="cmd">npx skills add 9Ashwin/stream-it</span> <span class="flag">-a</span> <span class="value">dsh</span></code></pre>
+<span class="comment"># Install to one agent only (universal = the ~/.agents/skills location above)</span>
+<span class="cmd">npx skills add 9Ashwin/stream-it</span> <span class="flag">-g</span> <span class="flag">-a</span> <span class="value">universal</span></code></pre>
       <p>Skills land in <code class="inline-code">~/.agents/skills</code>. This is the least-effort route: nothing to change in a profile, and it applies to every profile.</p>
 
       <p><code class="inline-code">npx skills</code> scans recursively and flattens <code class="inline-code">skills/&lt;bucket&gt;/&lt;skill&gt;</code> into <code class="inline-code">~/.agents/skills/&lt;skill&gt;</code> on install — a skill root is scanned only one level deep, so the flattening is required. Copying by hand means doing that step yourself:</p>
