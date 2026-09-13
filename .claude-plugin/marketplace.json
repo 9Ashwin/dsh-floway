@@ -4,21 +4,66 @@
     "name": "9Ashwin",
     "url": "https://github.com/9Ashwin"
   },
-  "description": "An AI-driven development workflow — from PRD to shipped code, on DeepSeek Harness, Codex and Claude Code.",
+  "description": "An AI-driven development workflow — from PRD to shipped code.",
   "plugins": [
     {
-      "name": "stream-it-skills",
-      "source": "./",
-      "description": "PRD → SPEC → Issues → implement → review → ship, plus refactor, modernize and diagram skills — one skill per step.",
+      "name": "stream-it-flow",
+      "source": "./skills/flow",
+      "description": "The pipeline itself: PRD → SPEC → Issues → implement → review → walkthrough → ship, plus the batch and graph runners.",
       "category": "engineering",
-      "keywords": [
-        "workflow",
-        "prd",
-        "spec",
-        "issues",
-        "code-review",
-        "refactor",
-        "go"
+      "keywords": ["workflow", "prd", "spec", "issues", "code-review", "ship"],
+      "skills": [
+        "./prd",
+        "./prd-to-spec",
+        "./to-issues",
+        "./implement",
+        "./loop-it",
+        "./graph",
+        "./review-it",
+        "./walkthrough",
+        "./note-it",
+        "./ship-it"
+      ]
+    },
+    {
+      "name": "stream-it-practice",
+      "source": "./skills/practice",
+      "description": "Engineering practice you reach for mid-flow because something broke or quality is at stake.",
+      "category": "engineering",
+      "keywords": ["testing", "diagnosis", "conflict", "refactor", "triage"],
+      "skills": [
+        "./test-first",
+        "./diagnose",
+        "./conflict",
+        "./refactor",
+        "./smell",
+        "./modern-go",
+        "./triage"
+      ]
+    },
+    {
+      "name": "stream-it-meta",
+      "source": "./skills/meta",
+      "description": "The router that describes the set itself.",
+      "category": "engineering",
+      "keywords": ["router", "workflow"],
+      "skills": ["./ask-flow"]
+    },
+    {
+      "name": "stream-it-bonus",
+      "source": "./skills/bonus",
+      "description": "Produces artifacts that are not code: design docs, diagrams, specs and content.",
+      "category": "engineering",
+      "keywords": ["design", "diagrams", "spec", "content"],
+      "skills": [
+        "./code-to-spec",
+        "./to-design",
+        "./design-it",
+        "./understand",
+        "./insight-diagram",
+        "./humanize-it",
+        "./listenhub-tts",
+        "./article-icons"
       ]
     }
   ]

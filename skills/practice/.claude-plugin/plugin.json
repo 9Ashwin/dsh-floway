@@ -1,0 +1,15 @@
+{
+  "name": "stream-it-practice",
+  "version": "1.0.0",
+  "description": "Engineering practice you reach for mid-flow because something broke or quality is at stake.",
+  "license": "MIT",
+  "skills": [
+    "./conflict",
+    "./diagnose",
+    "./modern-go",
+    "./refactor",
+    "./smell",
+    "./test-first",
+    "./triage"
+  ]
+}

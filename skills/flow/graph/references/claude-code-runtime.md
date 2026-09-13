@@ -9,8 +9,11 @@ ones live.
 - **Roots.** Claude Code discovers a skill at `~/.claude/skills/<name>/SKILL.md` (personal) and
   `<project>/.claude/skills/<name>/SKILL.md` (project). A skill directory holds `SKILL.md` plus any
   `references/`, `scripts/` and `assets/`. Plugins contribute their skills through the plugin
-  manifest's `skills` list, which is why this collection installs by enumerating every nested
-  `./skills/<bucket>/<name>` path in `.claude-plugin/plugin.json`.
+  manifest's `skills` list, which is why this collection ships **one plugin per bucket**
+  (`skills/<bucket>/.claude-plugin/plugin.json`, declared in `.claude-plugin/marketplace.json`)
+  enumerating its own `./<name>` paths — that is what serves the `skills/<bucket>/<name>/` layout to
+  a plugin install, and it is also what makes `npx skills add` group its picker by bucket instead of
+  listing all 26 skills flat.
 - **Loading.** The model loads a skill through the **`Skill` tool** by name; a human types
   `/graph`. There is no separate host-level "skill" command beyond that. `<SKILL_DIR>` is the
   directory holding the `SKILL.md` the loader read; `references/…` and `scripts/…` resolve against

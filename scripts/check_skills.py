@@ -41,6 +41,7 @@ KEBAB = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
 BUCKETS = ("flow", "practice", "meta", "bonus")
 OPENAI_YAML = os.path.join("agents", "openai.yaml")
 PLUGIN_MANIFEST = os.path.join(".claude-plugin", "plugin.json")
+MARKETPLACE_MANIFEST = os.path.join(".claude-plugin", "marketplace.json")
 # A DSH loader string. It belongs in `references/dsh-runtime.md`; a body that
 # names it has leaked harness mechanics into the harness-neutral half.
 DSH_LOADER_STRING = "Base directory for this skill"
@@ -117,6 +118,8 @@ def discover(root: str) -> tuple[list[tuple[str, str, str]], list[str]]:
             problems.append(f"{entry}: unknown bucket (expected one of {', '.join(BUCKETS)})")
             continue
         for name in sorted(os.listdir(full)):
+            if name.startswith("."):
+                continue  # .claude-plugin and friends are manifests, not skills
             skill_dir = os.path.join(full, name)
             if not os.path.isdir(skill_dir):
                 continue
@@ -147,31 +150,127 @@ def check_bundle_patch(repo_root: str, buckets: set[str]) -> list[str]:
 
 
 def check_plugin_manifest(repo_root: str, relative_dirs: set[str]) -> list[str]:
-    """A Claude Code plugin manifest enumerates its skills by path.
+    """The marketplace must group the skills, and every skill must land in a group.
 
-    A skill dropped from that list is invisible to a plugin install while
-    everything else keeps working, which is the same class of silent failure as
-    a bucket missing from the bundle patch.
+    Two different readers use these manifests, and they fail in opposite
+    directions, so both are checked here:
+
+    * `npx skills add` builds its picker groups from the plugin `name` behind
+      each skill path (`getPluginGroupings` in the skills CLI). A skill missing
+      from every plugin's `skills` list still installs, but it drops into a
+      catch-all "Other" group — that is how `mattpocock/skills` ends up with an
+      "Other" group holding its in-progress skills.
+    * a plugin install reads the manifest inside the plugin directory.
+
+    The trap this exists to prevent: a *root* `.claude-plugin/plugin.json` that
+    lists skills. The CLI reads the marketplace first and the root plugin.json
+    second, and the second overwrites the first for the same path — so one root
+    manifest with a full `skills` list silently collapses every group back into
+    one, with no error anywhere.
     """
-    path = os.path.join(repo_root, PLUGIN_MANIFEST)
-    if not os.path.isfile(path):
+    marketplace = os.path.join(repo_root, MARKETPLACE_MANIFEST)
+    if not os.path.isfile(marketplace):
         return []
     try:
-        data = json.load(open(path, encoding="utf-8"))
+        data = json.load(open(marketplace, encoding="utf-8"))
     except (OSError, json.JSONDecodeError) as exc:
-        return [f"{PLUGIN_MANIFEST} is not readable JSON: {exc}"]
-    listed = data.get("skills")
-    if not isinstance(listed, list) or not listed:
-        return [f"{PLUGIN_MANIFEST} has no `skills` list"]
-    normalised = {os.path.normpath(str(entry)).replace(os.sep, "/") for entry in listed}
-    problems = [
-        f"{PLUGIN_MANIFEST} does not list {missing} — a plugin install would not serve it"
-        for missing in sorted(relative_dirs - normalised)
+        return [f"{MARKETPLACE_MANIFEST} is not readable JSON: {exc}"]
+
+    plugins = data.get("plugins")
+    if not isinstance(plugins, list) or not plugins:
+        return [f"{MARKETPLACE_MANIFEST} declares no plugins"]
+
+    problems: list[str] = []
+    if len(plugins) < 2:
+        problems.append(
+            f"{MARKETPLACE_MANIFEST} declares 1 plugin — the installer would show a single "
+            f"group titled after that plugin instead of one group per bucket"
+        )
+
+    claimed: dict[str, str] = {}
+    for plugin in plugins:
+        name = plugin.get("name")
+        if not isinstance(name, str) or not name:
+            problems.append(f"{MARKETPLACE_MANIFEST} has a plugin without a name")
+            continue
+        source = plugin.get("source")
+        if not isinstance(source, str) or not source:
+            problems.append(f"{MARKETPLACE_MANIFEST} plugin {name} has no source")
+            continue
+        listed = plugin.get("skills")
+        if not isinstance(listed, list) or not listed:
+            problems.append(
+                f"{MARKETPLACE_MANIFEST} plugin {name} has no `skills` list — the installer "
+                f"cannot group or find its skills"
+            )
+            continue
+        base = os.path.normpath(source).replace(os.sep, "/").strip("/")
+        if base.startswith(".."):
+            problems.append(f"{MARKETPLACE_MANIFEST} plugin {name} points outside the repo: {source}")
+            continue
+        for entry in listed:
+            rel = os.path.normpath(os.path.join(base, str(entry))).replace(os.sep, "/")
+            if rel in claimed:
+                problems.append(
+                    f"{MARKETPLACE_MANIFEST} lists {rel} under both {claimed[rel]} and {name} — "
+                    f"the installer keeps only the later one"
+                )
+            claimed[rel] = name
+        # The manifest inside the plugin directory is what a plugin install reads,
+        # so it has to agree with the marketplace entry rather than drift from it.
+        inner_path = os.path.join(repo_root, base, PLUGIN_MANIFEST)
+        if not os.path.isfile(inner_path):
+            problems.append(
+                f"{base}/{PLUGIN_MANIFEST} is missing — {name} would not install as a plugin"
+            )
+            continue
+        try:
+            inner = json.load(open(inner_path, encoding="utf-8"))
+        except (OSError, json.JSONDecodeError) as exc:
+            problems.append(f"{base}/{PLUGIN_MANIFEST} is not readable JSON: {exc}")
+            continue
+        if inner.get("name") != name:
+            problems.append(
+                f"{base}/{PLUGIN_MANIFEST} names itself {inner.get('name')!r}, but the "
+                f"marketplace calls it {name!r}"
+            )
+        inner_skills = {
+            os.path.normpath(os.path.join(base, str(e))).replace(os.sep, "/")
+            for e in inner.get("skills") or []
+        }
+        expected = {
+            os.path.normpath(os.path.join(base, str(e))).replace(os.sep, "/") for e in listed
+        }
+        if inner_skills != expected:
+            problems.append(
+                f"{base}/{PLUGIN_MANIFEST} and {MARKETPLACE_MANIFEST} disagree about {name}'s "
+                f"skills: only-in-inner={sorted(inner_skills - expected)}, "
+                f"only-in-marketplace={sorted(expected - inner_skills)}"
+            )
+
+    problems += [
+        f"no plugin lists {missing} — the installer would drop it into an 'Other' group"
+        for missing in sorted(relative_dirs - set(claimed))
     ]
     problems += [
-        f"{PLUGIN_MANIFEST} lists {extra}, which is not a skill directory"
-        for extra in sorted(normalised - relative_dirs)
+        f"a plugin lists {extra}, which is not a skill directory"
+        for extra in sorted(set(claimed) - relative_dirs)
     ]
+
+    root_manifest = os.path.join(repo_root, PLUGIN_MANIFEST)
+    if os.path.isfile(root_manifest):
+        try:
+            root_data = json.load(open(root_manifest, encoding="utf-8"))
+        except (OSError, json.JSONDecodeError) as exc:
+            problems.append(f"{PLUGIN_MANIFEST} is not readable JSON: {exc}")
+        else:
+            if root_data.get("skills"):
+                problems.append(
+                    f"{PLUGIN_MANIFEST} lists skills, and the installer reads it after "
+                    f"{MARKETPLACE_MANIFEST} and overwrites its groups — every skill would "
+                    f"collapse into one group named {root_data.get('name')!r}. Keep the skill "
+                    f"lists in the plugin directories only."
+                )
     return problems
 
 

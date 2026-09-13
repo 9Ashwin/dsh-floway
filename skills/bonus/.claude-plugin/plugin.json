@@ -1,0 +1,16 @@
+{
+  "name": "stream-it-bonus",
+  "version": "1.0.0",
+  "description": "Produces artifacts that are not code: design docs, diagrams, specs and content.",
+  "license": "MIT",
+  "skills": [
+    "./article-icons",
+    "./code-to-spec",
+    "./design-it",
+    "./humanize-it",
+    "./insight-diagram",
+    "./listenhub-tts",
+    "./to-design",
+    "./understand"
+  ]
+}

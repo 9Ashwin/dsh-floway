@@ -901,6 +901,7 @@
       <ul class="step-list">
         <li>skills 落到 <code class="inline-code">~/.agents/skills</code>，这条装法不必动任何 profile 依赖。</li>
         <li><code class="inline-code">npx skills</code> 递归扫描，安装时把 <code class="inline-code">skills/&lt;桶&gt;/&lt;技能&gt;</code> <strong>拍平</strong>成 <code class="inline-code">~/.agents/skills/&lt;技能&gt;</code>——技能根只扫一层，所以必须拍平。</li>
+        <li>选择技能时按桶分成 <strong>4 组</strong>（flow / practice / meta / bonus），不是 26 项平铺：分组来自 <code class="inline-code">.claude-plugin/marketplace.json</code> 里「每桶一个 plugin」的声明；没有归属声明的技能会掉进兜底的 <code class="inline-code">Other</code> 组。</li>
         <li>这是最省事的一条路：不必动 profile 的依赖，对所有 profile 都生效。</li>
       </ul>
       <p>手动拷贝时要自己完成<strong>拍平</strong>这一步——不要连桶一起拷：</p>

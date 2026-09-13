@@ -1,0 +1,18 @@
+{
+  "name": "stream-it-flow",
+  "version": "1.0.0",
+  "description": "The pipeline itself: PRD → SPEC → Issues → implement → review → walkthrough → ship, plus the batch and graph runners.",
+  "license": "MIT",
+  "skills": [
+    "./graph",
+    "./implement",
+    "./loop-it",
+    "./note-it",
+    "./prd",
+    "./prd-to-spec",
+    "./review-it",
+    "./ship-it",
+    "./to-issues",
+    "./walkthrough"
+  ]
+}
