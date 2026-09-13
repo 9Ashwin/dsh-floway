@@ -238,6 +238,7 @@ EOF
 )"
 
 # 切回主分支
-git checkout main
+# 切回默认分支并同步（分支名可能是 main 或 master）
+git checkout main   # 或 master
 git pull
 ```

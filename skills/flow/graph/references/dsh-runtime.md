@@ -76,14 +76,18 @@ resolve the skill's relative paths against it. The bundled default is `~/.agents
 
 ```bash
 ROOT="$(git rev-parse --show-toplevel)"
+# The default branch is not always `main`. Resolve it once and use $BASE everywhere below:
+# a repo whose default is `master` fails every command that assumes otherwise.
+BASE="$(git symbolic-ref -q --short refs/remotes/origin/HEAD 2>/dev/null | sed 's|^origin/||')"
+BASE="${BASE:-$(git rev-parse --abbrev-ref HEAD)}"
 mkdir -p "$(dirname "$ROOT")/.graph-worktrees"
 WT="$(cd "$(dirname "$ROOT")/.graph-worktrees" && pwd)/node-{N}"
-git worktree add -b feat/node-{N}-{slug} "$WT" main
+git worktree add -b feat/node-{N}-{slug} "$WT" "$BASE"
 echo "$WT"      # this absolute path goes into the node prompt
 ```
 
 Nodes commit to `feat/node-{N}-{slug}`. The wave integrates them into `wave-{K}-{slug}` off
-`main`, and that branch is what gets reviewed and shipped. Remove a finished worktree with
+the default branch (`$BASE`), and that branch is what gets reviewed and shipped. Remove a finished worktree with
 `git worktree remove <abs path>`; keep a failed one for investigation.
 
 ## State file and tracker

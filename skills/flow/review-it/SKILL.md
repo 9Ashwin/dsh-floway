@@ -67,11 +67,14 @@ git diff --cached
 **Branch / PR work** — generate the diff, then review that file:
 
 ```bash
-base=$(gh pr view --json baseRefName --jq .baseRefName 2>/dev/null || echo main)
+# Fall back to the repo's default branch, not to the literal `main`.
+base=$(gh pr view --json baseRefName --jq .baseRefName 2>/dev/null \
+  || git symbolic-ref -q --short refs/remotes/origin/HEAD 2>/dev/null | sed 's|^origin/||' \
+  || echo main)
 git diff "origin/$base"...HEAD > /tmp/review-it.diff
 ```
 
-**Integrated wave** (called by `/graph` at fan-in) — target `git diff main...wave-{K}-{slug}` (or the single node's branch) and review it **one section per node**, spending the pass on the seams between nodes: shared interfaces, wiring/setup files, config and state that two nodes both touch. That is the class of defect a per-node review cannot see.
+**Integrated wave** (called by `/graph` at fan-in) — target `git diff <default-branch>...wave-{K}-{slug}` (or the single node's branch) and review it **one section per node**, spending the pass on the seams between nodes: shared interfaces, wiring/setup files, config and state that two nodes both touch. That is the class of defect a per-node review cannot see.
 
 To have a *child* do the review instead, hand the diff path to a `subagent` with a fully self-contained prompt — it sees none of this conversation.
 
@@ -92,7 +95,7 @@ Tradeoff: tests may force code changes that stale the review. If tests or review
 ## Uncommitted vs Branch Review
 
 - **Uncommitted changes** (staged/unstaged): review them in place
-- **Committed, not pushed**: `git diff origin/main...HEAD`, then review
+- **Committed, not pushed**: `git diff origin/<default-branch>...HEAD`, then review
 - **Pushed/PR**: same as committed, against the PR base
 - **Clean working tree**: skip review if there's truly nothing to review
 
@@ -107,7 +110,7 @@ Bundled helper for target detection and parallel test + review orchestration:
 The helper:
 - Detects the running agent (`--agent auto`): DSH via `DSH_SESSION_ID` / `DSH_HOME`, and it **defaults to DSH** when nothing else matches
 - Detects whether to use uncommitted review or branch diff review
-- For branch mode: generates the diff against `origin/main` (or the PR base)
+- For branch mode: generates the diff against the default branch (`origin/main` or `origin/master` — resolved, not assumed) or the PR base
 - Prints what to review instead of an external command — DSH has no review CLI, so the calling agent does the review
 - Supports `--parallel-tests` for concurrent test + review execution
 - Supports `--dry-run` for checking what command would be used

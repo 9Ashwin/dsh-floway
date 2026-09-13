@@ -30,7 +30,7 @@ Acceptance criteria (all must pass):
 - [ ] {criterion 1}
 - [ ] {criterion 2}
 
-Context (dependency nodes are already merged into main):
+Context (dependency nodes are already merged into the default branch):
 {summaries of dependency nodes' outputs, or the referenced PRD/SPEC excerpt}
 
 Your job — implement, prove, commit. Nothing else:

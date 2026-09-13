@@ -95,9 +95,13 @@ Create one worktree per node in the wave, capturing each **absolute** path:
 
 ```bash
 ROOT="$(git rev-parse --show-toplevel)"
+# The default branch is not always `main`. Resolve it once and use $BASE everywhere below:
+# a repo whose default is `master` fails every command that assumes otherwise.
+BASE="$(git symbolic-ref -q --short refs/remotes/origin/HEAD 2>/dev/null | sed 's|^origin/||')"
+BASE="${BASE:-$(git rev-parse --abbrev-ref HEAD)}"
 mkdir -p "$(dirname "$ROOT")/.graph-worktrees"
 WT="$(cd "$(dirname "$ROOT")/.graph-worktrees" && pwd)/node-{N}"
-git worktree add -b feat/node-{N}-{slug} "$WT" main
+git worktree add -b feat/node-{N}-{slug} "$WT" "$BASE"
 ```
 
 Then dispatch: **one delegation call per node, all in a single assistant message** — that is
@@ -122,7 +126,7 @@ settlement notice. `list_agents(scope="descendants")` audits who is still runnin
 The barrier is the arrival of **every** node's settlement notice. Then, in order:
 
 **A wave of one node has nothing to integrate.** Skip the wave branch and the merge ceremony
-for it — review and ship that node's branch directly against `main`. The wave exists to combine
+for it — review and ship that node's branch directly against the default branch (`$BASE`). The wave exists to combine
 nodes; with one node it is pure ceremony.
 
 1. **Leak check, then mark.** `git status --porcelain` on the shared checkout must be clean and
@@ -136,7 +140,7 @@ nodes; with one node it is pure ceremony.
 2. **Integrate and verify the combination, not the parts.** Merge only the nodes that `shipped`
    — a `failed` node's branch is never merged:
    ```bash
-   git checkout main && git pull
+   git checkout "$BASE" && git pull
    git checkout -b wave-{K}-{slug}              # skipped when the wave has one node
    git merge --no-ff feat/node-{N}-{slug}      # once per shipped node in the wave
    <the project's gates>                        # e.g. ./run_all.sh, on the integrated tree
@@ -144,7 +148,7 @@ nodes; with one node it is pure ceremony.
    Every node passing alone while the integration fails is a normal outcome. Fix it here, in the
    wave. If a node failed, see Step 5 — the rest of the wave still ships when nothing in it
    depends on the failure.
-3. **Review the wave once, node by node.** Target `git diff main...wave-{K}-{slug}` (or the
+3. **Review the wave once, node by node.** Target `git diff "$BASE"...wave-{K}-{slug}` (or the
    single node's branch). Read it as **one section per node**, in planned order, and give the
    *seams* — shared interfaces, wiring/setup files, config and state that two nodes both touch —
    more attention than the nodes' interiors: that is the class of defect a per-node review
@@ -181,7 +185,7 @@ as a fresh node, then drop.
 - **Absolute paths inside a node are mandatory** — the failure mode is silent and it corrupts a wave.
 - **Leak check before every merge** — a modified *tracked* file in the shared checkout means a node escaped its worktree; untracked files from another session are not a leak.
 - **One review and one ship per wave** — per-node review is self-review; per-node PRs are the expensive mode.
-- **Never force-push to `main`.** Nodes commit to their own branches; the wave ships one PR.
+- **Never force-push to the default branch.** Nodes commit to their own branches; the wave ships one PR.
 - **Respect the depth budget** — nodes are depth 1 and must not spawn their own subagents.
 - **Cap concurrency** (3–4 by default), **prefer waves of 2–3 nodes**, and **keep the child count honest** — the wave is the blast radius of one bad integration, so do trivia inline.
 - **Confirm the plan** before the first fan-out, and keep `.graph_state` + `graph.html` current.

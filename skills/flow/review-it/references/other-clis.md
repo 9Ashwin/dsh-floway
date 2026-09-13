@@ -27,7 +27,7 @@ Dirty local work (default — `/review` works on uncommitted changes):
 Branch/PR work — generate a diff, then review it:
 
 ```bash
-git diff origin/main...HEAD > /tmp/review-it.diff
+git diff "origin/$(git symbolic-ref -q --short refs/remotes/origin/HEAD | sed 's|^origin/||' || echo main)"...HEAD > /tmp/review-it.diff
 ```
 
 Then review the diff file with a focused prompt:
@@ -54,7 +54,7 @@ Dirty local work:
 Branch/PR work:
 
 ```bash
-git diff origin/main...HEAD > /tmp/review-it.diff
+git diff "origin/$(git symbolic-ref -q --short refs/remotes/origin/HEAD | sed 's|^origin/||' || echo main)"...HEAD > /tmp/review-it.diff
 ```
 
 Then:
@@ -70,7 +70,7 @@ Then:
 codex review
 
 # Review branch diff
-git diff origin/main...HEAD > /tmp/review-it.diff
+git diff "origin/$(git symbolic-ref -q --short refs/remotes/origin/HEAD | sed 's|^origin/||' || echo main)"...HEAD > /tmp/review-it.diff
 codex review /tmp/review-it.diff
 ```
 
