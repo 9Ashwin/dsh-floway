@@ -258,6 +258,27 @@ def test_prompt_renders_from_the_checkpoint():
               "unfilled placeholders" not in out, out[-300:])
 
 
+def test_hot_file_colliding_with_a_scope_is_reported():
+    """The shape that cost three conflict resolutions: one node owns the file, another edits it."""
+    by_id = {1: {"id": 1, "title": "owns the router", "deps": [], "scope": "src/router.ts"},
+             2: {"id": 2, "title": "registers a route", "deps": [], "scope": "src/b.ts",
+                  "hot_files": "src/router.ts"}}
+    waves, notes = gs.layer(by_id)
+    check("an owned file plus a hot file does not serialize", waves == [[1, 2]], str(waves))
+    hit = [n for n in notes if "src/router.ts" in n]
+    check("the cross collision is called out", len(hit) == 1, str(notes))
+    check("the warning names both sides",
+          bool(hit) and "#1" in hit[0] and "#2" in hit[0], str(hit))
+    check("it says who owns the file", bool(hit) and "scope" in hit[0], str(hit))
+
+    # Negative control: same shape, nothing shared -> silent.
+    apart = {1: {"id": 1, "title": "a", "deps": [], "scope": "src/x.ts"},
+             2: {"id": 2, "title": "b", "deps": [], "scope": "src/b.ts", "hot_files": "src/y.ts"}}
+    _, quiet = gs.layer(apart)
+    check("no shared interest produces no note",
+          not any("merges cleanly" in n for n in quiet), str(quiet))
+
+
 def main() -> int:
     print("graph_state.py tests")
     for test in (test_dependencies_hold_across_waves, test_scope_collision_defers_without_breaking_order,
@@ -268,7 +289,8 @@ def main() -> int:
                  test_single_node_wave_skips_wave_branch,
                  test_hot_file_overlap_warns_without_serializing,
                  test_keep_shipped_carries_outcome,
-                 test_prompt_renders_from_the_checkpoint):
+                 test_prompt_renders_from_the_checkpoint,
+                 test_hot_file_colliding_with_a_scope_is_reported):
         print(f"- {test.__name__}")
         test()
     if failures:

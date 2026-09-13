@@ -186,21 +186,34 @@ def layer(by_id: dict[int, dict]) -> tuple[list[list[int]], list[str]]:
         placed.update(wave)
 
         # Hot files are deliberately outside `scope`, so the scope check above
-        # cannot see this collision. Warn rather than serialize: keeping these
-        # files out of scope is what lets a wave stay parallel at all.
-        holders: dict[str, list[int]] = {}
+        # cannot see this collision — and it is not enough to compare hot lists
+        # to each other either. The dangerous shape is a node that *owns* a file
+        # (`scope`) sharing a wave with a node that *edits* it (`hot_files`):
+        # that is exactly "one node owns the route table, three others append to
+        # it", which is how a wave resolves the same import block three times.
+        # Warn rather than serialize: keeping these files out of scope is what
+        # lets a wave stay parallel at all.
+        interests: dict[str, dict[str, list[int]]] = {}
         for nid in wave:
+            for path in scope_set(by_id[nid]):
+                interests.setdefault(path, {"scope": [], "hot": []})["scope"].append(nid)
             for path in hot_set(by_id[nid]):
-                holders.setdefault(path, []).append(nid)
-        for path in sorted(holders):
-            editors = holders[path]
-            if len(editors) > 1:
-                who = ", ".join(f"#{nid}" for nid in editors)
-                notes.append(
-                    f"wave {len(waves) - 1}: {who} all declare hot file {path} — "
-                    f"that only merges cleanly if each edits its own region; "
-                    f"serialize them or give one node ownership"
-                )
+                interests.setdefault(path, {"scope": [], "hot": []})["hot"].append(nid)
+        for path in sorted(interests):
+            hot = sorted(set(interests[path]["hot"]))
+            if not hot:
+                continue  # a scope-only clash never reaches here: it is serialized above
+            interested = sorted(set(hot) | set(interests[path]["scope"]))
+            if len(interested) < 2:
+                continue  # only one node cares about this file
+            who = ", ".join(f"#{nid}" for nid in interested)
+            owners = sorted(set(interests[path]["scope"]))
+            shape = (f"{who} all touch {path} and {', '.join(f'#{nid}' for nid in owners)} "
+                     f"have it in scope" if owners else f"{who} all declare {path} as a hot file")
+            notes.append(
+                f"wave {len(waves) - 1}: {shape} — that only merges cleanly if each edits its "
+                f"own region; serialize them or give one node ownership"
+            )
     return waves, notes
 
 
