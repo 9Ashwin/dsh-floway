@@ -41,18 +41,18 @@ A change can pass every standard and still implement the wrong thing, and one me
 2. **Check it three ways**: required but **missing** / **extra** but unrequested / present but **wrong**.
 3. **Quote the criterion** each finding is checked against, so it is falsifiable rather than a preference.
 
-## Review Focus — Standards 轴
+## Review Focus — Standards Axis
 
-请 review 当前 diff。不要只看语法和明显 bug，请重点检查以下维度，最后按严重程度排序：
+Review the current diff. Don't stop at syntax and obvious bugs — focus on the dimensions below, and rank the findings by severity at the end. The Chinese term in each heading is the one to use when reporting in Chinese.
 
-1. **隐藏副作用 (Hidden Side Effects)** — 变更是否在非显而易见的地方产生级联影响？是否修改了共享状态、全局变量、或外部依赖的行为？
-2. **破坏兼容性 (Breaking Compatibility)** — 是否改变了 API 签名、数据结构、配置文件格式、或命令行接口？现有调用方是否会受影响？
-3. **边界情况 (Edge Cases)** — null/空值/空集合、极大/极小值、并发/竞态条件、异常路径是否被正确处理？
-4. **性能风险 (Performance Risks)** — 是否引入了不必要的循环嵌套、N+1 查询、大对象分配、阻塞 I/O、或锁竞争？
-5. **安全风险 (Security Risks)** — 是否存在注入、越权、敏感信息泄露、不安全的反序列化、或依赖版本漏洞？
-6. **命名误导 (Naming Misleading)** — 变量/函数/类型名称是否与实际行为不一致？是否存在名不副实或语义模糊的命名？
-7. **测试不足 (Insufficient Testing)** — 关键路径、边界条件、错误处理是否缺少测试覆盖？现有测试是否真正验证了期望行为？
-8. **未来维护成本 (Future Maintenance Cost)** — 是否引入了不必要的抽象、重复代码、隐式耦合、或难以追踪的控制流？后来者是否容易理解和修改？
+1. **Hidden Side Effects (隐藏副作用)** — does the change cascade somewhere non-obvious? Does it mutate shared state, global variables, or the behaviour of an external dependency?
+2. **Breaking Compatibility (破坏兼容性)** — does it change an API signature, a data structure, a config file format, or a CLI interface? Are existing callers affected?
+3. **Edge Cases (边界情况)** — are null / empty / empty-collection values, extremes, concurrency and races, and error paths handled correctly?
+4. **Performance Risks (性能风险)** — does it introduce unnecessary nested loops, N+1 queries, large allocations, blocking I/O, or lock contention?
+5. **Security Risks (安全风险)** — is there injection, privilege escalation, sensitive-data exposure, unsafe deserialization, or a vulnerable dependency version?
+6. **Misleading Naming (命名误导)** — do variable / function / type names disagree with what the code does? Any name that is ambiguous or promises something it does not deliver?
+7. **Insufficient Testing (测试不足)** — are critical paths, boundary conditions and error handling missing coverage? Do the existing tests actually verify the intended behaviour?
+8. **Future Maintenance Cost (未来维护成本)** — does it add unnecessary abstraction, duplicated code, implicit coupling, or hard-to-follow control flow? Can a newcomer understand and change it?
 
 ## Pick Target
 
