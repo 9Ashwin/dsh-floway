@@ -195,9 +195,12 @@ nodes; with one node it is pure ceremony.
    discipline held. (Untracked files belonging to *another* session are not a leak; a modified
    *tracked* file is.) That is exactly why Step 2 commits the ignore rule up front: an
    uncommitted `.gitignore` edit would make the orchestrator flag itself as the leak.
-   Record each outcome with the planner:
+   Record each outcome with the planner, **including the branch the node actually
+   worked on** — everything downstream (the merge list below, a later re-plan, a
+   rendered prompt) reads it from the checkpoint, so an unrecorded branch falls
+   back to a name derived from the title:
    ```bash
-   python3 <SKILL_DIR>/scripts/graph_state.py set --node {N} --status shipped --commit {sha}
+   python3 <SKILL_DIR>/scripts/graph_state.py set --node {N} --status shipped --commit {sha} --branch {branch}
    ```
    It prints whether the wave is still open, and on the last node it prints the fan-in checklist.
 2. **Integrate and verify the combination, not the parts.** Merge only the nodes that `shipped`
@@ -206,7 +209,7 @@ nodes; with one node it is pure ceremony.
    git checkout "$BASE"
    git rev-parse --abbrev-ref --symbolic-full-name '@{u}' >/dev/null 2>&1 && git pull   # only with an upstream
    git checkout -b wave-{K}-{slug}              # skipped when the wave has one node
-   git merge --no-ff feat/node-{N}-{slug}      # once per shipped node in the wave
+   git merge --no-ff feat/node-{N}-{slug}      # once per shipped node, using each node's recorded branch
    <the project's gates>                        # e.g. ./run_all.sh, on the integrated tree
    ```
    Every node passing alone while the integration fails is a normal outcome. Fix it here, in the
