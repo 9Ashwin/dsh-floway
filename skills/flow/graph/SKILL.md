@@ -261,16 +261,21 @@ nodes; with one node it is pure ceremony.
    skill then opens: one commit/PR, merge, close the issues the wave satisfied. One squash commit buries N features, so the PR body must carry `ship-it`'s
    per-item evidence table (commit, issue, the test that proves it, manual-acceptance status) —
    without it neither you nor the user can audit or revert a single feature afterwards.
-5. Remove finished worktrees (keep failed ones), then **checkpoint and re-render the board**:
+5. Remove finished worktrees (keep failed ones), then **re-render the board**:
 
    ```
-   python3 <SKILL_DIR>/scripts/graph_state.py plan --state .graph_state.json --nodes nodes.json --keep-shipped
    python3 <SKILL_DIR>/scripts/render_graph_html.py .graph_state.json graph.html
    ```
 
-   Both commands are the closing act of every wave, not a one-off at plan time. Skipping the render
-   leaves the user reading a stale board until they happen to ask about it; skipping the checkpoint
-   loses the wave boundary a crash would resume from.
+   Re-rendering is the closing act of every wave, not a one-off at plan time: the page is a
+   snapshot, so skipping it leaves the user reading the previous wave until they happen to ask.
+   (With a custom `--state`, substitute that name here and in every command in this skill.)
+
+   The checkpoint itself is already current. `set` writes it with each node's outcome, including
+   the last node of the wave, so there is nothing extra to run for durability — and the board
+   derives the wave still in progress from those statuses, so a re-render alone shows the right
+   one. Re-layering with `plan --keep-shipped` belongs to the next step, and only when the plan
+   actually changed.
 6. **Re-plan.** Read each node's `NEW_WORK:` line; if any is not `none`, add the node(s) and
    re-layer the remaining work with the planner before the next wave. Show the user the delta.
 

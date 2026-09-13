@@ -535,6 +535,51 @@ def test_legacy_checkpoint_name_is_still_read():
             os.chdir(cwd)
 
 
+def test_nodes_file_can_clear_a_checkpoint_value():
+    """The nodes file is the source of truth, including when it says "nothing".
+
+    Presence decides, not truthiness: `"criteria": []` is a deliberate clear, and
+    reading it as "not provided" resurrected the checkpoint's value, so criteria
+    could never be removed by re-planning.
+    """
+    with tempfile.TemporaryDirectory() as tmp:
+        nodes_path = os.path.join(tmp, "nodes.json")
+        state_path = os.path.join(tmp, ".graph_state.json")
+
+        def replan(spec):
+            with open(nodes_path, "w", encoding="utf-8") as handle:
+                json.dump(spec, handle)
+            with contextlib.redirect_stdout(io.StringIO()):
+                gs.cmd_plan(gs.argparse.Namespace(nodes=nodes_path, state=state_path,
+                                                  max_parallel=None, keep_shipped=True))
+            return json.load(open(state_path, encoding="utf-8"))["nodes"]["1"]
+
+        replan({"task": "t", "nodes": [{"id": 1, "title": "a", "scope": "src/a.ts",
+                                        "criteria": ["from the plan"]}]})
+        # the orchestrator replaces them straight in the checkpoint
+        state = json.load(open(state_path, encoding="utf-8"))
+        state["nodes"]["1"]["criteria"] = ["written into the checkpoint"]
+        state["nodes"]["1"]["context"] = "briefing written into the checkpoint"
+        with open(state_path, "w", encoding="utf-8") as handle:
+            json.dump(state, handle)
+
+        node = replan({"task": "t", "nodes": [{"id": 1, "title": "a", "scope": "src/a.ts"}]})
+        check("an omitted field falls back to the checkpoint",
+              node["criteria"] == ["written into the checkpoint"]
+              and "checkpoint" in node["context"], str(node))
+
+        node = replan({"task": "t", "nodes": [{"id": 1, "title": "a", "scope": "src/a.ts",
+                                               "criteria": [], "context": ""}]})
+        check("an explicit empty list clears criteria", node["criteria"] == [], str(node))
+        check("an explicit empty string clears context", node["context"] == "", str(node))
+
+        node = replan({"task": "t", "nodes": [{"id": 1, "title": "a", "scope": "src/a.ts",
+                                               "criteria": ["replaced"],
+                                               "context": "replaced"}]})
+        check("a value in the nodes file still wins",
+              node["criteria"] == ["replaced"] and node["context"] == "replaced", str(node))
+
+
 def main() -> int:
     print("graph_state.py tests")
     for test in (test_dependencies_hold_across_waves, test_scope_collision_defers_without_breaking_order,
@@ -552,7 +597,8 @@ def main() -> int:
                  test_recorded_branch_beats_the_synthesized_name,
                  test_set_records_the_branch_for_later_prompts,
                  test_max_parallel_persists_and_is_reused_on_replan,
-                 test_legacy_checkpoint_name_is_still_read):
+                 test_legacy_checkpoint_name_is_still_read,
+                 test_nodes_file_can_clear_a_checkpoint_value):
         print(f"- {test.__name__}")
         test()
     if failures:

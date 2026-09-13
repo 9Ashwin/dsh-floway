@@ -15,6 +15,9 @@ import os
 import sys
 from datetime import datetime
 
+STATE_DEFAULT = ".graph_state.json"
+LEGACY_STATE = ".graph_state"
+
 STATUS = {
     "pending":     ("Pending",     "#8C8579", "#EFECE3"),
     "in_progress": ("In Progress", "#CC785C", "#F7E9E2"),
@@ -74,7 +77,26 @@ def mermaid(state):
     return "\n".join(lines)
 
 
-def render(state):
+TERMINAL = {"shipped", "skipped", "failed", "blocked"}
+
+
+def current_wave(state):
+    """The wave still waiting on work — derived, never read from the file.
+
+    `state['current_wave']` is a cached copy that only a plan/set refreshes, so a
+    board that trusted it could mark the wrong wave (recording the last node of a
+    wave used to leave it pointing at the wave that had just closed). Node
+    statuses are the source of truth.
+    """
+    waves = state.get("waves", [])
+    nodes = state.get("nodes", {})
+    for index, wave in enumerate(waves):
+        if any(nodes.get(str(nid), {}).get("status", "pending") not in TERMINAL for nid in wave):
+            return index
+    return len(waves)
+
+
+def render(state, source: str = STATE_DEFAULT):
     # Stamped into the footer so a stale board is visibly stale: the page is a
     # snapshot, and the reload every 5s cannot change it on its own.
     rendered_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -86,7 +108,10 @@ def render(state):
     shipped = counts.get("shipped", 0)
     pct = int(shipped / total * 100) if total else 0
     waves = state.get("waves", [])
-    cur = state.get("current_wave", 0)
+    cur = current_wave(state)
+
+    wave_line = (f"wave {cur} of {max(len(waves) - 1, 0)}" if cur < len(waves)
+                 else "every wave closed")
 
     legend = "".join(
         f'<span class="lg"><i style="background:{bg};border-color:{fg}"></i>{label}</span>'
@@ -156,24 +181,20 @@ def render(state):
   <div class="wrap">
     <header>
       <h1>{esc(state.get('task','Task Graph Execution'))}</h1>
-      <div class="sub">{esc(state.get('repo',''))} · wave {cur} of {max(len(waves)-1,0)} · updated {esc(state.get('updated_at',''))}</div>
+      <div class="sub">{esc(state.get('repo',''))} · {wave_line} · updated {esc(state.get('updated_at',''))}</div>
       <div class="bar"><i></i></div>
       <div class="stats">{shipped}/{total} shipped ({pct}%) &nbsp;—&nbsp; {stats}</div>
       <div class="legend">{legend}</div>
     </header>
     <div class="diagram"><pre class="mermaid">{esc(mermaid(state))}</pre></div>
     {wave_html}
-    <footer><strong>Snapshot</strong> rendered {rendered_at} by /graph from <code>.graph_state.json</code>.
+    <footer><strong>Snapshot</strong> rendered {rendered_at} by /graph from <code>{esc(source)}</code>.
       The page reloads every 5s, but the state is baked in at render time — reloading alone never
       shows new progress. Re-run <code>render_graph_html.py</code> after every checkpoint to update it.</footer>
   </div>
   <script>mermaid.initialize({{ startOnLoad:true, theme:"neutral" }});</script>
 </body>
 </html>"""
-
-
-STATE_DEFAULT = ".graph_state.json"
-LEGACY_STATE = ".graph_state"
 
 
 def resolve_state(path: str) -> str:
@@ -193,7 +214,7 @@ def main():
         state = json.load(f)
     state.setdefault("updated_at", datetime.now().isoformat(timespec="seconds"))
     with open(dst, "w", encoding="utf-8") as f:
-        f.write(render(state))
+        f.write(render(state, source=src))
     print(f"wrote {dst} from {src}")
 
 

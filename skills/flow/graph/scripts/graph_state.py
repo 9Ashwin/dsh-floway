@@ -41,11 +41,20 @@ Nodes file format:
     "repo": "owner/repo",
     "max_parallel": 4,
     "nodes": [
-      {"id": 1, "title": "db schema", "deps": [], "scope": "internal/db"},
+      {"id": 1, "title": "db schema", "deps": [], "scope": "internal/db",
+       "criteria": ["migration applies on a fresh database"]},
       {"id": 2, "title": "API handler", "deps": [1], "scope": "internal/api",
-       "hot_files": "internal/api/router.go", "branch": "feat/issue-42-api"}
+       "hot_files": "internal/api/router.go", "branch": "feat/issue-42-api",
+       "context": "#1 landed migration 012; the table already exists."}
     ]
   }
+
+`criteria` is the node's acceptance checklist, copied into the child's prompt
+verbatim. `context` is the orchestrator's briefing for the child: one or two
+lines per dependency — what it added, where, and anything the node must know.
+Both may also be written straight into the checkpoint. A re-plan keeps the
+checkpoint's value only for a field the nodes file does not mention; an explicit
+empty list/string in the nodes file clears it (presence decides, not truthiness).
 
 `scope` is a comma-separated list of files/directories a node expects to touch.
 Two nodes with no dependency edge but overlapping scope are not independent:
@@ -423,8 +432,13 @@ def cmd_plan(args: argparse.Namespace) -> int:
                 # checkpoint when the issue is filed, and a later re-plan used to
                 # erase them (the child prompt then says "write them from the issue").
                 # Fall back to the checkpoint so re-planning is not destructive.
-                "criteria": node.get("criteria") or previous_criteria.get(str(nid)) or [],
-                "context": node.get("context") or previous_context.get(str(nid)) or "",
+                # Presence decides, not truthiness: an explicit `"criteria": []`
+                # in the nodes file is a deliberate clear, and treating it as
+                # "not provided" would resurrect the checkpoint's value.
+                "criteria": (node["criteria"] if "criteria" in node
+                             else previous_criteria.get(str(nid))) or [],
+                "context": (node["context"] if "context" in node
+                            else previous_context.get(str(nid))) or "",
                 # A branch is recorded only when it is known. Synthesizing one at
                 # plan time would put a name in the checkpoint that nothing has
                 # created yet, and `prompt` would then present it as fact.
@@ -480,6 +494,10 @@ def cmd_set(args: argparse.Namespace) -> int:
         node["attempts"] = int(node.get("attempts", 0)) + 1
     else:
         node.pop("error", None)
+    # `current_wave` is derived, and the board reads it. Only a plan used to
+    # refresh it, so recording the last node of a wave left the file pointing at
+    # the wave that had just closed.
+    state["current_wave"] = current_wave(state)
     save_state(state, args.state)
 
     index_of = wave_of(state)
