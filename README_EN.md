@@ -4,29 +4,29 @@
 </div>
 
 <div align="center">
-  <h1>streamsmith</h1>
+  <h1>stream-it</h1>
   <p>A complete software workflow inside your coding agent: requirements → design → breakdown → parallel implementation → review → shipping.<br>
   Skills make the judgment calls; ordering and checkpoints go to tested scripts; implementation goes to subagents isolated in their own git worktree.</p>
   <div align="center">
-    <a href="https://9ashwin.github.io/streamsmith/"><img src="https://img.shields.io/badge/%E5%9C%A8%E7%BA%BF%E6%96%87%E6%A1%A3-9ashwin.github.io-d97757" alt="Online docs" /></a>
-    <img src="https://img.shields.io/github/license/9Ashwin/streamsmith" alt="License" />
-    <img src="https://img.shields.io/github/stars/9Ashwin/streamsmith?style=social" alt="Stars" />
-    <img src="https://img.shields.io/github/forks/9Ashwin/streamsmith?style=social" alt="Forks" />
-    <img src="https://img.shields.io/github/last-commit/9Ashwin/streamsmith" alt="Last commit" />
+    <a href="https://9ashwin.github.io/stream-it/"><img src="https://img.shields.io/badge/%E5%9C%A8%E7%BA%BF%E6%96%87%E6%A1%A3-9ashwin.github.io-d97757" alt="Online docs" /></a>
+    <img src="https://img.shields.io/github/license/9Ashwin/stream-it" alt="License" />
+    <img src="https://img.shields.io/github/stars/9Ashwin/stream-it?style=social" alt="Stars" />
+    <img src="https://img.shields.io/github/forks/9Ashwin/stream-it?style=social" alt="Forks" />
+    <img src="https://img.shields.io/github/last-commit/9Ashwin/stream-it" alt="Last commit" />
   </div>
   <h3>
-    <a href="https://9ashwin.github.io/streamsmith/">Online docs</a> ·
+    <a href="https://9ashwin.github.io/stream-it/">Online docs</a> ·
     <a href="#quick-start">Install</a> ·
     <a href="#skills">Skills</a> ·
     <a href="#how-it-runs">Workflow</a> ·
     <a href="#project-status">Project Status</a>
   </h3>
-  <img src="docs/workflow.png" alt="streamsmith workflow infographic" width="1000">
+  <img src="docs/workflow.png" alt="stream-it workflow infographic" width="1000">
 </div>
 
-## What is streamsmith?
+## What is stream-it?
 
-streamsmith is a set of development-workflow skills: 25 skills that take a change from "an idea" to "shipped code" through standard steps — requirements, design, breakdown, implementation, review, shipping — each owned by one skill. You say what you want; the agent asks the questions, writes the PRD, splits it into Issues with blocking edges, implements in parallel inside isolated worktrees, reviews, opens the PR and merges.
+stream-it is a set of development-workflow skills: 25 skills that take a change from "an idea" to "shipped code" through standard steps — requirements, design, breakdown, implementation, review, shipping — each owned by one skill. You say what you want; the agent asks the questions, writes the PRD, splits it into Issues with blocking edges, implements in parallel inside isolated worktrees, reviews, opens the PR and merges.
 
 **An implementation node is a subagent** in its own git worktree, and its job stops at "implement → prove it against the project's gates → commit on its own branch". Leak check, integration, gates on the integrated tree, review and shipping are one step, done **once per wave**: a single PR closes every Issue the wave satisfies.
 
@@ -37,7 +37,7 @@ Ordering, layering, cycle detection and checkpointing are arithmetic, and they l
 ### Option 1: Install as a skill directory (recommended)
 
 ```bash
-npx skills add 9Ashwin/streamsmith       # installs globally (~/.agents/skills)
+npx skills add 9Ashwin/stream-it       # installs globally (~/.agents/skills)
 npx skills update -g                    # update from source later
 ```
 
@@ -46,28 +46,28 @@ The skills land in `~/.agents/skills`, and this route changes nothing in any pro
 `npx skills` scans recursively and flattens `skills/<bucket>/<skill>` into `~/.agents/skills/<skill>` — a skill root is scanned only one level deep, so the flattening is required. Copying by hand means doing that step yourself:
 
 ```bash
-cp -R <streamsmith>/skills/flow/graph ~/.agents/skills/graph   # flattened, not the bucket
+cp -R <stream-it>/skills/flow/graph ~/.agents/skills/graph   # flattened, not the bucket
 ```
 
 ### Option 2: Install as a bundle (optional)
 
 ```bash
-dsh plugin --profile web add -w github:9Ashwin/streamsmith
+dsh plugin --profile web add -w github:9Ashwin/stream-it
 ```
 
 The package's `dsh.bundle` declaration makes `dsh` append it to the profile's `bundles` layer; the skills are then served by the **provider shipped inside the package**.
 
 ```bash
-dsh --profile web --dump-config | grep -A3 streamsmith   # expect a "# == streamsmith-skills" layer
+dsh --profile web --dump-config | grep -A3 stream-it   # expect a "# == stream-it-skills" layer
 ```
 
 <details>
 <summary><strong>More install details (pnpm errors / pinning a version / local checkout)</strong></summary>
 
 - If pnpm reports `ERR_PNPM_ADDING_TO_ROOT`, the profile is being treated as a workspace root — re-run with `-w` (pnpm 9 requires it).
-- Pin the commit in production: `dsh plugin --profile web add -w github:9Ashwin/streamsmith#<sha>`.
+- Pin the commit in production: `dsh plugin --profile web add -w github:9Ashwin/stream-it#<sha>`.
 - This is a **config-only package** (no build scripts), so no `allowBuilds` grant is needed.
-- Working from a local checkout: `dsh plugin --profile demo add -w /path/to/streamsmith`.
+- Working from a local checkout: `dsh plugin --profile demo add -w /path/to/stream-it`.
 
 </details>
 
@@ -78,7 +78,7 @@ Installing both never lists a skill twice; on a Web-like surface the bundle copy
 > [!TIP]
 > Not sure which skill to reach for? Type **`/ask-flow`** — it names the next thing to type and the decisions that are yours to make.
 >
-> The full usage guide (installation, how to trigger each step, acceptance criteria, FAQ) lives at **<https://9ashwin.github.io/streamsmith/>**, which redirects to the Chinese or English version based on your browser language; in the repo it is [docs/index_cn.html](docs/index_cn.html) and [docs/index_en.html](docs/index_en.html).
+> The full usage guide (installation, how to trigger each step, acceptance criteria, FAQ) lives at **<https://9ashwin.github.io/stream-it/>**, which redirects to the Chinese or English version based on your browser language; in the repo it is [docs/index_cn.html](docs/index_cn.html) and [docs/index_en.html](docs/index_en.html).
 
 ## How It Runs
 
@@ -97,7 +97,7 @@ A few deliberate design choices:
 - **Failed nodes are retried in place first.** A follow-up message reuses that node's own context instead of paying for a fresh child; if the retry still fails, the node is re-run, and if it fails again it is dropped from the wave branch — its siblings were independent all along, so the rest ship as usual.
 - **When one PR closes several Issues, list the evidence per item**: the commit, the Issue it closes, the test names that prove it, and the manual acceptance status. After a squash those commits are invisible on `main`, and without this table there is no way to roll back or audit one Issue on its own.
 
-## Why streamsmith
+## Why stream-it
 
 - **Cost is counted per wave, not per node.** Every subagent pays for the parent's system prompt, tool schemas, and skill catalog across its entire lifetime, and a `/review-it` + `/ship-it` per node means N PRs, N CI runs, and N chances to get stuck on a merge conflict. So nodes stop at commit, and review and shipping are collected at the wave level.
 - **The arithmetic lives in scripts.** Dependency ordering, wave layering, scope-conflict serialization, and the checkpoint state machine all sit in `scripts/`, each with self-tests; the skills describe when to use them and where the boundaries are, not how the algorithm works.
@@ -139,12 +139,12 @@ A DSH skill root is scanned **exactly one level deep** (`<root>/<name>/SKILL.md`
 
 ## Project Status
 
-![License](https://img.shields.io/github/license/9Ashwin/streamsmith) ![Last Commit](https://img.shields.io/github/last-commit/9Ashwin/streamsmith) ![Commit Activity](https://img.shields.io/github/commit-activity/m/9Ashwin/streamsmith) ![Issues](https://img.shields.io/github/issues/9Ashwin/streamsmith) ![Pull Requests](https://img.shields.io/github/issues-pr/9Ashwin/streamsmith)
+![License](https://img.shields.io/github/license/9Ashwin/stream-it) ![Last Commit](https://img.shields.io/github/last-commit/9Ashwin/stream-it) ![Commit Activity](https://img.shields.io/github/commit-activity/m/9Ashwin/stream-it) ![Issues](https://img.shields.io/github/issues/9Ashwin/stream-it) ![Pull Requests](https://img.shields.io/github/issues-pr/9Ashwin/stream-it)
 
 ## Community & Feedback
 
-- 🌐 [**Online docs**](https://9ashwin.github.io/streamsmith/) — usage guides in Chinese and English
-- 🐛 [**Issues**](https://github.com/9Ashwin/streamsmith/issues) — bugs, feature requests, and skill improvements
+- 🌐 [**Online docs**](https://9ashwin.github.io/stream-it/) — usage guides in Chinese and English
+- 🐛 [**Issues**](https://github.com/9Ashwin/stream-it/issues) — bugs, feature requests, and skill improvements
 - 🧩 [**DeepSeek Harness**](https://github.com/deepseek-ai/DeepSeek-Harness) — the host these skills run on
 
 ## License

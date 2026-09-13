@@ -4,29 +4,29 @@
 </div>
 
 <div align="center">
-  <h1>streamsmith</h1>
+  <h1>stream-it</h1>
   <p>把一整套研发工作流装进你的编码 Agent：需求 → 设计 → 拆解 → 并行实现 → 审查 → 交付。<br>
   技能只负责判断，排序与检查点交给带测试的脚本；实现交给各自隔离在 git worktree 里的子代理。</p>
   <div align="center">
-    <a href="https://9ashwin.github.io/streamsmith/"><img src="https://img.shields.io/badge/%E5%9C%A8%E7%BA%BF%E6%96%87%E6%A1%A3-9ashwin.github.io-d97757" alt="Online docs" /></a>
-    <img src="https://img.shields.io/github/license/9Ashwin/streamsmith" alt="License" />
-    <img src="https://img.shields.io/github/stars/9Ashwin/streamsmith?style=social" alt="Stars" />
-    <img src="https://img.shields.io/github/forks/9Ashwin/streamsmith?style=social" alt="Forks" />
-    <img src="https://img.shields.io/github/last-commit/9Ashwin/streamsmith" alt="Last commit" />
+    <a href="https://9ashwin.github.io/stream-it/"><img src="https://img.shields.io/badge/%E5%9C%A8%E7%BA%BF%E6%96%87%E6%A1%A3-9ashwin.github.io-d97757" alt="Online docs" /></a>
+    <img src="https://img.shields.io/github/license/9Ashwin/stream-it" alt="License" />
+    <img src="https://img.shields.io/github/stars/9Ashwin/stream-it?style=social" alt="Stars" />
+    <img src="https://img.shields.io/github/forks/9Ashwin/stream-it?style=social" alt="Forks" />
+    <img src="https://img.shields.io/github/last-commit/9Ashwin/stream-it" alt="Last commit" />
   </div>
   <h3>
-    <a href="https://9ashwin.github.io/streamsmith/">在线文档</a> ·
+    <a href="https://9ashwin.github.io/stream-it/">在线文档</a> ·
     <a href="#快速开始">安装</a> ·
     <a href="#技能">技能</a> ·
     <a href="#它是怎么跑起来的">工作流</a> ·
     <a href="#项目状态">项目状态</a>
   </h3>
-  <img src="docs/workflow.png" alt="streamsmith 工作流信息图" width="1000">
+  <img src="docs/workflow.png" alt="stream-it 工作流信息图" width="1000">
 </div>
 
-## streamsmith 是什么
+## stream-it 是什么
 
-streamsmith 是一套研发工作流技能集：25 个技能，把「想法 → 交付」拆成标准步骤——需求、设计、拆解、实现、审查、交付——每一步由一个技能负责。你说想做什么，剩下的交给 Agent：澄清问题、写 PRD、拆成有阻塞关系的 Issue、在隔离的工作树里并行实现、审查、开 PR、合入。
+stream-it 是一套研发工作流技能集：25 个技能，把「想法 → 交付」拆成标准步骤——需求、设计、拆解、实现、审查、交付——每一步由一个技能负责。你说想做什么，剩下的交给 Agent：澄清问题、写 PRD、拆成有阻塞关系的 Issue、在隔离的工作树里并行实现、审查、开 PR、合入。
 
 **实现节点是子代理**，每个节点一个独立 git worktree，职责到「实现 → 跑通项目门禁自证 → commit 到自己分支」为止。泄漏检查、集成、集成后的门禁、评审、交付收成一件事，**按波次各做一次**：一个 PR 关闭这一波满足的全部 Issue。
 
@@ -37,7 +37,7 @@ streamsmith 是一套研发工作流技能集：25 个技能，把「想法 → 
 ### 方式一：作为技能目录安装（推荐）
 
 ```bash
-npx skills add 9Ashwin/streamsmith       # 安装到全局（~/.agents/skills）
+npx skills add 9Ashwin/stream-it       # 安装到全局（~/.agents/skills）
 npx skills update -g                    # 之后按来源更新
 ```
 
@@ -46,28 +46,28 @@ npx skills update -g                    # 之后按来源更新
 `npx skills` 递归扫描、安装时把 `skills/<桶>/<技能>` 拍平成 `~/.agents/skills/<技能>`——技能根只扫一层，所以必须拍平。手动拷贝时要自己完成这一步：
 
 ```bash
-cp -R <streamsmith>/skills/flow/graph ~/.agents/skills/graph   # 拍平，不要连桶一起拷
+cp -R <stream-it>/skills/flow/graph ~/.agents/skills/graph   # 拍平，不要连桶一起拷
 ```
 
 ### 方式二：作为 bundle 安装（可选）
 
 ```bash
-dsh plugin --profile web add -w github:9Ashwin/streamsmith
+dsh plugin --profile web add -w github:9Ashwin/stream-it
 ```
 
 包里的 `dsh.bundle` 声明会让 `dsh` 把它追加进 profile 的 `bundles` 层，技能由**包内自带的 provider** 提供。
 
 ```bash
-dsh --profile web --dump-config | grep -A3 streamsmith   # 应看到 "# == streamsmith-skills" 层
+dsh --profile web --dump-config | grep -A3 stream-it   # 应看到 "# == stream-it-skills" 层
 ```
 
 <details>
 <summary><strong>更多安装细节（pnpm 报错 / 锁定版本 / 本地联调）</strong></summary>
 
 - 若 pnpm 报 `ERR_PNPM_ADDING_TO_ROOT`，是 profile 被当作 workspace 根，补上 `-w` 重跑即可（pnpm 9 需要）。
-- 生产环境建议锁定 commit：`dsh plugin --profile web add -w github:9Ashwin/streamsmith#<sha>`。
+- 生产环境建议锁定 commit：`dsh plugin --profile web add -w github:9Ashwin/stream-it#<sha>`。
 - 本包是**纯配置包**（没有构建脚本），因此不需要 `allowBuilds` 授权。
-- 本地 checkout 联调：`dsh plugin --profile demo add -w /path/to/streamsmith`。
+- 本地 checkout 联调：`dsh plugin --profile demo add -w /path/to/stream-it`。
 
 </details>
 
@@ -78,7 +78,7 @@ dsh --profile web --dump-config | grep -A3 streamsmith   # 应看到 "# == strea
 > [!TIP]
 > 不记得该用哪个技能？直接敲 **`/ask-flow`**——它给出下一步该敲什么，以及那一步里哪些决定得你来拍。
 >
-> 完整使用指南（安装、每一步怎么触发、验收标准、FAQ）在 **<https://9ashwin.github.io/streamsmith/>**，会自动按浏览器语言跳转到中文或英文版；仓库内是 [docs/index_cn.html](docs/index_cn.html) 与 [docs/index_en.html](docs/index_en.html)。
+> 完整使用指南（安装、每一步怎么触发、验收标准、FAQ）在 **<https://9ashwin.github.io/stream-it/>**，会自动按浏览器语言跳转到中文或英文版；仓库内是 [docs/index_cn.html](docs/index_cn.html) 与 [docs/index_en.html](docs/index_en.html)。
 
 ## 它是怎么跑起来的
 
@@ -97,7 +97,7 @@ dsh --profile web --dump-config | grep -A3 streamsmith   # 应看到 "# == strea
 - **失败节点先原地重试。** 用一条追加消息复用该节点自己的上下文，而不是重开一个全新子代理；重试仍失败就重跑、再失败则从波分支剔除——它的兄弟节点本来就相互独立，其余照常交付。
 - **一批多 Issue 共用一个 PR 时必须逐项列证据**：commit、关闭的 Issue、证明它的测试名、人工验收状态。squash 之后那些 commit 在 `main` 上就看不见了，没有这张表就无法单独回滚或审计。
 
-## 为什么是 streamsmith
+## 为什么是 stream-it
 
 - **按波次算成本，而不是按节点。** 每个子代理都要为它的整个生命周期付父级的 system prompt、工具 schema 与技能目录；一个节点一次 `/review-it` + `/ship-it` 意味着 N 个 PR、N 次 CI、N 次卡在合并冲突上的机会。所以节点止于 commit，评审与交付收在波次上。
 - **算术下沉到脚本。** 依赖排序、波次分层、scope 冲突串行化、检查点状态机都在 `scripts/` 里，每个都带自测；技能写的是「什么时候用、边界在哪」，不是算法复述。
@@ -139,12 +139,12 @@ DSH 的技能根**只扫一层**（`<root>/<name>/SKILL.md`），所以 `cordis.
 
 ## 项目状态
 
-![License](https://img.shields.io/github/license/9Ashwin/streamsmith) ![Last Commit](https://img.shields.io/github/last-commit/9Ashwin/streamsmith) ![Commit Activity](https://img.shields.io/github/commit-activity/m/9Ashwin/streamsmith) ![Issues](https://img.shields.io/github/issues/9Ashwin/streamsmith) ![Pull Requests](https://img.shields.io/github/issues-pr/9Ashwin/streamsmith)
+![License](https://img.shields.io/github/license/9Ashwin/stream-it) ![Last Commit](https://img.shields.io/github/last-commit/9Ashwin/stream-it) ![Commit Activity](https://img.shields.io/github/commit-activity/m/9Ashwin/stream-it) ![Issues](https://img.shields.io/github/issues/9Ashwin/stream-it) ![Pull Requests](https://img.shields.io/github/issues-pr/9Ashwin/stream-it)
 
 ## 社区与反馈
 
-- 🌐 [**在线文档**](https://9ashwin.github.io/streamsmith/) — 中文 / English 使用指南
-- 🐛 [**Issues**](https://github.com/9Ashwin/streamsmith/issues) — 报错、需求、技能改进建议
+- 🌐 [**在线文档**](https://9ashwin.github.io/stream-it/) — 中文 / English 使用指南
+- 🐛 [**Issues**](https://github.com/9Ashwin/stream-it/issues) — 报错、需求、技能改进建议
 - 🧩 [**DeepSeek Harness**](https://github.com/deepseek-ai/DeepSeek-Harness) — 这套技能运行的宿主
 
 ## 许可

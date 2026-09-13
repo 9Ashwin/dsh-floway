@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>dsh-floway 使用指南</title>
+  <title>stream-it 使用指南</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
     * {
@@ -495,10 +495,10 @@
     <div class="header">
       <div class="header-row">
         <div class="pulse-dot"></div>
-        <h1>dsh-floway 使用指南</h1>
+        <h1>stream-it 使用指南</h1>
       </div>
       <p class="subtitle">AI-driven development workflow — from PRD to shipped code</p>
-      <p class="subtitle" style="margin-top: 0.25rem;"><a href="https://github.com/9Ashwin/dsh-floway" style="color: #D97757; text-decoration: none;"><svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor" style="vertical-align: middle; margin-right: 3px;"><path fill-rule="evenodd" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>github.com/9Ashwin/dsh-floway</a></p>
+      <p class="subtitle" style="margin-top: 0.25rem;"><a href="https://github.com/9Ashwin/stream-it" style="color: #D97757; text-decoration: none;"><svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor" style="vertical-align: middle; margin-right: 3px;"><path fill-rule="evenodd" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>github.com/9Ashwin/stream-it</a></p>
       <p class="diagram-desc"><b>Usage Guide</b> — 六步闭环研发工作流：规划、设计、拆解、实现、审查、交付。</p>
     </div>
 
@@ -530,8 +530,7 @@
         <li><a href="#step-triage">22. Bonus: /triage — 外部 issue 分诊</a></li>
         <li><a href="#step-diagnose">23. Bonus: /diagnose — 排障循环</a></li>
         <li><a href="#step-conflict">24. Bonus: /conflict — 解 merge / rebase 冲突</a></li>
-        <li><a href="#platforms">25. 支持的平台</a></li>
-        <li><a href="#faq">26. FAQ</a></li>
+        <li><a href="#faq">25. FAQ</a></li>
       </ul>
     </div>
 
@@ -542,7 +541,7 @@
         <h3>1. 概述</h3>
       </div>
       <p>
-        <strong>dsh-floway</strong> 是一套面向 <strong>DeepSeek Harness（DSH）</strong> 的 AI 研发工作流技能集，将软件开发的完整生命周期拆分为标准化步骤，每一步都由一个专属 Skill 驱动。
+        <strong>stream-it</strong> 是一套研发工作流技能集：25 个技能，把「想法 → 交付」拆成标准步骤——需求、设计、拆解、实现、审查、交付——每一步由一个技能负责。
       </p>
       <p>
         它让 AI Agent 能够像一个有经验的工程师一样——从理解需求、拆解任务、编写代码、审查质量，到最终提交合入——全流程自主完成。你只需描述功能想法，剩下的交给工作流。
@@ -550,6 +549,7 @@
       <div class="tip">
         <strong>入口：</strong>不记得该用哪个技能？直接敲 <code class="inline-code">/ask-flow</code>——说清你现在的处境（一个还没成形的想法、一堆进来的 issue、一段调不通的代码、一次漫长的实现），它只回答「下一步敲什么」以及那一步里哪些决定要你来拍，<strong>不替你动手</strong>。
       </div>
+
       <div class="cards">
         <div class="card">
           <div class="card-header">
@@ -560,7 +560,7 @@
           <ul>
             <li>在技能图上做路由，回答「下一步敲什么」</li>
             <li>只建议、不执行：不写 spec、不改文件</li>
-            <li>user-only（模型目录里看不到它）</li>
+            <li>不进模型目录（user-only）</li>
           </ul>
         </div>
         <div class="card">
@@ -568,11 +568,11 @@
             <div class="card-dot terracotta"></div>
             <h4>/prd</h4>
           </div>
-          <p>需求文档生成 + Issue 拆解</p>
+          <p>需求文档生成</p>
           <ul>
-            <li>澄清问题 → 结构化 PRD</li>
-            <li>拆解为独立可实施的 Issue</li>
-            <li>支持 GitHub / Local / iCafe</li>
+            <li>澄清问题 → 结构化 PRD（可验证的验收标准）</li>
+            <li>审阅确认后保存到 tasks/prd-*.md</li>
+            <li>交给 /prd-to-spec（可选）与 /to-issues 继续</li>
           </ul>
         </div>
         <div class="card">
@@ -616,11 +616,11 @@
             <div class="card-dot sage"></div>
             <h4>/goal</h4>
           </div>
-          <p>DSH 的持久目标命令（UI 命令面）</p>
+          <p>DSH 的持久目标命令</p>
           <ul>
-            <li>由人类在命令行面输入</li>
+            <li>由人类在命令行输入；模型侧是 create_goal / update_goal</li>
             <li>持久目标 + 自动续跑轮次</li>
-            <li>不是 skill，也不再是流水线步骤</li>
+            <li>只在顶层直接的人类回合执行，不是 skill，也不是流水线步骤</li>
           </ul>
         </div>
         <div class="card">
@@ -628,11 +628,11 @@
             <div class="card-dot plum"></div>
             <h4>/review-it</h4>
           </div>
-          <p>自动化代码审查与修复</p>
+          <p>双轴代码审查收尾</p>
           <ul>
-            <li>检测未提交变更或分支 diff</li>
-            <li>验证发现 → 迭代修复</li>
-            <li>直到审查通过为止</li>
+            <li>Spec 轴：diff 有没有做「要求的事」（缺的 / 多做的 / 做错的）</li>
+            <li>Standards 轴：8 个维度查代码质量</li>
+            <li>两轴分开报告；按波 / 批调用一次</li>
           </ul>
         </div>
         <div class="card">
@@ -703,7 +703,7 @@
           <p>Go 代码现代化改造</p>
           <ul>
             <li>35+ 条 gofix 风格转换规则</li>
-            <li>Go 1.0 到 1.26+ 全覆盖</li>
+            <li>Go 1.0 到 1.27+ 全覆盖</li>
             <li>自动检测版本 + 安全保护</li>
           </ul>
         </div>
@@ -716,7 +716,7 @@
           <ul>
             <li>设计决策 / 偏离 / 权衡</li>
             <li>待确认问题追踪</li>
-            <li>HTML 格式保存到 docs/</li>
+            <li>HTML 保存到 <code class="inline-code">docs/issue#XXXX.html</code></li>
           </ul>
         </div>
         <div class="card">
@@ -750,8 +750,8 @@
           </div>
           <p>自动化 Issue 批量实现循环</p>
           <ul>
-            <li>获取 Issue → 依赖拓扑排序 → 自动实现</li>
-            <li>检查点恢复，crash 不丢进度</li>
+            <li>获取 Issue → 依赖拓扑排序 → 内联实现 → commit；批末统一评审 + 交付</li>
+            <li>检查点恢复（<code class="inline-code">.loop-state.json</code>），crash 不丢进度</li>
             <li>10 类错误分类，结构化恢复策略</li>
           </ul>
         </div>
@@ -775,7 +775,7 @@
           <p>任务图并发实现（DAG + 超步）</p>
           <ul>
             <li>任务/PRD → DAG → 分层为超步 wave</li>
-            <li>每波独立节点用 subagent 并发实现</li>
+            <li>每波独立节点由子代理并发实现</li>
             <li>每节点独立 worktree：内联实现 → commit；波末统一评审 + 交付</li>
           </ul>
         </div>
@@ -864,6 +864,10 @@
           </ul>
         </div>
       </div>
+
+      <div class="note">
+        <strong>技能分组：</strong>25 个技能按「在流程里扮演什么角色」分四个桶——<code class="inline-code">flow</code>（流水线本身，9 个）、<code class="inline-code">practice</code>（中途因为出事了或要保证质量伸手拿的，7 个）、<code class="inline-code">meta</code>（描述这套技能集自身的路由，1 个）、<code class="inline-code">bonus</code>（产出非代码工件，8 个）。
+      </div>
     </div>
 
     <!-- Section 2: Install -->
@@ -872,33 +876,37 @@
         <div class="section-dot sage"></div>
         <h3>2. 安装</h3>
       </div>
-      <p>本项目面向 <strong>DeepSeek Harness（DSH）</strong>，提供两条安装路径——<strong>推荐安装为 skill 目录</strong>，或<strong>可选安装为 DSH bundle</strong>。两条路径二选一即可。</p>
+      <p>两条安装路径，二选一即可。</p>
 
       <h3>方式一（推荐）：作为 skill 目录安装</h3>
       <pre><code><span class="comment"># 安装全部 skills 到 ~/.agents/skills</span>
-<span class="cmd">npx skills add</span> <span class="value">9Ashwin/dsh-floway</span>
+<span class="cmd">npx skills add</span> <span class="value">9Ashwin/stream-it</span>
 
 <span class="comment"># 之后按来源更新</span>
 <span class="cmd">npx skills update</span> <span class="flag">-g</span></code></pre>
       <ul class="step-list">
-        <li>skills 落到 <code class="inline-code">~/.agents/skills</code>，DSH 在会话启动时扫描该目录。</li>
+        <li>skills 落到 <code class="inline-code">~/.agents/skills</code>，这条装法不必动任何 profile 依赖。</li>
+        <li><code class="inline-code">npx skills</code> 递归扫描，安装时把 <code class="inline-code">skills/&lt;桶&gt;/&lt;技能&gt;</code> <strong>拍平</strong>成 <code class="inline-code">~/.agents/skills/&lt;技能&gt;</code>——技能根只扫一层，所以必须拍平。</li>
         <li>这是最省事的一条路：不必动 profile 的依赖，对所有 profile 都生效。</li>
       </ul>
+      <p>手动拷贝时要自己完成<strong>拍平</strong>这一步——不要连桶一起拷：</p>
+      <pre><code><span class="comment"># 拍平到 ~/.agents/skills/&lt;技能&gt;</span>
+<span class="cmd">cp -R</span> <span class="value">&lt;stream-it&gt;/skills/flow/graph</span> <span class="value">~/.agents/skills/graph</span></code></pre>
 
-      <h3>方式二（可选）：作为 DSH bundle 安装</h3>
+      <h3>方式二（可选）：作为 bundle 安装</h3>
       <pre><code><span class="comment"># 安装到 web profile</span>
-<span class="cmd">dsh plugin</span> <span class="flag">--profile</span> <span class="value">web</span> <span class="cmd">add</span> <span class="flag">-w</span> <span class="value">github:9Ashwin/dsh-floway</span>
+<span class="cmd">dsh plugin</span> <span class="flag">--profile</span> <span class="value">web</span> <span class="cmd">add</span> <span class="flag">-w</span> <span class="value">github:9Ashwin/stream-it</span>
 
 <span class="comment"># 生产环境建议锁定到某个 commit</span>
-<span class="cmd">dsh plugin</span> <span class="flag">--profile</span> <span class="value">web</span> <span class="cmd">add</span> <span class="flag">-w</span> <span class="value">github:9Ashwin/dsh-floway#&lt;sha&gt;</span>
+<span class="cmd">dsh plugin</span> <span class="flag">--profile</span> <span class="value">web</span> <span class="cmd">add</span> <span class="flag">-w</span> <span class="value">github:9Ashwin/stream-it#&lt;sha&gt;</span>
 
 <span class="comment"># 验证安装</span>
-<span class="cmd">dsh</span> <span class="flag">--profile</span> <span class="value">web</span> <span class="flag">--dump-config</span> | <span class="cmd">grep</span> <span class="flag">-A3</span> <span class="value">dsh-floway</span></code></pre>
+<span class="cmd">dsh</span> <span class="flag">--profile</span> <span class="value">web</span> <span class="flag">--dump-config</span> | <span class="cmd">grep</span> <span class="flag">-A3</span> <span class="value">stream-it</span></code></pre>
       <ul class="step-list">
         <li><code class="inline-code">-w</code> 不能省略：DSH 把 profile 当作 pnpm workspace 根，pnpm 9 缺少该标志时会报 <code class="inline-code">ERR_PNPM_ADDING_TO_ROOT</code>。</li>
         <li>本包是 <strong>config-only bundle</strong>（纯配置包，没有构建脚本），因此<strong>不需要</strong> <code class="inline-code">allowBuilds</code> 授权。</li>
-        <li>生产环境建议锁定 commit：<code class="inline-code">github:9Ashwin/dsh-floway#&lt;sha&gt;</code>。</li>
-        <li>验证：<code class="inline-code">dsh --profile web --dump-config | grep -A3 dsh-floway</code>，应看到 <code class="inline-code"># == dsh-floway-skills</code> 层。</li>
+        <li>生产环境建议锁定 commit：<code class="inline-code">github:9Ashwin/stream-it#&lt;sha&gt;</code>。</li>
+        <li>验证：<code class="inline-code">dsh --profile web --dump-config | grep -A3 stream-it</code>，应看到 <code class="inline-code"># == stream-it-skills</code> 层。</li>
       </ul>
 
       <div class="note">
@@ -910,11 +918,15 @@
         <tr><th>工具</th><th>用途</th><th>安装</th></tr>
         <tr><td><code class="inline-code">npx</code></td><td>npm package runner（推荐方式）</td><td>Node.js 自带</td></tr>
         <tr><td><code class="inline-code">gh</code></td><td>GitHub CLI (Issue/PR 操作)</td><td><code class="inline-code">brew install gh && gh auth login</code></td></tr>
-        <tr><td><code class="inline-code">dsh</code></td><td>DeepSeek Harness CLI（可选方式）</td><td>参见 DSH 官方安装说明</td></tr>
+        <tr><td><code class="inline-code">dsh</code></td><td>DeepSeek Harness CLI（<strong>仅方式二</strong>需要）</td><td>参见 DSH 官方安装说明</td></tr>
       </table>
 
       <div class="tip">
-        <strong>Tip：</strong>安装后在 DSH 会话中输入 <code class="inline-code">/ask-flow</code>、<code class="inline-code">/prd</code>、<code class="inline-code">/prd-to-spec</code>、<code class="inline-code">/to-issues</code>、<code class="inline-code">/triage</code>、<code class="inline-code">/implement</code>、<code class="inline-code">/test-first</code>、<code class="inline-code">/loop-it</code>、<code class="inline-code">/graph</code>、<code class="inline-code">/diagnose</code>、<code class="inline-code">/conflict</code>、<code class="inline-code">/review-it</code>、<code class="inline-code">/ship-it</code>、<code class="inline-code">/refactor</code>、<code class="inline-code">/modern-go</code>、<code class="inline-code">/note-it</code>、<code class="inline-code">/code-to-spec</code>、<code class="inline-code">/humanize-it</code>、<code class="inline-code">/insight-diagram</code>、<code class="inline-code">/smell</code>、<code class="inline-code">/to-design</code>、<code class="inline-code">/design-it</code>、<code class="inline-code">/listenhub-tts</code>、<code class="inline-code">/article-icons</code>、<code class="inline-code">/understand</code> 即可直接调用对应技能。其中 <code class="inline-code">/goal</code> 是面向人的 UI 命令，不是 skill。
+        <strong>Tip：</strong>安装后输入 <code class="inline-code">/ask-flow</code>、<code class="inline-code">/prd</code>、<code class="inline-code">/prd-to-spec</code>、<code class="inline-code">/to-issues</code>、<code class="inline-code">/triage</code>、<code class="inline-code">/implement</code>、<code class="inline-code">/test-first</code>、<code class="inline-code">/loop-it</code>、<code class="inline-code">/graph</code>、<code class="inline-code">/diagnose</code>、<code class="inline-code">/conflict</code>、<code class="inline-code">/review-it</code>、<code class="inline-code">/ship-it</code>、<code class="inline-code">/refactor</code>、<code class="inline-code">/modern-go</code>、<code class="inline-code">/note-it</code>、<code class="inline-code">/code-to-spec</code>、<code class="inline-code">/humanize-it</code>、<code class="inline-code">/insight-diagram</code>、<code class="inline-code">/smell</code>、<code class="inline-code">/to-design</code>、<code class="inline-code">/design-it</code>、<code class="inline-code">/listenhub-tts</code>、<code class="inline-code">/article-icons</code>、<code class="inline-code">/understand</code> 即可直接调用对应技能。其中 <code class="inline-code">/goal</code> 是 DSH 的命令（不是 skill）：模型侧是 <code class="inline-code">create_goal</code> / <code class="inline-code">update_goal</code>，但只在顶层直接的人类回合执行。
+      </div>
+
+      <div class="note">
+        <strong>让技能不进模型目录：</strong>5 个技能（<code class="inline-code">/ask-flow</code>、<code class="inline-code">/insight-diagram</code>、<code class="inline-code">/article-icons</code>、<code class="inline-code">/humanize-it</code>、<code class="inline-code">/listenhub-tts</code>）标记为不进模型目录，省下每个会话与<strong>每个子代理</strong>都要付的那份固定成本。DSH 读 frontmatter 的 <code class="inline-code">disable-model-invocation: true</code>；这 5 个技能还各带一份 <code class="inline-code">agents/openai.yaml</code>（<code class="inline-code">policy.allow_implicit_invocation: false</code>）。
       </div>
     </div>
 
@@ -927,7 +939,7 @@
       <p>从需求到交付的闭环工作流：</p>
 
       <div style="text-align: center; margin: 1.5rem 0;">
-        <img src="workflow.png" alt="dsh-floway Infographic" style="max-width: 100%; border-radius: 12px; border: 1px solid #E8E4DE; box-shadow: 0 2px 8px rgba(0,0,0,0.06);">
+        <img src="workflow.png" alt="stream-it Infographic" style="max-width: 100%; border-radius: 12px; border: 1px solid #E8E4DE; box-shadow: 0 2px 8px rgba(0,0,0,0.06);">
       </div>
 
       <div class="flow-arrow">
@@ -1056,7 +1068,7 @@
           <td><span class="badge badge-plan">1. 规划</span></td>
           <td><code class="inline-code">/prd</code></td>
           <td>功能描述 / 产品想法</td>
-          <td>PRD 文档 + Issue 卡片</td>
+          <td>PRD 文档（交给 <code class="inline-code">/to-issues</code> 拆解）</td>
         </tr>
         <tr>
           <td><span class="badge badge-plan">1.5 设计</span></td>
@@ -1108,11 +1120,11 @@
         <h3>4. Step 1: /prd — 需求规划</h3>
       </div>
       <p>
-        <code class="inline-code">/prd</code> 将一个模糊的功能想法转化为结构化的产品需求文档，并拆解为可独立实施的 Issue 卡片。
+        <code class="inline-code">/prd</code> 将一个模糊的功能想法转化为结构化的产品需求文档（PRD）：先把歧义问清楚，再把需求写成<strong>可验证的验收条件</strong>。它只产出 PRD，不拆 Issue——拆解交给 <code class="inline-code">/to-issues</code>。
       </p>
 
       <h3>触发方式</h3>
-      <pre><code><span class="comment"># 在 DSH 会话中直接输入</span>
+      <pre><code><span class="comment"># 直接输入</span>
 <span class="cmd">/prd</span> <span class="value">给我们的任务管理系统加一个优先级功能</span>
 
 <span class="comment"># 或使用触发词</span>
@@ -1121,25 +1133,22 @@
 
       <h3>工作流程</h3>
       <ul class="step-list">
-        <li>Agent 提出 3-5 个澄清问题（带字母选项，可快速回复 "1A, 2C, 3B"）</li>
+        <li>Agent 提出澄清问题（带字母选项，可快速回复 "1A, 2C, 3B"），数量随复杂度伸缩，不凑数</li>
         <li>根据回答生成结构化 PRD（用户故事、功能需求、非目标、验收标准）</li>
         <li>展示 PRD 供审阅，确认或调整</li>
         <li>保存 PRD 到 <code class="inline-code">tasks/prd-[feature-name].md</code></li>
-        <li>拆解 PRD 为 Issue 列表，展示供确认</li>
-        <li>选择创建模式（GitHub / Local / Baidu iCafe）并创建 Issue</li>
+        <li>建议下一步：<code class="inline-code">/prd-to-spec</code>（可选）与 <code class="inline-code">/to-issues</code></li>
       </ul>
 
       <h3>输出示例</h3>
-      <pre><code><span class="comment"># 生成的 Issue 列表</span>
-<span class="value">📋 Generated 4 Issues from PRD:</span>
+      <pre><code><span class="comment"># 保存 PRD 后给出的下一步</span>
+<span class="value">✅ PRD saved to tasks/prd-priority-system.md</span>
 
-<span class="cmd">#1: Add priority field to database</span> <span class="flag">(backend, high)</span>
-<span class="cmd">#2: Display priority indicator</span> <span class="flag">(frontend, high)</span> <span class="comment">— depends on #1</span>
-<span class="cmd">#3: Add priority selector</span> <span class="flag">(frontend, medium)</span> <span class="comment">— depends on #1</span>
-<span class="cmd">#4: Filter tasks by priority</span> <span class="flag">(frontend, medium)</span> <span class="comment">— depends on #1, #2</span></code></pre>
+<span class="cmd">/prd-to-spec</span>  <span class="comment">（可选：复杂功能才需要技术方案）</span>
+<span class="cmd">/to-issues</span>    <span class="comment">（把 PRD 拆成有阻塞关系的 Issue）</span></code></pre>
 
       <div class="tip">
-        <strong>Tip：</strong>每个 Issue 的粒度应该是一个 Agent 在单次会话中可以完成的工作量。如果一个 User Story 太大（5+ 验收标准或跨前后端），会自动拆分。
+        <strong>Tip：</strong>PRD 里写的是「要什么」，每条需求都要落成<strong>可验证的验收条件</strong>——这是后面 <code class="inline-code">/review-it</code> 的 Spec 轴能证伪的依据。Issue 粒度由 <code class="inline-code">/to-issues</code> 负责：一个 Issue 应是单个 Agent 在单次会话里能完成的量（通常 1-3 个文件）。
       </div>
     </div>
 
@@ -1154,7 +1163,7 @@
       </p>
 
       <h3>触发方式</h3>
-      <pre><code><span class="comment"># 在 DSH 会话中直接输入</span>
+      <pre><code><span class="comment"># 直接输入</span>
 <span class="cmd">/prd-to-spec</span> <span class="value">tasks/prd-priority-system.md</span>
 
 <span class="comment"># 或使用触发词</span>
@@ -1223,7 +1232,7 @@
       </div>
 
       <h3>触发方式</h3>
-      <pre><code><span class="comment"># 在 DSH 会话中直接输入</span>
+      <pre><code><span class="comment"># 直接输入</span>
 <span class="cmd">/to-issues</span>
 
 <span class="comment"># 或使用触发词</span>
@@ -1276,11 +1285,11 @@
         <h3>7. Step 2: /implement · /loop-it · /graph — 功能实现</h3>
       </div>
       <p>
-        实现步骤由正在运行的 agent <strong>内联</strong>完成：它读取 Issue 的标题、正文与验收标准（含其中引用的 PRD/SPEC），自己写代码、跑测试与 lint，直到验收条件全部满足。DSH 提供三条实现路线：只有<strong>一个单元</strong>时内联走 <code class="inline-code">/implement</code>，串行走 <code class="inline-code">/loop-it</code>，并行走 <code class="inline-code">/graph</code>。
+        实现步骤由正在运行的 agent <strong>内联</strong>完成：它读取 Issue 的标题、正文与验收标准（含其中引用的 PRD/SPEC），自己写代码、跑测试与 lint，直到验收条件全部满足。技能提供三条实现路线：只有<strong>一个单元</strong>时内联走 <code class="inline-code">/implement</code>，串行走 <code class="inline-code">/loop-it</code>，并行走 <code class="inline-code">/graph</code>。
       </p>
 
       <div class="note">
-        <strong>Note：<code class="inline-code">/goal</code> 不再是流水线步骤。</strong>在 DSH 中，<code class="inline-code">/goal</code> 是面向人类、通过命令行面（UI）输入的持久目标命令——它创建一个带自动续跑轮次的持久目标，<strong>模型无法调用它</strong>（<code class="inline-code">skill</code> 工具也取不到它）。因此「实现 Issue」这一步由 agent 内联完成，而不是调用 <code class="inline-code">/goal</code>。若想要一个自动续跑的长目标，应由人类自己输入 <code class="inline-code">/goal &lt;objective&gt;</code>。
+        <strong>Note：<code class="inline-code">/goal</code> 不再是流水线步骤。</strong>在 DSH 中，<code class="inline-code">/goal</code> 是<strong>命令</strong>而不是 skill——由人类在命令行输入，创建一个带自动续跑轮次的持久目标。这条能力的模型侧是 <code class="inline-code">create_goal</code> / <code class="inline-code">update_goal</code>，但 <code class="inline-code">create_goal</code> 只在<strong>顶层直接的人类回合</strong>执行：子代理铸造不了长期目标，技能在编排中途也不行。因此「实现 Issue」这一步由 agent 内联完成，而不是调用 <code class="inline-code">/goal</code>。若想要一个自动续跑的长目标，应由人类自己输入 <code class="inline-code">/goal &lt;objective&gt;</code>。
       </div>
 
       <h3>/implement — 单单元内联闭环</h3>
@@ -1319,7 +1328,7 @@
       <h3>/graph — 并行实现</h3>
       <ul class="step-list">
         <li>把一个任务（或 PRD / SPEC / Issue 集合）转化为<strong>有向无环图（DAG）</strong>，按依赖关系分层为若干<strong>波次（wave）</strong></li>
-        <li>每个波次里相互独立的节点由一个 subagent <strong>并发实现</strong>，<strong>每个节点独占一个 git worktree</strong>，并行编辑互不污染工作树</li>
+        <li>每个波次里相互独立的节点由一个子代理 <strong>并发实现</strong>，<strong>每个节点独占一个 git worktree</strong>，并行编辑互不污染工作树</li>
         <li>节点只 commit 到自己的分支；波次之间设<strong>强制 fan-in 屏障</strong>（BSP 语义）——等齐本波<strong>所有</strong>节点的完成通知后才收尾</li>
         <li>屏障到达后统一收尾：泄漏检查 → 集成（<strong>只合并 shipped 的节点</strong>，failed 的绝不合并）→ 在<strong>集成后的树</strong>上跑门禁 → <strong>评审一次</strong>（逐节点分节）→ <strong>ship 一次</strong>（一个 PR，关闭该波满足的 Issue）</li>
         <li>每波写入 <code class="inline-code">.graph_state</code> 检查点，并据此重新渲染 <code class="inline-code">graph.html</code> 实时看板</li>
@@ -1328,12 +1337,12 @@
 
       <h3>失败节点：原地重试 → 重跑 → 剔除</h3>
       <ul class="step-list">
-        <li>先用 <code class="inline-code">send_message</code> 复用该节点的上下文<strong>原地重试</strong>；仍失败再考虑作为新节点重跑，最后才剔除</li>
+        <li>先用继续消息复用该节点的上下文<strong>原地重试</strong>；仍失败再考虑作为新节点重跑，最后才剔除</li>
         <li>其依赖节点标记为 blocked；<strong>其余兄弟节点照常 ship——波不是全有全无</strong>，但 failed 的分支永不合并，也不为推进波次而谎报 shipped</li>
       </ul>
 
       <div class="tip">
-        <strong>Tip：</strong>「实现」由 agent 内联完成——单个单元走 <code class="inline-code">/implement</code>（内联实现 → 门禁自证 → <code class="inline-code">/review-it</code> → <code class="inline-code">/ship-it</code>，不建 worktree、不派子代理）；DSH 的 <code class="inline-code">/goal</code> 是 UI 命令而非 skill，模型取不到；<code class="inline-code">/review-it</code>、<code class="inline-code">/ship-it</code> 是真实 skill，由编排器在波级各调用一次。子代理要付出父级完整 prompt、工具 schema 与技能目录的固定成本，所以节点止于 commit、琐碎工作内联做；并发上限默认 3–4，波内节点数建议 2–3。
+        <strong>Tip：</strong>「实现」由 agent 内联完成——单个单元走 <code class="inline-code">/implement</code>（内联实现 → 门禁自证 → <code class="inline-code">/review-it</code> → <code class="inline-code">/ship-it</code>，不建 worktree、不派子代理）；<code class="inline-code">/goal</code> 是 DSH 的命令而不是 skill：模型侧是 <code class="inline-code">create_goal</code> / <code class="inline-code">update_goal</code>，但 <code class="inline-code">create_goal</code> 只在顶层直接的人类回合执行——子代理和编排中途都铸造不了长期目标；<code class="inline-code">/review-it</code>、<code class="inline-code">/ship-it</code> 是真实 skill，由编排器在波级各调用一次。子代理要付出父级完整 prompt、工具 schema 与技能目录的固定成本，所以节点止于 commit、琐碎工作内联做；并发上限默认 3–4，波内节点数建议 2–3。
       </div>
     </div>
 
@@ -1368,8 +1377,8 @@
         <strong>为什么两轴分开：</strong>一个改动可以<strong>通过全部 8 个标准，却实现了错的东西</strong>；合并排序会让风格意见挤掉缺失的需求。先报 Spec 轴，再报 Standards 轴，各自成节。
       </div>
 
-      <h3>DSH 主路径</h3>
-      <p>本项目的目标平台是 <strong>DeepSeek Harness（DSH）</strong>。DSH 没有外部 review CLI——<code class="inline-code">/review-it</code> 加载后，由<strong>正在运行的 DSH agent 亲自</strong>按下面的审查原则审当前 diff，不会 shell out 任何 review 命令。</p>
+      <h3>评审路径</h3>
+      <p>没有外部 review CLI——<code class="inline-code">/review-it</code> 加载后，由<strong>正在运行的 agent 亲自</strong>按下面的审查原则审当前 diff，不会 shell out 任何 review 命令。</p>
       <pre><code><span class="comment"># 未提交变更（默认）：直接审工作树，含未跟踪文件</span>
 <span class="cmd">git status</span> <span class="flag">--short</span>
 <span class="cmd">git diff</span>
@@ -1377,7 +1386,7 @@
 
 <span class="comment"># 分支 / PR：先生成相对 base 的 diff，再逐段审</span>
 <span class="cmd">git diff</span> <span class="value">origin/main...HEAD</span> &gt; <span class="value">/tmp/review-it.diff</span></code></pre>
-      <p>diff 较大、或更看重独立性时，可把 diff 文件交给一个<strong>全新的 subagent</strong> 审——它看不到本会话的上下文，因此提示词必须自包含。</p>
+      <p>diff 较大、或更看重独立性时，可把 diff 文件交给一个<strong>全新的子代理</strong>审——它看不到本会话的上下文，因此提示词必须自包含。</p>
 
       <h3>审查原则</h3>
       <table>
@@ -1392,7 +1401,7 @@
       <h3>审查模式</h3>
       <table>
         <tr><th>工作树状态</th><th>模式</th><th>操作</th></tr>
-        <tr><td>有未提交变更</td><td>local</td><td>由当前 DSH agent 直接审查工作树（含未跟踪文件）</td></tr>
+        <tr><td>有未提交变更</td><td>local</td><td>由当前 agent 直接审查工作树（含未跟踪文件）</td></tr>
         <tr><td>已提交未推送</td><td>branch</td><td><code class="inline-code">git diff origin/main...HEAD</code> + 审这份 diff</td></tr>
         <tr><td>已推送 / PR</td><td>branch</td><td>同上，相对的 base 用 PR 的实际 base</td></tr>
         <tr><td>干净工作树</td><td>skip</td><td>确实没有可审的内容时跳过</td></tr>
@@ -1407,7 +1416,7 @@
       </ul>
 
       <div class="tip">
-        <strong>Tip：</strong>Claude Code / Codex / OpenCode / DeepSeek TUI / Antigravity CLI 等其它 CLI 的审查命令表已移到 <code class="inline-code">references/other-clis.md</code>。那只是兼容性支持，不代表本项目的目标平台。
+        <strong>Tip：</strong>其它 CLI 的审查命令表放在 <code class="inline-code">references/other-clis.md</code>。
       </div>
     </div>
 
@@ -1422,7 +1431,7 @@
       </p>
 
       <h3>触发方式</h3>
-      <pre><code><span class="comment"># 在 DSH 会话中调用</span>
+      <pre><code><span class="comment"># 直接调用</span>
 <span class="cmd">/ship-it</span>
 
 <span class="comment"># 或使用触发词</span>
@@ -1492,7 +1501,7 @@
       </p>
 
       <h3>触发方式</h3>
-      <pre><code><span class="comment"># 在 DSH 会话中直接输入</span>
+      <pre><code><span class="comment"># 直接输入</span>
 <span class="cmd">/humanize-it</span> <span class="value">docs/architecture.md</span>
 
 <span class="comment"># 或使用触发词</span>
@@ -1543,7 +1552,7 @@
       </p>
 
       <h3>触发方式</h3>
-      <pre><code><span class="comment"># 在 DSH 会话中直接输入</span>
+      <pre><code><span class="comment"># 直接输入</span>
 <span class="cmd">/insight-diagram</span>
 
 <span class="comment"># 或使用触发词</span>
@@ -1606,7 +1615,7 @@
       </p>
 
       <h3>触发方式</h3>
-      <pre><code><span class="comment"># 在 DSH 会话中直接输入</span>
+      <pre><code><span class="comment"># 直接输入</span>
 <span class="cmd">/refactor</span>
 
 <span class="comment"># 或使用触发词</span>
@@ -1687,11 +1696,11 @@
         <h3>13. Bonus: /modern-go — Go 代码现代化改造</h3>
       </div>
       <p>
-        <code class="inline-code">/modern-go</code> 自动将 Go 代码升级为现代写法和 API，类似 <code class="inline-code">go fix</code>。扫描 <code class="inline-code">go.mod</code> 检测 Go 版本，对 Go 源文件批量应用版本适配的转换规则，覆盖从 Go 1.0 到 1.26+ 的 35+ 条规则。
+        <code class="inline-code">/modern-go</code> 自动将 Go 代码升级为现代写法和 API，类似 <code class="inline-code">go fix</code>。扫描 <code class="inline-code">go.mod</code> 检测 Go 版本，对 Go 源文件批量应用版本适配的转换规则，覆盖从 Go 1.0 到 1.27+ 的 35+ 条规则。
       </p>
 
       <h3>触发方式</h3>
-      <pre><code><span class="comment"># 在 DSH 会话中直接输入</span>
+      <pre><code><span class="comment"># 直接输入</span>
 <span class="cmd">/modern-go</span>
 
 <span class="comment"># 或使用触发词</span>
@@ -1725,6 +1734,7 @@
         <tr><td>1.24+</td><td><code class="inline-code">t.Context()</code>, <code class="inline-code">omitzero</code>, <code class="inline-code">b.Loop()</code></td><td>测试中 <code class="inline-code">context.Background()</code> → <code class="inline-code">t.Context()</code></td></tr>
         <tr><td>1.25+</td><td><code class="inline-code">wg.Go()</code></td><td><code class="inline-code">wg.Add(1); go func(){defer wg.Done();fn()}()</code> → <code class="inline-code">wg.Go(fn)</code></td></tr>
         <tr><td>1.26+</td><td><code class="inline-code">new(expr)</code>, <code class="inline-code">errors.AsType</code></td><td><code class="inline-code">v:=42; &amp;v</code> → <code class="inline-code">new(42)</code></td></tr>
+        <tr><td>1.27+</td><td>内嵌字段字面量（<code class="inline-code">embedlit</code>）、<code class="inline-code">go fix</code> 自动化改造器</td><td>冗余的内嵌字段字面量 → 提升字段初始化</td></tr>
       </table>
 
       <h3>安全规则</h3>
@@ -1751,7 +1761,7 @@
       </p>
 
       <h3>触发方式</h3>
-      <pre><code><span class="comment"># 在 DSH 会话中直接输入</span>
+      <pre><code><span class="comment"># 直接输入</span>
 <span class="cmd">/note-it</span>
 
 <span class="comment"># 或使用触发词</span>
@@ -1796,7 +1806,7 @@
       </p>
 
       <h3>触发方式</h3>
-      <pre><code><span class="comment"># 在 DSH 会话中直接输入</span>
+      <pre><code><span class="comment"># 直接输入</span>
 <span class="cmd">/code-to-spec</span>
 
 <span class="comment"># 或使用触发词</span>
@@ -1855,7 +1865,7 @@
       </p>
 
       <h3>如何调用</h3>
-      <pre><code><span class="comment"># 在 DSH 会话中直接输入</span>
+      <pre><code><span class="comment"># 直接输入</span>
 <span class="cmd">/smell</span>
 
 <span class="comment"># 或使用触发短语</span>
@@ -1902,7 +1912,7 @@
       </p>
 
       <h3>如何调用</h3>
-      <pre><code><span class="comment"># 在 DSH 会话中直接输入</span>
+      <pre><code><span class="comment"># 直接输入</span>
 <span class="cmd">/loop-it</span>
 
 <span class="comment"># 或使用触发短语</span>
@@ -1952,7 +1962,7 @@
       </div>
 
       <h3>如何调用</h3>
-      <pre><code><span class="comment"># 在 DSH 会话中直接输入</span>
+      <pre><code><span class="comment"># 直接输入</span>
 <span class="cmd">/to-design</span> <span class="value">tasks/prd-priority-system.md</span>
 
 <span class="comment"># 或使用触发词</span>
@@ -2012,7 +2022,7 @@
       <p>设计思想借鉴了当下热议的 <strong>graph engineering</strong>、<strong>LangGraph</strong> 的 StateGraph / Pregel-BSP 超步模型，以及动态工作流（dynamic workflow）的编排理念。</p>
 
       <h3>如何调用</h3>
-      <pre><code><span class="comment"># 在 DSH 会话中直接输入</span>
+      <pre><code><span class="comment"># 直接输入</span>
 <span class="cmd">/graph</span> <span class="value">tasks/prd-url-shortener.md</span>
 
 <span class="comment"># 或使用触发词</span>
@@ -2084,7 +2094,7 @@ Wave 2 (并发×1):  #6 集成 (依赖 #4,#5)
       </p>
 
       <h3>如何调用</h3>
-      <pre><code><span class="comment"># 在 DSH 会话中直接输入</span>
+      <pre><code><span class="comment"># 直接输入</span>
 <span class="cmd">/understand</span>
 
 <span class="comment"># 或使用触发短语</span>
@@ -2127,7 +2137,7 @@ Wave 2 (并发×1):  #6 集成 (依赖 #4,#5)
       </p>
 
       <h3>触发方式</h3>
-      <pre><code><span class="comment"># 在 DSH 会话中调用</span>
+      <pre><code><span class="comment"># 直接调用</span>
 <span class="cmd">/ask-flow</span>
 
 <span class="comment"># 或直接问</span>
@@ -2143,7 +2153,7 @@ Wave 2 (并发×1):  #6 集成 (依赖 #4,#5)
       </ul>
 
       <div class="tip">
-        <strong>Tip：</strong><code class="inline-code">/ask-flow</code> 标了 <code class="inline-code">disable-model-invocation</code>（user-only）：不在模型目录里，模型不会主动挑它，只有你敲命令时才加载。
+        <strong>Tip：</strong><code class="inline-code">/ask-flow</code> 标了 <code class="inline-code">disable-model-invocation</code>：不在模型目录里，模型不会主动挑它，只有你敲命令时才加载。它还带一份 <code class="inline-code">agents/openai.yaml</code>（<code class="inline-code">policy.allow_implicit_invocation: false</code>）。
       </div>
     </div>
 
@@ -2191,7 +2201,7 @@ Wave 2 (并发×1):  #6 集成 (依赖 #4,#5)
       </p>
 
       <h3>触发方式</h3>
-      <pre><code><span class="comment"># 在 DSH 会话中调用</span>
+      <pre><code><span class="comment"># 直接调用</span>
 <span class="cmd">/diagnose</span>
 
 <span class="comment"># 或直接说</span>
@@ -2237,56 +2247,27 @@ Wave 2 (并发×1):  #6 集成 (依赖 #4,#5)
       </div>
     </div>
 
-    <!-- Section 25: Platforms -->
-    <div class="section" id="platforms">
-      <div class="section-title">
-        <div class="section-dot slate"></div>
-        <h3>25. 支持的平台</h3>
-      </div>
-      <p>dsh-floway 面向 <strong>DeepSeek Harness（DSH）</strong> 构建，其技能也可在其他 AI Coding Agent 中使用：</p>
-
-      <table>
-        <tr><th>Agent</th><th>/prd</th><th>/prd-to-spec</th><th>/to-issues</th><th>/goal</th><th>/review-it</th><th>/note-it</th><th>/ship-it</th><th>/loop-it</th><th>/refactor</th><th>/modern-go</th><th>/code-to-spec</th><th>/smell</th><th>/humanize-it</th><th>/insight-diagram</th><th>/to-design</th><th>/graph</th></tr>
-         <tr><td>DeepSeek Harness (DSH) ★</td><td>&#10003;</td><td>&#10003;</td><td>&#10003;</td><td>&#10003; (UI 命令)</td><td>&#10003;</td><td>&#10003;</td><td>&#10003;</td><td>&#10003;</td><td>&#10003;</td><td>&#10003;</td><td>&#10003;</td><td>&#10003;</td><td>&#10003;</td><td>&#10003;</td><td>&#10003;</td><td>&#10003;</td></tr>
-        <tr><td>Claude Code</td><td>&#10003;</td><td>&#10003;</td><td>&#10003;</td><td>&#10003; (内置)</td><td>&#10003;</td><td>&#10003;</td><td>&#10003;</td><td>&#10003;</td><td>&#10003;</td><td>&#10003;</td><td>&#10003;</td><td>&#10003;</td><td>&#10003;</td><td>&#10003;</td><td>&#10003;</td><td>&#10003;</td></tr>
-        <tr><td>Codex</td><td>&#10003;</td><td>&#10003;</td><td>&#10003;</td><td>—</td><td>&#10003;</td><td>&#10003;</td><td>&#10003;</td><td>&#10003;</td><td>&#10003;</td><td>&#10003;</td><td>&#10003;</td><td>&#10003;</td><td>&#10003;</td><td>&#10003;</td><td>&#10003;</td><td>&#10003;</td></tr>
-        <tr><td>OpenCode</td><td>&#10003;</td><td>&#10003;</td><td>&#10003;</td><td>—</td><td>&#10003;</td><td>&#10003;</td><td>&#10003;</td><td>&#10003;</td><td>&#10003;</td><td>&#10003;</td><td>&#10003;</td><td>&#10003;</td><td>&#10003;</td><td>&#10003;</td><td>&#10003;</td><td>&#10003;</td></tr>
-        <tr><td>DeepSeek TUI</td><td>&#10003;</td><td>&#10003;</td><td>&#10003;</td><td>—</td><td>&#10003;</td><td>&#10003;</td><td>&#10003;</td><td>&#10003;</td><td>&#10003;</td><td>&#10003;</td><td>&#10003;</td><td>&#10003;</td><td>&#10003;</td><td>&#10003;</td><td>&#10003;</td><td>&#10003;</td></tr>
-      </table>
-
-      <h3>Issue 创建平台</h3>
-      <table>
-        <tr><th>平台</th><th>工具</th><th>说明</th></tr>
-        <tr><td>GitHub</td><td><code class="inline-code">gh issue create</code></td><td>需要 gh CLI 认证</td></tr>
-        <tr><td>Local</td><td>Markdown 文件</td><td>保存到本地目录</td></tr>
-        <tr><td>Baidu iCafe</td><td><code class="inline-code">icafe-cli</code></td><td>需要 iCafe 空间参数</td></tr>
-      </table>
-    </div>
-
-    <!-- Section 22: FAQ -->
+    <!-- Section 25: FAQ -->
     <div class="section" id="faq">
       <div class="section-title">
         <div class="section-dot terracotta"></div>
-        <h3>26. FAQ</h3>
+        <h3>25. FAQ</h3>
       </div>
 
       <h3>Q: 必须按顺序使用所有步骤吗？</h3>
       <p>不必。每个 Skill 都是独立的，可以单独使用。比如你已经有 Issue 了，可以直接从实现开始——单个单元走 <code class="inline-code">/implement</code>，串行走 <code class="inline-code">/loop-it</code>，并行走 <code class="inline-code">/graph</code>；代码已经写好，可以直接用 <code class="inline-code">/review-it</code> 审查。但完整走一遍流程能获得最好的效果。</p>
 
       <h3>Q: /goal 是什么？为什么不在 skills 目录中？</h3>
-      <p>在 DSH 中，<code class="inline-code">/goal</code> 是面向人类、通过命令行面（UI）输入的持久目标命令，不是 skill，因此不在 <code class="inline-code">~/.agents/skills</code> 中，模型也无法调用它。它创建一个带自动续跑轮次的持久目标；而「实现 Issue」这一动作由 agent 内联完成（见 <a href="#step-impl" style="color: #D97757; text-decoration: none;">Step 2: /implement · /loop-it · /graph</a>）。</p>
+      <p>在 DSH 中，<code class="inline-code">/goal</code> 是<strong>命令</strong>而不是 skill，因此不在 <code class="inline-code">~/.agents/skills</code> 中。它由人类在命令行输入，创建一个带自动续跑轮次的持久目标；这条能力的模型侧是 <code class="inline-code">create_goal</code> / <code class="inline-code">update_goal</code>，但 <code class="inline-code">create_goal</code> 只在<strong>顶层直接的人类回合</strong>执行——子代理、或正在编排的技能，都无法给自己铸造一个长期目标。而「实现 Issue」这一动作与它无关，由 agent 内联完成（见 <a href="#step-impl" style="color: #D97757; text-decoration: none;">Step 2: /implement · /loop-it · /graph</a>）。</p>
 
       <h3>Q: 可以在非 GitHub 项目中使用吗？</h3>
-      <p>可以。<code class="inline-code">/prd</code> 支持将 Issue 保存为本地 Markdown 文件或创建到百度 iCafe。<code class="inline-code">/review-it</code> 只需要本地 git 仓库。<code class="inline-code">/ship-it</code> 目前依赖 GitHub（<code class="inline-code">gh</code> CLI）。</p>
+      <p>可以。<code class="inline-code">/to-issues</code> 支持把 Issue 保存为本地 Markdown 文件。<code class="inline-code">/review-it</code> 只需要本地 git 仓库。<code class="inline-code">/ship-it</code> 目前依赖 GitHub（<code class="inline-code">gh</code> CLI）。</p>
 
       <h3>Q: /review-it 和手动 code review 的区别？</h3>
       <p><code class="inline-code">/review-it</code> 是自动化的自查（self-review），在提交前发现明显问题。它分<strong>两轴</strong>报告：<strong>Spec 轴</strong>查这份 diff 有没有做「要求的事」（缺的 / 多做的 / 做错的，每条引用对应的验收条件），<strong>Standards 轴</strong>按 8 个维度查代码质量。两轴分开报告、不合并排序。它不替代团队 code review，而是在 PR 创建前提升代码质量，减少 reviewer 需要指出的低级问题。</p>
 
       <h3>Q: Issue 粒度应该多大？</h3>
-      <p>每个 Issue 应该是一个 Agent 在单次会话中可以完成的工作量——通常是 1-3 个文件的变更，有明确的验收标准。<code class="inline-code">/prd</code> 会自动按这个粒度拆解，但你可以在确认前调整。</p>
-
-      <h3>Q: 如何在其他 Agent（如 Codex）中使用？</h3>
-      <p>本项目的目标平台是 DeepSeek Harness（DSH）；其他 agent 属于<strong>兼容性支持</strong>。用 <code class="inline-code">npx skills add 9Ashwin/dsh-floway</code> 把技能装到 <code class="inline-code">~/.agents/skills</code>，多数技能与具体 agent 无关，<code class="inline-code">/review-it</code> 也兼容 Claude Code、Codex、OpenCode、DeepSeek TUI、Antigravity CLI。<code class="inline-code">/goal</code> 是 DSH 的 UI 命令，其他 agent 没有同名机制。</p>
+      <p>每个 Issue 应该是一个 Agent 在单次会话中可以完成的工作量——通常是 1-3 个文件的变更，有明确的验收标准。这个粒度由 <code class="inline-code">/to-issues</code> 把关，拆完你可以调整。</p>
 
       <h3>Q: /prd-to-spec 是必需的吗？什么时候可以跳过？</h3>
       <p>不是必需的。<code class="inline-code">/prd-to-spec</code> 是一个可选步骤。PRD 说的是"做什么"，SPEC 说的是"怎么做"。区别在于：AI agent 在实现阶段本身就具备"怎么做"的能力——它会自动分析代码库、理解现有架构和约定、在实现过程中做出合理的技术决策。换句话说，<strong>AI agent 就是一个活的 SPEC 引擎</strong>，不需要在纸面上先画一遍。</p>
@@ -2317,10 +2298,10 @@ Wave 2 (并发×1):  #6 集成 (依赖 #4,#5)
 
     <!-- Footer -->
     <p class="footer">
-      <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor" style="vertical-align: middle; margin-right: 2px;"><path fill-rule="evenodd" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg> dsh-floway · AI-driven development workflow · github.com/9Ashwin/dsh-floway
+      <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor" style="vertical-align: middle; margin-right: 2px;"><path fill-rule="evenodd" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg> stream-it · AI-driven development workflow · github.com/9Ashwin/stream-it
     </p>
     <p class="footer" style="margin-top: 0.5rem;">
-      MIT License · 版权与许可全文见 <a href="https://github.com/9Ashwin/dsh-floway/blob/master/LICENSE" style="color: #8B8680; text-decoration: none;">LICENSE</a>。
+      MIT License · 版权与许可全文见 <a href="https://github.com/9Ashwin/stream-it/blob/master/LICENSE" style="color: #8B8680; text-decoration: none;">LICENSE</a>。
     </p>
   </div>
 

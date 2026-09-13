@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>dsh-floway Usage Guide</title>
+  <title>stream-it Usage Guide</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
     * {
@@ -495,10 +495,10 @@
     <div class="header">
       <div class="header-row">
         <div class="pulse-dot"></div>
-        <h1>dsh-floway Usage Guide</h1>
+        <h1>stream-it Usage Guide</h1>
       </div>
       <p class="subtitle">AI-driven development workflow — from PRD to shipped code</p>
-      <p class="subtitle" style="margin-top: 0.25rem;"><a href="https://github.com/9Ashwin/dsh-floway" style="color: #D97757; text-decoration: none;"><svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor" style="vertical-align: middle; margin-right: 3px;"><path fill-rule="evenodd" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>github.com/9Ashwin/dsh-floway</a></p>
+      <p class="subtitle" style="margin-top: 0.25rem;"><a href="https://github.com/9Ashwin/stream-it" style="color: #D97757; text-decoration: none;"><svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor" style="vertical-align: middle; margin-right: 3px;"><path fill-rule="evenodd" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>github.com/9Ashwin/stream-it</a></p>
       <p class="diagram-desc"><b>Usage Guide</b> — Six-step closed-loop development workflow: Plan, Design, Break Down, Implement, Review, Ship.</p>
     </div>
 
@@ -530,8 +530,7 @@
         <li><a href="#step-triage">22. Bonus: /triage — Triaging Inbound Issues</a></li>
         <li><a href="#step-diagnose">23. Bonus: /diagnose — The Debugging Loop</a></li>
         <li><a href="#step-conflict">24. Bonus: /conflict — Resolving Merge / Rebase Conflicts</a></li>
-        <li><a href="#platforms">25. Supported Platforms</a></li>
-        <li><a href="#faq">26. FAQ</a></li>
+        <li><a href="#faq">25. FAQ</a></li>
       </ul>
     </div>
 
@@ -542,7 +541,7 @@
         <h3>1. Overview</h3>
       </div>
       <p>
-        <strong>dsh-floway</strong> is a collection of AI-driven development workflow skills built for the <strong>DeepSeek Harness (DSH)</strong>. It breaks down the complete software development lifecycle into standardized steps, each driven by a dedicated Skill.
+        <strong>stream-it</strong> is a set of development-workflow skills: 25 skills that take a change from "an idea" to "shipped code" through standard steps — requirements, design, breakdown, implementation, review, shipping — each owned by one skill.
       </p>
       <p>
         It enables AI agents to act like experienced engineers — from understanding requirements, breaking down tasks, writing code, reviewing quality, to final submission and merge — autonomously completing the entire process. You just describe the feature idea, and the workflow handles the rest.
@@ -550,6 +549,7 @@
       <div class="tip">
         <strong>Entry point:</strong> can't remember which skill to use? Type <code class="inline-code">/ask-flow</code> and describe where you are (a half-formed idea, a pile of inbound issues, code that won't work, a long implementation). It answers only "what do I type next" and which decisions are yours to make — <strong>it never does the work for you</strong>.
       </div>
+
       <div class="cards">
         <div class="card">
           <div class="card-header">
@@ -560,7 +560,7 @@
           <ul>
             <li>Routes on the skill map; answers "what do I type next"</li>
             <li>Suggests only: no spec writing, no file edits</li>
-            <li>user-only (invisible to the model catalog)</li>
+            <li>Not in the model catalog (user-only)</li>
           </ul>
         </div>
         <div class="card">
@@ -568,11 +568,11 @@
             <div class="card-dot terracotta"></div>
             <h4>/prd</h4>
           </div>
-          <p>Requirements document generation + Issue breakdown</p>
+          <p>Requirements document generation</p>
           <ul>
-            <li>Clarifying questions → structured PRD</li>
-            <li>Decomposed into independently implementable Issues</li>
-            <li>Supports GitHub / Local / iCafe</li>
+            <li>Clarifying questions → structured PRD with verifiable acceptance criteria</li>
+            <li>Reviewed and confirmed, then saved to tasks/prd-*.md</li>
+            <li>Hands off to /prd-to-spec (optional) and /to-issues</li>
           </ul>
         </div>
         <div class="card">
@@ -616,11 +616,11 @@
             <div class="card-dot sage"></div>
             <h4>/goal</h4>
           </div>
-          <p>DSH goal command (human-facing UI)</p>
+          <p>DSH goal command</p>
           <ul>
+            <li>Human types it at the prompt; the model side is create_goal / update_goal</li>
             <li>Persisted objective with autonomous rounds</li>
-            <li>A UI command the model cannot invoke</li>
-            <li>Not the pipeline's implementation step</li>
+            <li>Runs only in a direct top-level human turn; not a skill, not a pipeline step</li>
           </ul>
         </div>
         <div class="card">
@@ -628,11 +628,11 @@
             <div class="card-dot plum"></div>
             <h4>/review-it</h4>
           </div>
-          <p>Automated code review and repair</p>
+          <p>Two-axis code review closeout</p>
           <ul>
-            <li>Detect uncommitted changes or branch diff</li>
-            <li>Findings → iterative fixes</li>
-            <li>Until review passes</li>
+            <li>Spec axis: did the diff do what was asked (missing / extra / wrong)</li>
+            <li>Standards axis: code quality across 8 dimensions</li>
+            <li>Reported separately; runs once per wave / batch</li>
           </ul>
         </div>
         <div class="card">
@@ -703,7 +703,7 @@
           <p>Go code modernization</p>
           <ul>
             <li>35+ gofix-style transformation rules</li>
-            <li>Full coverage Go 1.0 to 1.26+</li>
+            <li>Full coverage Go 1.0 to 1.27+</li>
             <li>Auto-detect version + safety guard</li>
           </ul>
         </div>
@@ -716,7 +716,7 @@
           <ul>
             <li>Design decisions / deviations / tradeoffs</li>
             <li>Tracking open questions</li>
-            <li>Saved as HTML in docs/</li>
+            <li>Saved as HTML in <code class="inline-code">docs/issue#XXXX.html</code></li>
           </ul>
         </div>
         <div class="card">
@@ -864,6 +864,10 @@
           </ul>
         </div>
       </div>
+
+      <div class="note">
+        <strong>Skill groups:</strong> the 25 skills split into four buckets by the role they play — <code class="inline-code">flow</code> (the pipeline itself, 9), <code class="inline-code">practice</code> (engineering practice you reach for mid-flow, 7), <code class="inline-code">meta</code> (the router that describes the set itself, 1), and <code class="inline-code">bonus</code> (produces non-code artifacts, 8).
+      </div>
     </div>
 
     <!-- Section 2: Install -->
@@ -872,58 +876,62 @@
         <div class="section-dot sage"></div>
         <h3>2. Installation</h3>
       </div>
-      <p><strong>dsh-floway</strong> targets the <strong>DeepSeek Harness (DSH)</strong>. There are two install routes — <strong>recommended: install as a skill directory</strong>; <strong>optional: install as a DSH bundle</strong>. Pick one, not both.</p>
+      <p>Two install routes — pick one, not both.</p>
 
       <h3>Option 1 (Recommended): Install as a skill directory</h3>
       <pre><code><span class="comment"># Recommended — install all skills into ~/.agents/skills</span>
-<span class="cmd">npx skills add 9Ashwin/dsh-floway</span>
+<span class="cmd">npx skills add 9Ashwin/stream-it</span>
 
 <span class="comment"># Or install a specific skill</span>
-<span class="cmd">npx skills add 9Ashwin/dsh-floway</span> <span class="flag">--skill</span> <span class="value">ask-flow</span>
-<span class="cmd">npx skills add 9Ashwin/dsh-floway</span> <span class="flag">--skill</span> <span class="value">prd</span>
-<span class="cmd">npx skills add 9Ashwin/dsh-floway</span> <span class="flag">--skill</span> <span class="value">prd-to-spec</span>
-<span class="cmd">npx skills add 9Ashwin/dsh-floway</span> <span class="flag">--skill</span> <span class="value">to-issues</span>
-<span class="cmd">npx skills add 9Ashwin/dsh-floway</span> <span class="flag">--skill</span> <span class="value">triage</span>
-<span class="cmd">npx skills add 9Ashwin/dsh-floway</span> <span class="flag">--skill</span> <span class="value">to-design</span>
-<span class="cmd">npx skills add 9Ashwin/dsh-floway</span> <span class="flag">--skill</span> <span class="value">design-it</span>
-<span class="cmd">npx skills add 9Ashwin/dsh-floway</span> <span class="flag">--skill</span> <span class="value">implement</span>
-<span class="cmd">npx skills add 9Ashwin/dsh-floway</span> <span class="flag">--skill</span> <span class="value">test-first</span>
-<span class="cmd">npx skills add 9Ashwin/dsh-floway</span> <span class="flag">--skill</span> <span class="value">loop-it</span>
-<span class="cmd">npx skills add 9Ashwin/dsh-floway</span> <span class="flag">--skill</span> <span class="value">graph</span>
-<span class="cmd">npx skills add 9Ashwin/dsh-floway</span> <span class="flag">--skill</span> <span class="value">diagnose</span>
-<span class="cmd">npx skills add 9Ashwin/dsh-floway</span> <span class="flag">--skill</span> <span class="value">conflict</span>
-<span class="cmd">npx skills add 9Ashwin/dsh-floway</span> <span class="flag">--skill</span> <span class="value">review-it</span>
-<span class="cmd">npx skills add 9Ashwin/dsh-floway</span> <span class="flag">--skill</span> <span class="value">understand</span>
-<span class="cmd">npx skills add 9Ashwin/dsh-floway</span> <span class="flag">--skill</span> <span class="value">ship-it</span>
-<span class="cmd">npx skills add 9Ashwin/dsh-floway</span> <span class="flag">--skill</span> <span class="value">note-it</span>
-<span class="cmd">npx skills add 9Ashwin/dsh-floway</span> <span class="flag">--skill</span> <span class="value">humanize-it</span>
-<span class="cmd">npx skills add 9Ashwin/dsh-floway</span> <span class="flag">--skill</span> <span class="value">listenhub-tts</span>
-<span class="cmd">npx skills add 9Ashwin/dsh-floway</span> <span class="flag">--skill</span> <span class="value">insight-diagram</span>
-<span class="cmd">npx skills add 9Ashwin/dsh-floway</span> <span class="flag">--skill</span> <span class="value">code-to-spec</span>
-<span class="cmd">npx skills add 9Ashwin/dsh-floway</span> <span class="flag">--skill</span> <span class="value">refactor</span>
-<span class="cmd">npx skills add 9Ashwin/dsh-floway</span> <span class="flag">--skill</span> <span class="value">modern-go</span>
-<span class="cmd">npx skills add 9Ashwin/dsh-floway</span> <span class="flag">--skill</span> <span class="value">smell</span>
-<span class="cmd">npx skills add 9Ashwin/dsh-floway</span> <span class="flag">--skill</span> <span class="value">article-icons</span>
+<span class="cmd">npx skills add 9Ashwin/stream-it</span> <span class="flag">--skill</span> <span class="value">ask-flow</span>
+<span class="cmd">npx skills add 9Ashwin/stream-it</span> <span class="flag">--skill</span> <span class="value">prd</span>
+<span class="cmd">npx skills add 9Ashwin/stream-it</span> <span class="flag">--skill</span> <span class="value">prd-to-spec</span>
+<span class="cmd">npx skills add 9Ashwin/stream-it</span> <span class="flag">--skill</span> <span class="value">to-issues</span>
+<span class="cmd">npx skills add 9Ashwin/stream-it</span> <span class="flag">--skill</span> <span class="value">triage</span>
+<span class="cmd">npx skills add 9Ashwin/stream-it</span> <span class="flag">--skill</span> <span class="value">to-design</span>
+<span class="cmd">npx skills add 9Ashwin/stream-it</span> <span class="flag">--skill</span> <span class="value">design-it</span>
+<span class="cmd">npx skills add 9Ashwin/stream-it</span> <span class="flag">--skill</span> <span class="value">implement</span>
+<span class="cmd">npx skills add 9Ashwin/stream-it</span> <span class="flag">--skill</span> <span class="value">test-first</span>
+<span class="cmd">npx skills add 9Ashwin/stream-it</span> <span class="flag">--skill</span> <span class="value">loop-it</span>
+<span class="cmd">npx skills add 9Ashwin/stream-it</span> <span class="flag">--skill</span> <span class="value">graph</span>
+<span class="cmd">npx skills add 9Ashwin/stream-it</span> <span class="flag">--skill</span> <span class="value">diagnose</span>
+<span class="cmd">npx skills add 9Ashwin/stream-it</span> <span class="flag">--skill</span> <span class="value">conflict</span>
+<span class="cmd">npx skills add 9Ashwin/stream-it</span> <span class="flag">--skill</span> <span class="value">review-it</span>
+<span class="cmd">npx skills add 9Ashwin/stream-it</span> <span class="flag">--skill</span> <span class="value">understand</span>
+<span class="cmd">npx skills add 9Ashwin/stream-it</span> <span class="flag">--skill</span> <span class="value">ship-it</span>
+<span class="cmd">npx skills add 9Ashwin/stream-it</span> <span class="flag">--skill</span> <span class="value">note-it</span>
+<span class="cmd">npx skills add 9Ashwin/stream-it</span> <span class="flag">--skill</span> <span class="value">humanize-it</span>
+<span class="cmd">npx skills add 9Ashwin/stream-it</span> <span class="flag">--skill</span> <span class="value">listenhub-tts</span>
+<span class="cmd">npx skills add 9Ashwin/stream-it</span> <span class="flag">--skill</span> <span class="value">insight-diagram</span>
+<span class="cmd">npx skills add 9Ashwin/stream-it</span> <span class="flag">--skill</span> <span class="value">code-to-spec</span>
+<span class="cmd">npx skills add 9Ashwin/stream-it</span> <span class="flag">--skill</span> <span class="value">refactor</span>
+<span class="cmd">npx skills add 9Ashwin/stream-it</span> <span class="flag">--skill</span> <span class="value">modern-go</span>
+<span class="cmd">npx skills add 9Ashwin/stream-it</span> <span class="flag">--skill</span> <span class="value">smell</span>
+<span class="cmd">npx skills add 9Ashwin/stream-it</span> <span class="flag">--skill</span> <span class="value">article-icons</span>
 
 <span class="comment"># Global install (available for all projects)</span>
-<span class="cmd">npx skills add 9Ashwin/dsh-floway</span> <span class="flag">-g</span>
+<span class="cmd">npx skills add 9Ashwin/stream-it</span> <span class="flag">-g</span>
 
 <span class="comment"># Update from the same source later</span>
 <span class="cmd">npx skills update</span> <span class="flag">-g</span>
 
-<span class="comment"># Install to a specific agent (for compatibility; DSH scans ~/.agents/skills)</span>
-<span class="cmd">npx skills add 9Ashwin/dsh-floway</span> <span class="flag">-a</span> <span class="value">dsh</span></code></pre>
-      <p>Skills land in <code class="inline-code">~/.agents/skills</code>, which DSH scans at session start. This is the least-effort route: nothing to change in a profile, and it applies to every profile.</p>
+<span class="comment"># Install to a specific agent</span>
+<span class="cmd">npx skills add 9Ashwin/stream-it</span> <span class="flag">-a</span> <span class="value">dsh</span></code></pre>
+      <p>Skills land in <code class="inline-code">~/.agents/skills</code>. This is the least-effort route: nothing to change in a profile, and it applies to every profile.</p>
 
-      <h3>Option 2 (Optional): Install as a DSH bundle</h3>
+      <p><code class="inline-code">npx skills</code> scans recursively and flattens <code class="inline-code">skills/&lt;bucket&gt;/&lt;skill&gt;</code> into <code class="inline-code">~/.agents/skills/&lt;skill&gt;</code> on install — a skill root is scanned only one level deep, so the flattening is required. Copying by hand means doing that step yourself:</p>
+      <pre><code><span class="comment"># flattened, not the bucket</span>
+<span class="cmd">cp -R</span> <span class="value">&lt;stream-it&gt;/skills/flow/graph</span> <span class="value">~/.agents/skills/graph</span></code></pre>
+
+      <h3>Option 2 (Optional): Install as a bundle</h3>
       <pre><code><span class="comment"># Optional — install as a DSH bundle (config-only package)</span>
-<span class="cmd">dsh plugin</span> <span class="flag">--profile</span> <span class="value">web</span> <span class="flag">add</span> <span class="flag">-w</span> <span class="value">github:9Ashwin/dsh-floway</span>
+<span class="cmd">dsh plugin</span> <span class="flag">--profile</span> <span class="value">web</span> <span class="flag">add</span> <span class="flag">-w</span> <span class="value">github:9Ashwin/stream-it</span>
 
 <span class="comment"># Pin a commit for production instead of tracking the default branch</span>
-<span class="cmd">dsh plugin</span> <span class="flag">--profile</span> <span class="value">web</span> <span class="flag">add</span> <span class="flag">-w</span> <span class="value">github:9Ashwin/dsh-floway#&lt;sha&gt;</span>
+<span class="cmd">dsh plugin</span> <span class="flag">--profile</span> <span class="value">web</span> <span class="flag">add</span> <span class="flag">-w</span> <span class="value">github:9Ashwin/stream-it#&lt;sha&gt;</span>
 
 <span class="comment"># Verify the bundle is registered in the profile</span>
-<span class="cmd">dsh</span> <span class="flag">--profile</span> <span class="value">web</span> <span class="flag">--dump-config</span> | <span class="cmd">grep</span> <span class="flag">-A3</span> <span class="value">dsh-floway</span></code></pre>
+<span class="cmd">dsh</span> <span class="flag">--profile</span> <span class="value">web</span> <span class="flag">--dump-config</span> | <span class="cmd">grep</span> <span class="flag">-A3</span> <span class="value">stream-it</span></code></pre>
 
       <div class="note">
         <strong>Bundle install notes:</strong>
@@ -931,7 +939,7 @@
           <li><code class="inline-code">-w</code> is required because the DSH profile is treated as a pnpm workspace root — without it, pnpm 9 refuses to add the dependency and reports <code class="inline-code">ERR_PNPM_ADDING_TO_ROOT</code>.</li>
           <li>The package is a config-only bundle (skills + config, no native build step), so no <code class="inline-code">allowBuilds</code> grant is needed.</li>
           <li>Pin a commit for production with <code class="inline-code">#&lt;sha&gt;</code> so an update can't shift behavior under you.</li>
-          <li>Verify with <code class="inline-code">dsh --profile web --dump-config | grep -A3 dsh-floway</code>.</li>
+          <li>Verify with <code class="inline-code">dsh --profile web --dump-config | grep -A3 stream-it</code>.</li>
         </ul>
       </div>
 
@@ -944,11 +952,15 @@
         <tr><th>Tool</th><th>Purpose</th><th>Install</th></tr>
         <tr><td><code class="inline-code">npx</code></td><td>npm package runner (recommended route)</td><td>Bundled with Node.js</td></tr>
         <tr><td><code class="inline-code">gh</code></td><td>GitHub CLI (Issue/PR operations)</td><td><code class="inline-code">brew install gh && gh auth login</code></td></tr>
-        <tr><td><code class="inline-code">dsh</code></td><td>DeepSeek Harness CLI (optional route)</td><td><code class="inline-code">npm install -g @deepseek-ai/dsh</code></td></tr>
+        <tr><td><code class="inline-code">dsh</code></td><td>DeepSeek Harness CLI (Option 2 only)</td><td><code class="inline-code">npm install -g @deepseek-ai/dsh</code></td></tr>
       </table>
 
       <div class="tip">
-        <strong>Tip:</strong> After installation, type <code class="inline-code">/ask-flow</code>, <code class="inline-code">/prd</code>, <code class="inline-code">/prd-to-spec</code>, <code class="inline-code">/to-issues</code>, <code class="inline-code">/triage</code>, <code class="inline-code">/to-design</code>, <code class="inline-code">/design-it</code>, <code class="inline-code">/implement</code>, <code class="inline-code">/test-first</code>, <code class="inline-code">/loop-it</code>, <code class="inline-code">/graph</code>, <code class="inline-code">/diagnose</code>, <code class="inline-code">/conflict</code>, <code class="inline-code">/review-it</code>, <code class="inline-code">/ship-it</code>, <code class="inline-code">/note-it</code>, <code class="inline-code">/understand</code>, <code class="inline-code">/refactor</code>, <code class="inline-code">/modern-go</code>, <code class="inline-code">/code-to-spec</code>, <code class="inline-code">/smell</code>, <code class="inline-code">/humanize-it</code>, <code class="inline-code">/listenhub-tts</code>, <code class="inline-code">/insight-diagram</code>, <code class="inline-code">/article-icons</code> in your DSH session to directly invoke the corresponding skill. <code class="inline-code">/goal</code> is different: it is a DSH UI command that a human types, not a skill.
+        <strong>Tip:</strong> After installation, type <code class="inline-code">/ask-flow</code>, <code class="inline-code">/prd</code>, <code class="inline-code">/prd-to-spec</code>, <code class="inline-code">/to-issues</code>, <code class="inline-code">/triage</code>, <code class="inline-code">/to-design</code>, <code class="inline-code">/design-it</code>, <code class="inline-code">/implement</code>, <code class="inline-code">/test-first</code>, <code class="inline-code">/loop-it</code>, <code class="inline-code">/graph</code>, <code class="inline-code">/diagnose</code>, <code class="inline-code">/conflict</code>, <code class="inline-code">/review-it</code>, <code class="inline-code">/ship-it</code>, <code class="inline-code">/note-it</code>, <code class="inline-code">/understand</code>, <code class="inline-code">/refactor</code>, <code class="inline-code">/modern-go</code>, <code class="inline-code">/code-to-spec</code>, <code class="inline-code">/smell</code>, <code class="inline-code">/humanize-it</code>, <code class="inline-code">/listenhub-tts</code>, <code class="inline-code">/insight-diagram</code>, <code class="inline-code">/article-icons</code> to directly invoke the corresponding skill. <code class="inline-code">/goal</code> is a DSH command that a human types, not a skill.
+      </div>
+
+      <div class="note">
+        <strong>Keeping a skill out of the model catalog:</strong> five skills (<code class="inline-code">/ask-flow</code>, <code class="inline-code">/insight-diagram</code>, <code class="inline-code">/article-icons</code>, <code class="inline-code">/humanize-it</code>, <code class="inline-code">/listenhub-tts</code>) are marked as staying out of the model catalog, which saves the fixed cost every session and <strong>every subagent</strong> would otherwise pay. DSH reads the frontmatter field <code class="inline-code">disable-model-invocation: true</code>; those five also ship an <code class="inline-code">agents/openai.yaml</code> (<code class="inline-code">policy.allow_implicit_invocation: false</code>).
       </div>
     </div>
 
@@ -961,7 +973,7 @@
       <p>Six-step closed loop, from requirements to delivery:</p>
 
       <div style="text-align: center; margin: 1.5rem 0;">
-        <img src="workflow.png" alt="dsh-floway Infographic" style="max-width: 100%; border-radius: 12px; border: 1px solid #E8E4DE; box-shadow: 0 2px 8px rgba(0,0,0,0.06);">
+        <img src="workflow.png" alt="stream-it Infographic" style="max-width: 100%; border-radius: 12px; border: 1px solid #E8E4DE; box-shadow: 0 2px 8px rgba(0,0,0,0.06);">
       </div>
 
       <div class="flow-arrow">
@@ -1084,7 +1096,7 @@
           <td><span class="badge badge-plan">1. Plan</span></td>
           <td><code class="inline-code">/prd</code></td>
           <td>Feature description / product idea</td>
-          <td>PRD document + Issue cards</td>
+          <td>PRD document (hand off to <code class="inline-code">/to-issues</code>)</td>
         </tr>
         <tr>
           <td><span class="badge badge-plan">1.5 Design</span></td>
@@ -1102,7 +1114,7 @@
           <td><span class="badge badge-impl">2. Implement</span></td>
           <td><code class="inline-code">/implement</code> / <code class="inline-code">/loop-it</code> / <code class="inline-code">/graph</code></td>
           <td>Issue cards (or a task DAG)</td>
-          <td>Code implemented inline by the DSH agent</td>
+          <td>Code implemented inline by the agent</td>
         </tr>
         <tr>
           <td><span class="badge badge-review">3. Review</span></td>
@@ -1130,11 +1142,11 @@
         <h3>4. Step 1: /prd — Requirements Planning</h3>
       </div>
       <p>
-        <code class="inline-code">/prd</code> transforms a vague feature idea into a structured product requirements document and breaks it down into independently implementable Issue cards.
+        <code class="inline-code">/prd</code> transforms a vague feature idea into a structured product requirements document (PRD): clarify the ambiguity first, then state the requirements as <strong>verifiable acceptance criteria</strong>. It produces the PRD only — <code class="inline-code">/to-issues</code> does the breakdown.
       </p>
 
       <h3>How to Invoke</h3>
-      <pre><code><span class="comment"># Run this in DeepSeek Harness</span>
+      <pre><code><span class="comment"># Run this directly</span>
 <span class="cmd">/prd</span> <span class="value">Add a priority feature to our task management system</span>
 
 <span class="comment"># Or use trigger phrases</span>
@@ -1143,25 +1155,22 @@
 
       <h3>Workflow</h3>
       <ul class="step-list">
-        <li>Agent asks 3-5 clarifying questions (with letter options, reply quickly with "1A, 2C, 3B")</li>
+        <li>Agent asks clarifying questions (with letter options, reply quickly with "1A, 2C, 3B"), scaled to complexity rather than padded to a count</li>
         <li>Generates structured PRD based on answers (User Stories, Functional Requirements, Non-Goals, Acceptance Criteria)</li>
         <li>Presents PRD for review; confirm or adjust</li>
         <li>Saves PRD to <code class="inline-code">tasks/prd-[feature-name].md</code></li>
-        <li>Breaks down PRD into Issue list; presents for confirmation</li>
-        <li>Selects creation mode (GitHub / Local / Baidu iCafe) and creates Issues</li>
+        <li>Suggests the next steps: <code class="inline-code">/prd-to-spec</code> (optional) and <code class="inline-code">/to-issues</code></li>
       </ul>
 
       <h3>Output Example</h3>
-      <pre><code><span class="comment"># Generated Issue list</span>
-<span class="value">📋 Generated 4 Issues from PRD:</span>
+      <pre><code><span class="comment"># after the PRD is saved</span>
+<span class="value">✅ PRD saved to tasks/prd-priority-system.md</span>
 
-<span class="cmd">#1: Add priority field to database</span> <span class="flag">(backend, high)</span>
-<span class="cmd">#2: Display priority indicator</span> <span class="flag">(frontend, high)</span> <span class="comment">— depends on #1</span>
-<span class="cmd">#3: Add priority selector</span> <span class="flag">(frontend, medium)</span> <span class="comment">— depends on #1</span>
-<span class="cmd">#4: Filter tasks by priority</span> <span class="flag">(frontend, medium)</span> <span class="comment">— depends on #1, #2</span></code></pre>
+<span class="cmd">/prd-to-spec</span>  <span class="comment">(optional — only for complex features)</span>
+<span class="cmd">/to-issues</span>    <span class="comment">(split the PRD into Issues with blocking edges)</span></code></pre>
 
       <div class="tip">
-        <strong>Tip:</strong> Each Issue should be sized for an agent to complete within a single session. If a User Story is too large (5+ acceptance criteria or cross full-stack), it will be automatically split.
+        <strong>Tip:</strong> the PRD states what is wanted, and every requirement has to land as a <strong>verifiable acceptance criterion</strong> — that is what makes the Spec axis of <code class="inline-code">/review-it</code> falsifiable later. Issue sizing belongs to <code class="inline-code">/to-issues</code>: one Issue should be what a single agent can finish in one session (usually 1-3 files).
       </div>
     </div>
 
@@ -1176,7 +1185,7 @@
       </p>
 
       <h3>How to Invoke</h3>
-      <pre><code><span class="comment"># Run this in DeepSeek Harness</span>
+      <pre><code><span class="comment"># Run this directly</span>
 <span class="cmd">/prd-to-spec</span> <span class="value">tasks/prd-priority-system.md</span>
 
 <span class="comment"># Or use trigger phrases</span>
@@ -1245,7 +1254,7 @@
       </div>
 
       <h3>How to Invoke</h3>
-      <pre><code><span class="comment"># Run this in DeepSeek Harness</span>
+      <pre><code><span class="comment"># Run this directly</span>
 <span class="cmd">/to-issues</span>
 
 <span class="comment"># Or use trigger phrases</span>
@@ -1298,7 +1307,7 @@
         <h3>7. Step 2: Implementation — /implement · /loop-it &amp; /graph</h3>
       </div>
       <p>
-        This is the implementation step, and all three routes start from the Issue cards created by <code class="inline-code">/to-issues</code>: a <strong>single unit</strong> goes inline through <code class="inline-code">/implement</code>, <strong>sequential</strong> work through <code class="inline-code">/loop-it</code>, and <strong>parallel</strong> work through <code class="inline-code">/graph</code>. On every route the running DSH agent writes the code itself — implementation is done <strong>inline</strong>, never by handing the work to an external command.
+        This is the implementation step, and all three routes start from the Issue cards created by <code class="inline-code">/to-issues</code>: a <strong>single unit</strong> goes inline through <code class="inline-code">/implement</code>, <strong>sequential</strong> work through <code class="inline-code">/loop-it</code>, and <strong>parallel</strong> work through <code class="inline-code">/graph</code>. On every route the running agent writes the code itself — implementation is done <strong>inline</strong>, never by handing the work to an external command.
       </p>
 
       <h3>/implement — the single-unit inline loop</h3>
@@ -1346,11 +1355,11 @@
       </ul>
 
       <div class="tip">
-        <strong>Tip:</strong> implementation is done inline by the agent — a single unit goes through <code class="inline-code">/implement</code> (implement inline → prove with the gates → <code class="inline-code">/review-it</code> → <code class="inline-code">/ship-it</code>, no worktree, no subagent); <code class="inline-code">/goal</code> is a DSH UI command, not a skill, so the model cannot invoke it; <code class="inline-code">/review-it</code> and <code class="inline-code">/ship-it</code> are real skills the orchestrator calls once per wave. A child pays the parent's full prompt, tool schemas and skill catalog as fixed overhead, which is why a node stops at commit and trivia stays inline; cap concurrency at 3–4 by default and prefer waves of 2–3 nodes.
+        <strong>Tip:</strong> implementation is done inline by the agent — a single unit goes through <code class="inline-code">/implement</code> (implement inline → prove with the gates → <code class="inline-code">/review-it</code> → <code class="inline-code">/ship-it</code>, no worktree, no subagent); <code class="inline-code">/goal</code> is a DSH command, not a skill, and its model side (<code class="inline-code">create_goal</code> / <code class="inline-code">update_goal</code>) only runs in a direct top-level human turn; <code class="inline-code">/review-it</code> and <code class="inline-code">/ship-it</code> are real skills the orchestrator calls once per wave. A child pays the parent's full prompt, tool schemas and skill catalog as fixed overhead, which is why a node stops at commit and trivia stays inline; cap concurrency at 3–4 by default and prefer waves of 2–3 nodes.
       </div>
 
       <div class="note">
-        <strong>Note: <code class="inline-code">/goal</code> is not a pipeline step.</strong> In DSH, <code class="inline-code">/goal</code> is a <strong>human-facing UI command</strong> — a persisted objective with autonomous continuation rounds — that the model cannot invoke. The implementation step above is therefore done <strong>inline by the running DSH agent</strong> (read the Issue, write the code, run the tests), not by calling <code class="inline-code">/goal</code>. A human may still type <code class="inline-code">/goal &lt;objective&gt;</code> for a single long-running objective, but that sits outside this pipeline.
+        <strong>Note: <code class="inline-code">/goal</code> is not a pipeline step.</strong> In DSH, <code class="inline-code">/goal</code> is a <strong>command</strong>, not a skill: a human types it to create a persisted objective with autonomous continuation rounds. Its model side (<code class="inline-code">create_goal</code> / <code class="inline-code">update_goal</code>) only runs in a <strong>direct top-level human turn</strong>, so a subagent — or a skill running mid-orchestration — cannot mint a long-horizon goal for itself. The implementation step above is therefore done <strong>inline by the running agent</strong> (read the Issue, write the code, run the tests), not by calling <code class="inline-code">/goal</code>. A human may still type <code class="inline-code">/goal &lt;objective&gt;</code> for a single long-running objective, but that sits outside this pipeline.
       </div>
     </div>
 
@@ -1385,8 +1394,8 @@
         <strong>Why the two axes stay separate:</strong> a change can <strong>pass all eight standards and still implement the wrong thing</strong>; one merged ranking lets style findings crowd out the missing requirement. Report the Spec axis first, then the Standards axis, each as its own section.
       </div>
 
-      <h3>The DSH Main Path</h3>
-      <p>This project targets <strong>DeepSeek Harness (DSH)</strong>. DSH has no external review CLI: once <code class="inline-code">/review-it</code> is loaded, the <strong>running DSH agent performs the review itself</strong> with the principles below, and never shells out to a review command.</p>
+      <h3>The Review Path</h3>
+      <p>There is no external review CLI: once <code class="inline-code">/review-it</code> is loaded, the <strong>running agent performs the review itself</strong> with the principles below, and never shells out to a review command.</p>
       <pre><code><span class="comment"># Uncommitted changes (default): review the working tree, untracked files included</span>
 <span class="cmd">git status</span> <span class="flag">--short</span>
 <span class="cmd">git diff</span>
@@ -1409,7 +1418,7 @@
       <h3>Review Modes</h3>
       <table>
         <tr><th>Working Tree State</th><th>Mode</th><th>Action</th></tr>
-        <tr><td>Uncommitted changes</td><td>local</td><td>The current DSH agent reviews the working tree directly (untracked files included)</td></tr>
+        <tr><td>Uncommitted changes</td><td>local</td><td>The current agent reviews the working tree directly (untracked files included)</td></tr>
         <tr><td>Committed not pushed</td><td>branch</td><td><code class="inline-code">git diff origin/main...HEAD</code> + review that diff</td></tr>
         <tr><td>Pushed / PR</td><td>branch</td><td>Same, against the PR's actual base</td></tr>
         <tr><td>Clean working tree</td><td>skip</td><td>Skip when there is genuinely nothing to review</td></tr>
@@ -1424,7 +1433,7 @@
       </ul>
 
       <div class="tip">
-        <strong>Tip:</strong> the review command table for other CLIs (Claude Code, Codex, OpenCode, DeepSeek TUI, Antigravity CLI) has moved to <code class="inline-code">references/other-clis.md</code>. Those are compatibility support only, not this project's target platform.
+        <strong>Tip:</strong> the review command tables for other CLIs live in <code class="inline-code">references/other-clis.md</code>.
       </div>
     </div>
 
@@ -1509,7 +1518,7 @@
       </p>
 
       <h3>How to Invoke</h3>
-      <pre><code><span class="comment"># Run this in DeepSeek Harness</span>
+      <pre><code><span class="comment"># Run this directly</span>
 <span class="cmd">/humanize-it</span> <span class="value">docs/architecture.md</span>
 
 <span class="comment"># Or use trigger phrases</span>
@@ -1560,7 +1569,7 @@
       </p>
 
       <h3>How to Invoke</h3>
-      <pre><code><span class="comment"># Run this in DeepSeek Harness</span>
+      <pre><code><span class="comment"># Run this directly</span>
 <span class="cmd">/insight-diagram</span>
 
 <span class="comment"># Or use trigger phrases</span>
@@ -1623,7 +1632,7 @@
       </p>
 
       <h3>How to Invoke</h3>
-      <pre><code><span class="comment"># Run this in DeepSeek Harness</span>
+      <pre><code><span class="comment"># Run this directly</span>
 <span class="cmd">/refactor</span>
 
 <span class="comment"># Or use trigger phrases</span>
@@ -1704,11 +1713,11 @@
         <h3>13. Bonus: /modern-go — Go Code Modernization</h3>
       </div>
       <p>
-        <code class="inline-code">/modern-go</code> automatically upgrades Go code to modern idioms and APIs, similar to <code class="inline-code">go fix</code>. It scans <code class="inline-code">go.mod</code> to detect the Go version, then batch-applies version-appropriate transformation rules to Go source files, covering 35+ rules from Go 1.0 through 1.26+.
+        <code class="inline-code">/modern-go</code> automatically upgrades Go code to modern idioms and APIs, similar to <code class="inline-code">go fix</code>. It scans <code class="inline-code">go.mod</code> to detect the Go version, then batch-applies version-appropriate transformation rules to Go source files, covering 35+ rules from Go 1.0 through 1.27+.
       </p>
 
       <h3>How to Invoke</h3>
-      <pre><code><span class="comment"># Run this in DeepSeek Harness</span>
+      <pre><code><span class="comment"># Run this directly</span>
 <span class="cmd">/modern-go</span>
 
 <span class="comment"># Or use trigger phrases</span>
@@ -1742,6 +1751,7 @@
         <tr><td>1.24+</td><td><code class="inline-code">t.Context()</code>, <code class="inline-code">omitzero</code>, <code class="inline-code">b.Loop()</code></td><td>Test <code class="inline-code">context.Background()</code> → <code class="inline-code">t.Context()</code></td></tr>
         <tr><td>1.25+</td><td><code class="inline-code">wg.Go()</code></td><td><code class="inline-code">wg.Add(1); go func(){defer wg.Done();fn()}()</code> → <code class="inline-code">wg.Go(fn)</code></td></tr>
         <tr><td>1.26+</td><td><code class="inline-code">new(expr)</code>, <code class="inline-code">errors.AsType</code></td><td><code class="inline-code">v:=42; &amp;v</code> → <code class="inline-code">new(42)</code></td></tr>
+        <tr><td>1.27+</td><td>embedded-field literals (<code class="inline-code">embedlit</code>), <code class="inline-code">go fix</code> modernizers</td><td>redundant embedded-field literals → promoted-field init</td></tr>
       </table>
 
       <h3>Safety Rules</h3>
@@ -1768,7 +1778,7 @@
       </p>
 
       <h3>How to Invoke</h3>
-      <pre><code><span class="comment"># Run this in DeepSeek Harness</span>
+      <pre><code><span class="comment"># Run this directly</span>
 <span class="cmd">/note-it</span>
 
 <span class="comment"># Or use trigger phrases</span>
@@ -1786,7 +1796,7 @@
 
       <h3>Output</h3>
       <ul class="step-list">
-        <li>Auto-detect Issue number (from branch name or /goal context)</li>
+        <li>Auto-detect the Issue number (from the branch name or the current context)</li>
         <li>Generate HTML format note file</li>
         <li>Save to <code class="inline-code">docs/issue#XXXX.html</code></li>
         <li>If notes already exist for this Issue, prompt to append or overwrite</li>
@@ -1813,7 +1823,7 @@
       </p>
 
       <h3>How to Invoke</h3>
-      <pre><code><span class="comment"># Run this in DeepSeek Harness</span>
+      <pre><code><span class="comment"># Run this directly</span>
 <span class="cmd">/code-to-spec</span>
 
 <span class="comment"># Or use trigger phrases</span>
@@ -1872,7 +1882,7 @@
       </p>
 
       <h3>How to Invoke</h3>
-      <pre><code><span class="comment"># Run this in DeepSeek Harness</span>
+      <pre><code><span class="comment"># Run this directly</span>
 <span class="cmd">/smell</span>
 
 <span class="comment"># Or use trigger phrases</span>
@@ -1919,7 +1929,7 @@
       </p>
 
       <h3>How to Invoke</h3>
-      <pre><code><span class="comment"># Run this in DeepSeek Harness</span>
+      <pre><code><span class="comment"># Run this directly</span>
 <span class="cmd">/loop-it</span>
 
 <span class="comment"># Or use trigger phrases</span>
@@ -1969,7 +1979,7 @@
       </div>
 
       <h3>How to Invoke</h3>
-      <pre><code><span class="comment"># Run this in DeepSeek Harness</span>
+      <pre><code><span class="comment"># Run this directly</span>
 <span class="cmd">/to-design</span> <span class="value">tasks/prd-priority-system.md</span>
 
 <span class="comment"># Or use trigger phrases</span>
@@ -2029,7 +2039,7 @@
       <p>The design borrows from the trending idea of <strong>graph engineering</strong>, <strong>LangGraph</strong>'s StateGraph / Pregel-BSP superstep model, and Claude's dynamic-workflow orchestration.</p>
 
       <h3>How to invoke</h3>
-      <pre><code><span class="comment"># Run this in DeepSeek Harness</span>
+      <pre><code><span class="comment"># Run this directly</span>
 <span class="cmd">/graph</span> <span class="value">tasks/prd-url-shortener.md</span>
 
 <span class="comment"># Or use trigger phrases</span>
@@ -2101,7 +2111,7 @@ leak check → merge only shipped nodes → gates on the integrated tree → <sp
       </p>
 
       <h3>How to Invoke</h3>
-      <pre><code><span class="comment"># Run this in DeepSeek Harness</span>
+      <pre><code><span class="comment"># Run this directly</span>
 <span class="cmd">/understand</span>
 
 <span class="comment"># Or use trigger phrases</span>
@@ -2144,7 +2154,7 @@ leak check → merge only shipped nodes → gates on the integrated tree → <sp
       </p>
 
       <h3>How to Invoke</h3>
-      <pre><code><span class="comment"># Run this in DeepSeek Harness</span>
+      <pre><code><span class="comment"># Run this directly</span>
 <span class="cmd">/ask-flow</span>
 
 <span class="comment"># Or just ask</span>
@@ -2160,7 +2170,7 @@ leak check → merge only shipped nodes → gates on the integrated tree → <sp
       </ul>
 
       <div class="tip">
-        <strong>Tip:</strong> <code class="inline-code">/ask-flow</code> is marked <code class="inline-code">disable-model-invocation</code> (user-only): it is not in the model catalog, the model never picks it, and it is loaded only when you type the command.
+        <strong>Tip:</strong> <code class="inline-code">/ask-flow</code> is marked <code class="inline-code">disable-model-invocation</code> (user-only): it is not in the model catalog, the model never picks it, and it is loaded only when you type the command. It also carries an <code class="inline-code">agents/openai.yaml</code> (<code class="inline-code">policy.allow_implicit_invocation: false</code>).
       </div>
     </div>
 
@@ -2208,7 +2218,7 @@ leak check → merge only shipped nodes → gates on the integrated tree → <sp
       </p>
 
       <h3>How to Invoke</h3>
-      <pre><code><span class="comment"># Run this in DeepSeek Harness</span>
+      <pre><code><span class="comment"># Run this directly</span>
 <span class="cmd">/diagnose</span>
 
 <span class="comment"># Or just say</span>
@@ -2254,60 +2264,31 @@ leak check → merge only shipped nodes → gates on the integrated tree → <sp
       </div>
     </div>
 
-    <!-- Section 25: Platforms -->
-    <div class="section" id="platforms">
-      <div class="section-title">
-        <div class="section-dot slate"></div>
-        <h3>25. Supported Platforms</h3>
-      </div>
-      <p>dsh-floway targets the <strong>DeepSeek Harness (DSH)</strong>; its skills also work in other AI coding agents:</p>
-
-      <table>
-        <tr><th>Agent</th><th>/prd</th><th>/prd-to-spec</th><th>/to-issues</th><th>/goal</th><th>/review-it</th><th>/note-it</th><th>/ship-it</th><th>/loop-it</th><th>/refactor</th><th>/modern-go</th><th>/code-to-spec</th><th>/smell</th><th>/humanize-it</th><th>/insight-diagram</th><th>/to-design</th><th>/graph</th></tr>
-        <tr><td>DeepSeek Harness (DSH) ★</td><td>&#10003;</td><td>&#10003;</td><td>&#10003;</td><td>&#10003; (UI command)</td><td>&#10003;</td><td>&#10003;</td><td>&#10003;</td><td>&#10003;</td><td>&#10003;</td><td>&#10003;</td><td>&#10003;</td><td>&#10003;</td><td>&#10003;</td><td>&#10003;</td><td>&#10003;</td><td>&#10003;</td></tr>
-        <tr><td>Claude Code</td><td>&#10003;</td><td>&#10003;</td><td>&#10003;</td><td>&#10003; (Built-in)</td><td>&#10003;</td><td>&#10003;</td><td>&#10003;</td><td>&#10003;</td><td>&#10003;</td><td>&#10003;</td><td>&#10003;</td><td>&#10003;</td><td>&#10003;</td><td>&#10003;</td><td>&#10003;</td><td>&#10003;</td></tr>
-        <tr><td>Codex</td><td>&#10003;</td><td>&#10003;</td><td>&#10003;</td><td>&#10003; (--goal)</td><td>&#10003;</td><td>&#10003;</td><td>&#10003;</td><td>&#10003;</td><td>&#10003;</td><td>&#10003;</td><td>&#10003;</td><td>&#10003;</td><td>&#10003;</td><td>&#10003;</td><td>&#10003;</td><td>&#10003;</td></tr>
-        <tr><td>OpenCode</td><td>&#10003;</td><td>&#10003;</td><td>&#10003;</td><td>—</td><td>&#10003;</td><td>&#10003;</td><td>&#10003;</td><td>&#10003;</td><td>&#10003;</td><td>&#10003;</td><td>&#10003;</td><td>&#10003;</td><td>&#10003;</td><td>&#10003;</td><td>&#10003;</td><td>&#10003;</td></tr>
-        <tr><td>DeepSeek TUI</td><td>&#10003;</td><td>&#10003;</td><td>&#10003;</td><td>—</td><td>&#10003;</td><td>&#10003;</td><td>&#10003;</td><td>&#10003;</td><td>&#10003;</td><td>&#10003;</td><td>&#10003;</td><td>&#10003;</td><td>&#10003;</td><td>&#10003;</td><td>&#10003;</td><td>&#10003;</td></tr>
-      </table>
-
-      <h3>Issue Creation Platforms</h3>
-      <table>
-        <tr><th>Platform</th><th>Tool</th><th>Description</th></tr>
-        <tr><td>GitHub</td><td><code class="inline-code">gh issue create</code></td><td>Requires gh CLI authentication</td></tr>
-        <tr><td>Local</td><td>Markdown files</td><td>Saved to local directory</td></tr>
-        <tr><td>Baidu iCafe</td><td><code class="inline-code">icafe-cli</code></td><td>Requires iCafe space parameters</td></tr>
-      </table>
-    </div>
-
-    <!-- Section 22: FAQ -->
+    <!-- Section 25: FAQ -->
     <div class="section" id="faq">
       <div class="section-title">
         <div class="section-dot terracotta"></div>
-        <h3>26. FAQ</h3>
+        <h3>25. FAQ</h3>
       </div>
 
       <h3>Q: Do I have to use all steps in order?</h3>
       <p>No. Each Skill is independent and can be used standalone. For example, if you already have Issues, you can start directly from <code class="inline-code">/implement</code> (a single unit), <code class="inline-code">/loop-it</code> (sequential) or <code class="inline-code">/graph</code> (parallel); if code is already written, you can use <code class="inline-code">/review-it</code> directly. But going through the full workflow yields the best results.</p>
 
       <h3>Q: Where does /goal come from? Why isn't it in the skills directory?</h3>
-      <p><code class="inline-code">/goal</code> is a DSH <strong>UI command</strong> that a human types, not a skill: it persists an objective and lets the harness continue it in autonomous rounds. The model cannot invoke it, and it is not the implementation step — implementation is done inline by the agent, driven by <code class="inline-code">/loop-it</code> or <code class="inline-code">/graph</code>.</p>
+      <p><code class="inline-code">/goal</code> is a DSH <strong>command</strong>, not a skill, so it is not in <code class="inline-code">~/.agents/skills</code>. A human types it to create a persisted objective with automatic continuation rounds. The model side of that surface is <code class="inline-code">create_goal</code> / <code class="inline-code">update_goal</code>, but <code class="inline-code">create_goal</code> only runs in a <strong>direct top-level human turn</strong> — a subagent, or a skill running mid-orchestration, cannot mint a long-horizon goal for itself. It is not the implementation step either: implementation is done inline by the agent, driven by <code class="inline-code">/loop-it</code> or <code class="inline-code">/graph</code>.</p>
 
       <h3>Q: Can I use this in non-GitHub projects?</h3>
-      <p>Yes. <code class="inline-code">/prd</code> supports saving Issues as local Markdown files or creating them in Baidu iCafe. <code class="inline-code">/review-it</code> only needs a local git repository. <code class="inline-code">/ship-it</code> currently depends on GitHub (<code class="inline-code">gh</code> CLI).</p>
+      <p>Yes. <code class="inline-code">/to-issues</code> can save Issues as local Markdown files. <code class="inline-code">/review-it</code> only needs a local git repository. <code class="inline-code">/ship-it</code> currently depends on GitHub (<code class="inline-code">gh</code> CLI).</p>
 
       <h3>Q: How is /review-it different from manual code review?</h3>
       <p><code class="inline-code">/review-it</code> is automated self-review, catching obvious issues before submission. It reports on <strong>two axes</strong>: the <strong>Spec axis</strong> checks whether the diff did what was asked (missing / extra / wrong, each finding quoting the acceptance criterion it is checked against), and the <strong>Standards axis</strong> checks code quality across 8 dimensions. The two are reported separately, never merged into one ranking. It doesn't replace team code review, but rather improves code quality before PR creation, reducing the low-level issues reviewers need to point out.</p>
 
       <h3>Q: How big should an Issue be?</h3>
-      <p>Each Issue should represent work an agent can complete in a single session — typically 1-3 files of changes with clear acceptance criteria. <code class="inline-code">/prd</code> automatically breaks down at this granularity, but you can adjust before confirming.</p>
-
-      <h3>Q: How do I use this with Codex?</h3>
-      <p>When installing via <code class="inline-code">npx skills add</code>, choose <code class="inline-code">-a codex</code>. In Codex, use <code class="inline-code">codex --goal "..."</code> instead of <code class="inline-code">/goal</code>. <code class="inline-code">/review-it</code> works universally across agents.</p>
+      <p>Each Issue should represent work an agent can complete in a single session — typically 1-3 files of changes with clear acceptance criteria. <code class="inline-code">/to-issues</code> holds that line when it splits, and you can adjust before confirming.</p>
 
       <h3>Q: Is /prd-to-spec required? When can I skip it?</h3>
-      <p>Not required. <code class="inline-code">/prd-to-spec</code> is an optional step. PRD says "what to do"; SPEC says "how to do it". The distinction: an AI agent executing <code class="inline-code">/goal</code> inherently possesses the "how" capability — it automatically analyzes the codebase, understands existing architecture and conventions, and makes reasonable technical decisions during implementation. In other words, <strong>the AI agent is a living SPEC engine</strong> — it doesn't need it drawn on paper first.</p>
-      <p>Most small to medium features work perfectly fine with just PRD → /goal. The following scenarios justify the extra step of /prd-to-spec:</p>
+      <p>Not required. <code class="inline-code">/prd-to-spec</code> is an optional step. PRD says "what to do"; SPEC says "how to do it". The distinction: an AI agent executing <code class="inline-code">/implement</code> inherently possesses the "how" capability — it automatically analyzes the codebase, understands existing architecture and conventions, and makes reasonable technical decisions during implementation. In other words, <strong>the AI agent is a living SPEC engine</strong> — it doesn't need it drawn on paper first.</p>
+      <p>Most small to medium features work perfectly fine with just PRD → <code class="inline-code">/to-issues</code> → implementation. The following scenarios justify the extra step of /prd-to-spec:</p>
       <ul class="step-list">
         <li><strong>Multi-person/multi-agent parallel development</strong> — need shared technical conventions to avoid divergent implementations</li>
         <li><strong>Changes spanning multiple services/modules</strong> — architecture decisions have broad impact and rework costs are high</li>
@@ -2334,7 +2315,7 @@ leak check → merge only shipped nodes → gates on the integrated tree → <sp
 
     <!-- Footer -->
     <p class="footer">
-      <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor" style="vertical-align: middle; margin-right: 2px;"><path fill-rule="evenodd" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg> dsh-floway · AI-driven development workflow · github.com/9Ashwin/dsh-floway
+      <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor" style="vertical-align: middle; margin-right: 2px;"><path fill-rule="evenodd" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg> stream-it · AI-driven development workflow · github.com/9Ashwin/stream-it
     </p>
   </div>
 

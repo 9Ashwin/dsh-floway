@@ -1,6 +1,6 @@
 ---
 name: ask-flow
-description: "不知道该用哪个技能、或这套流程该怎么走时用它：在 streamsmith 的技能图上做路由，只回答「下一步敲什么」，不替你动手。Triggers: ask-flow, 该用哪个技能, 怎么走, 用哪个, which skill, how do I run this."
+description: "不知道该用哪个技能、或这套流程该怎么走时用它：在 stream-it 的技能图上做路由，只回答「下一步敲什么」，不替你动手。Triggers: ask-flow, 该用哪个技能, 怎么走, 用哪个, which skill, how do I run this."
 disable-model-invocation: true
 ---
 
