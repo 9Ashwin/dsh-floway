@@ -25,7 +25,10 @@ Options:
   --agent auto|claude|antigravity|codex|dsh
                              Agent to target. Default: auto (detects running agent).
   --base REF                 Base ref for branch review. Default: origin/main.
-  --parallel-tests CMD       Run tests in parallel with review.
+  --parallel-tests CMD       Run CMD (via `bash -c`, verbatim) in parallel with review.
+                             It is a shell command you supply, so pass only a command
+                             you would run yourself — never text copied out of a diff,
+                             a PR body, or a commit message.
   --dry-run                  Print what would be executed, don't run.
   --help                     Show this help.
 
@@ -58,6 +61,14 @@ while [[ $# -gt 0 ]]; do
         *) echo "Unknown option: $1"; usage ;;
     esac
 done
+
+# --- Private scratch space ---
+# Predictable /tmp/review-it-$$.* names can be pre-created or symlinked by
+# another local user; a mode-700 directory created by mktemp cannot.
+TMP_ROOT="${TMPDIR:-/tmp}"
+WORKDIR="$(mktemp -d "${TMP_ROOT%/}/review-it.XXXXXXXX")"
+cleanup() { rm -rf "$WORKDIR"; }
+trap cleanup EXIT
 
 # --- Detect state ---
 STAGED=$(git diff --cached --name-only 2>/dev/null | wc -l | tr -d ' ')
@@ -177,7 +188,7 @@ case "$REVIEW_MODE" in
         REVIEW_DESC="uncommitted changes"
         ;;
     branch)
-        DIFF_FILE="/tmp/review-it-$$.diff"
+        DIFF_FILE="$WORKDIR/review.diff"
         REVIEW_DESC="branch $CURRENT_BRANCH vs $BASE"
         ;;
     *)
@@ -217,7 +228,6 @@ if [[ "$REVIEW_MODE" == "branch" ]]; then
     fi
     if [[ ! -s "$DIFF_FILE" ]]; then
         echo "review-it: no changes between $BASE and HEAD"
-        rm -f "$DIFF_FILE"
         exit 0
     fi
     echo "review-it: generated diff ($(wc -l < "$DIFF_FILE" | tr -d ' ') lines) at $DIFF_FILE"
@@ -226,11 +236,15 @@ fi
 
 # Run tests in background if requested
 TEST_PID=""
+TESTS_LOG=""
 if [[ -n "$TESTS" ]]; then
+    TESTS_LOG="$WORKDIR/tests.log"
     echo "review-it: running tests in background: $TESTS"
-    eval "$TESTS" > /tmp/review-it-tests-$$.log 2>&1 &
+    # `bash -c` parses the command once; `eval` re-parsed it, so a quoting
+    # mistake in $TESTS could run something other than what was asked for.
+    bash -c "$TESTS" > "$TESTS_LOG" 2>&1 &
     TEST_PID=$!
-    echo "review-it: test PID=$TEST_PID"
+    echo "review-it: test PID=$TEST_PID (output: $TESTS_LOG)"
     echo ""
 fi
 
@@ -246,13 +260,14 @@ CCEOF
 if [[ -n "$TEST_PID" ]]; then
     echo ""
     echo "review-it: waiting for tests to complete (PID=$TEST_PID)..."
-    wait "$TEST_PID" 2>/dev/null || true
-    TEST_EXIT=$?
+    # `|| true` here used to swallow the status, so $? was always 0 and a failing
+    # test run was reported as "tests passed".
+    TEST_EXIT=0
+    wait "$TEST_PID" 2>/dev/null || TEST_EXIT=$?
     echo ""
     echo "--- test output ---"
-    cat /tmp/review-it-tests-$$.log
+    cat "$TESTS_LOG"
     echo "--- end test output ---"
-    rm -f /tmp/review-it-tests-$$.log
     if [[ $TEST_EXIT -ne 0 ]]; then
         echo ""
         echo "review-it: tests FAILED (exit=$TEST_EXIT)"
@@ -261,11 +276,6 @@ if [[ -n "$TEST_PID" ]]; then
         echo ""
         echo "review-it: tests passed"
     fi
-fi
-
-# Cleanup
-if [[ "$REVIEW_MODE" == "branch" ]]; then
-    rm -f "$DIFF_FILE"
 fi
 
 echo ""
