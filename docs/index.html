@@ -113,7 +113,9 @@
   <script>
     const lang = navigator.language || '';
     const target = lang.startsWith('zh') ? 'index_cn.html' : 'index_en.html';
-    window.location.replace(target);
+    // Keep the fragment: a deep link like /stream-it/#install must land on the
+    // install section, not on the top of the guide.
+    window.location.replace(target + window.location.hash);
   </script>
 </body>
 </html>

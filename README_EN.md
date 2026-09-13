@@ -49,31 +49,7 @@ The skills land in `~/.agents/skills`, and this route changes nothing in any pro
 cp -R <stream-it>/skills/flow/graph ~/.agents/skills/graph   # flattened, not the bucket
 ```
 
-### Option 2: Install as a bundle (optional)
-
-```bash
-dsh plugin --profile web add -w github:9Ashwin/stream-it
-```
-
-The package's `dsh.bundle` declaration makes `dsh` append it to the profile's `bundles` layer; the skills are then served by the **provider shipped inside the package**.
-
-```bash
-dsh --profile web --dump-config | grep -A3 stream-it   # expect a "# == stream-it-skills" layer
-```
-
-<details>
-<summary><strong>More install details (pnpm errors / pinning a version / local checkout)</strong></summary>
-
-- If pnpm reports `ERR_PNPM_ADDING_TO_ROOT`, the profile is being treated as a workspace root — re-run with `-w` (pnpm 9 requires it).
-- Pin the commit in production: `dsh plugin --profile web add -w github:9Ashwin/stream-it#<sha>`.
-- This is a **config-only package** (no build scripts), so no `allowBuilds` grant is needed.
-- Working from a local checkout: `dsh plugin --profile demo add -w /path/to/stream-it`.
-
-</details>
-
-**Which route to pick.** On a surface like Web the shipped preset already supplies the skill catalog, and `~/.agents/skills` is one of its roots — so Option 1 is enough if all you want is the skills. Same-named skills de-duplicate by **nearest layer wins**, and the directory copy beats the package copy. What Option 2 adds is a **preset that travels with the package**: which skills an agent mounts, and whether its subagents get a skill catalog (`toolFilter`) and a persona, become deployment configuration. On a surface with no preset at all (some minimal profiles), Option 2 is what makes the skills visible.
-
-Installing both never lists a skill twice; on a Web-like surface the bundle copy simply loses.
+It can also be installed as **deployment configuration** (a preset that travels with the package, `toolFilter`, persona, commit pinning) — the commands, the flags and the trade-offs between the two routes are in the docs: **<https://9ashwin.github.io/stream-it/#install>**.
 
 > [!TIP]
 > Not sure which skill to reach for? Type **`/ask-flow`** — it names the next thing to type and the decisions that are yours to make.
@@ -135,7 +111,7 @@ skills/
 
 The test is the role a skill plays: `flow` is the pipeline itself; `practice` is what you reach for mid-flight because something broke or because quality is at stake (a testing method, diagnosis, conflicts, incoming triage, quality passes); `meta` describes the set itself (`/ask-flow`, the router); `bonus` produces artifacts that are not code.
 
-A DSH skill root is scanned **exactly one level deep** (`<root>/<name>/SKILL.md`), so `cordis.patch.yml` lists each of the four buckets as its own root rather than pointing at `skills/`. `npx skills add` scans recursively and flattens on install, so both routes yield exactly the same set. `scripts/check_skills.py` guards the two silent failures: **a skill left at the top level** (the bundle install cannot see it) and **a bucket missing from the patch** (that whole bucket disappears without an error).
+A DSH skill root is scanned **exactly one level deep** (`<root>/<name>/SKILL.md`), so `cordis.patch.yml` lists each of the four buckets as its own root rather than pointing at `skills/`. `npx skills add` scans recursively and flattens on install; either install route yields exactly the same set. `scripts/check_skills.py` guards the two silent failures: **a skill left at the top level** (no root covers it) and **a bucket missing from the patch** (that whole bucket disappears without an error).
 
 ## Project Status
 

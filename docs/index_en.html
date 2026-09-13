@@ -952,9 +952,11 @@
         <strong>Bundle install notes:</strong>
         <ul class="step-list" style="margin-top: 0.5rem;">
           <li><code class="inline-code">-w</code> is required because the DSH profile is treated as a pnpm workspace root — without it, pnpm 9 refuses to add the dependency and reports <code class="inline-code">ERR_PNPM_ADDING_TO_ROOT</code>.</li>
+          <li>The package's <code class="inline-code">dsh.bundle</code> declaration makes <code class="inline-code">dsh</code> append it to the profile's <code class="inline-code">bundles</code> layer; the skills are then served by a <strong>provider shipped inside the package</strong>, so they do not depend on <code class="inline-code">~/.agents/skills</code> being one of the skill roots.</li>
           <li>The package is a config-only bundle (skills + config, no native build step), so no <code class="inline-code">allowBuilds</code> grant is needed.</li>
           <li>Pin a commit for production with <code class="inline-code">#&lt;sha&gt;</code> so an update can't shift behavior under you.</li>
           <li>Verify with <code class="inline-code">dsh --profile web --dump-config | grep -A3 stream-it</code>.</li>
+          <li>Working from a local checkout: <code class="inline-code">dsh plugin --profile demo add -w /path/to/stream-it</code>.</li>
         </ul>
       </div>
 

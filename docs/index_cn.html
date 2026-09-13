@@ -918,9 +918,11 @@
 <span class="cmd">dsh</span> <span class="flag">--profile</span> <span class="value">web</span> <span class="flag">--dump-config</span> | <span class="cmd">grep</span> <span class="flag">-A3</span> <span class="value">stream-it</span></code></pre>
       <ul class="step-list">
         <li><code class="inline-code">-w</code> 不能省略：DSH 把 profile 当作 pnpm workspace 根，pnpm 9 缺少该标志时会报 <code class="inline-code">ERR_PNPM_ADDING_TO_ROOT</code>。</li>
+        <li>包里的 <code class="inline-code">dsh.bundle</code> 声明会让 <code class="inline-code">dsh</code> 把它追加进 profile 的 <code class="inline-code">bundles</code> 层，技能由<strong>包内自带的 provider</strong> 提供，不依赖 <code class="inline-code">~/.agents/skills</code> 是否在技能根里。</li>
         <li>本包是 <strong>config-only bundle</strong>（纯配置包，没有构建脚本），因此<strong>不需要</strong> <code class="inline-code">allowBuilds</code> 授权。</li>
         <li>生产环境建议锁定 commit：<code class="inline-code">github:9Ashwin/stream-it#&lt;sha&gt;</code>。</li>
         <li>验证：<code class="inline-code">dsh --profile web --dump-config | grep -A3 stream-it</code>，应看到 <code class="inline-code"># == stream-it-skills</code> 层。</li>
+        <li>本地 checkout 联调：<code class="inline-code">dsh plugin --profile demo add -w /path/to/stream-it</code>。</li>
       </ul>
 
       <div class="note">

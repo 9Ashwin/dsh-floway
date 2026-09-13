@@ -49,31 +49,7 @@ npx skills update -g                    # 之后按来源更新
 cp -R <stream-it>/skills/flow/graph ~/.agents/skills/graph   # 拍平，不要连桶一起拷
 ```
 
-### 方式二：作为 bundle 安装（可选）
-
-```bash
-dsh plugin --profile web add -w github:9Ashwin/stream-it
-```
-
-包里的 `dsh.bundle` 声明会让 `dsh` 把它追加进 profile 的 `bundles` 层，技能由**包内自带的 provider** 提供。
-
-```bash
-dsh --profile web --dump-config | grep -A3 stream-it   # 应看到 "# == stream-it-skills" 层
-```
-
-<details>
-<summary><strong>更多安装细节（pnpm 报错 / 锁定版本 / 本地联调）</strong></summary>
-
-- 若 pnpm 报 `ERR_PNPM_ADDING_TO_ROOT`，是 profile 被当作 workspace 根，补上 `-w` 重跑即可（pnpm 9 需要）。
-- 生产环境建议锁定 commit：`dsh plugin --profile web add -w github:9Ashwin/stream-it#<sha>`。
-- 本包是**纯配置包**（没有构建脚本），因此不需要 `allowBuilds` 授权。
-- 本地 checkout 联调：`dsh plugin --profile demo add -w /path/to/stream-it`。
-
-</details>
-
-**两条路怎么选。** Web 这类面由 shipped preset 提供技能目录，`~/.agents/skills` 本来就在它的技能根里——所以只想要技能，方式一就够。同名技能按**近层优先**去重，目录那份会赢过插件包那份。方式二多出来的是**随包携带的 preset**：谁挂哪些技能、子代理带不带技能目录（`toolFilter`）与 persona，都变成部署层的一等配置。要是你用的面根本没挂 preset（某些 minimal profile），技能可见就得靠它。
-
-两条都装也不会重复出现，只是在 Web 面上后者赢不了前者。
+还可以作为**部署层配置**安装（随包携带 preset、`toolFilter`、persona，可锁定 commit）——安装命令、参数说明与两条路的取舍见文档站：**<https://9ashwin.github.io/stream-it/#install>**。
 
 > [!TIP]
 > 不记得该用哪个技能？直接敲 **`/ask-flow`**——它给出下一步该敲什么，以及那一步里哪些决定得你来拍。
@@ -135,7 +111,7 @@ skills/
 
 判据是「它在这条链上扮演什么角色」：`flow` 是流水线本身；`practice` 是你在中途因为「出事了 / 要保证质量」伸手拿的（测试方法、排障、冲突、外部分诊、质量巡检）；`meta` 是描述整套技能集自身的（`/ask-flow` 这个路由）；`bonus` 产生的是非代码工件。
 
-DSH 的技能根**只扫一层**（`<root>/<name>/SKILL.md`），所以 `cordis.patch.yml` 把四个桶各列为一个 root，而不是指向 `skills/`。`npx skills add` 是递归扫描、安装时拍平，两种装法得到的技能集完全相同。`scripts/check_skills.py` 守着两个静默失败面：**技能被放回顶层**（bundle 装法看不到它），以及**某个桶漏进 patch**（那一桶会整体消失，且不报错）。
+DSH 的技能根**只扫一层**（`<root>/<name>/SKILL.md`），所以 `cordis.patch.yml` 把四个桶各列为一个 root，而不是指向 `skills/`。`npx skills add` 是递归扫描、安装时拍平，无论走哪条安装路径，得到的技能集完全相同。`scripts/check_skills.py` 守着两个静默失败面：**技能被放回顶层**（四个 root 都覆盖不到它），以及**某个桶漏进 patch**（那一桶会整体消失，且不报错）。
 
 ## 项目状态
 
