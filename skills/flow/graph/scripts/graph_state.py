@@ -8,9 +8,11 @@ read the summary".
 
 Subcommands:
 
-  plan --nodes <file> [--state .graph_state] [--max-parallel N]
+  plan --nodes <file> [--state .graph_state] [--max-parallel N] [--keep-shipped]
       Read a nodes file, validate it, layer it into waves, write the checkpoint,
       and print the plan (human summary + Mermaid + the wave-0 dispatch list).
+      With --keep-shipped, an existing checkpoint's per-node outcome is carried
+      over for every id that survives, so a re-plan does not reset what shipped.
 
   set --state .graph_state --node N --status <s> [--commit SHA] [--error TEXT]
       Record one node's outcome. Pass --status pending to clear a retry. Prints
@@ -19,6 +21,13 @@ Subcommands:
   show --state .graph_state [--json]
       Print the current plan and per-node status.
 
+  prompt --node N [--state .graph_state] [--worktrees DIR]
+      Render the node prompt for one node from references/node-prompt.md, with
+      the worktree path, branch, title, type, scope and acceptance criteria
+      filled in from the checkpoint. Prints the git worktree command first so
+      the branch it names is the branch that gets created. The dependency
+      summaries are left as a marked gap — only the orchestrator knows them.
+
 Nodes file format:
 
   {
@@ -26,15 +35,23 @@ Nodes file format:
     "repo": "owner/repo",
     "nodes": [
       {"id": 1, "title": "db schema", "deps": [], "scope": "internal/db"},
-      {"id": 2, "title": "API handler", "deps": [1], "scope": "internal/api"}
+      {"id": 2, "title": "API handler", "deps": [1], "scope": "internal/api",
+       "hot_files": "internal/api/router.go"}
     ]
   }
 
 `scope` is a comma-separated list of files/directories a node expects to touch.
 Two nodes with no dependency edge but overlapping scope are not independent:
-the planner serializes the higher id into a later wave. Overlap on a shared
-wiring file is handled by the skill's hot-file rule, not here — keep such files
-out of `scope` when append-only edits are expected to merge cleanly.
+the planner serializes the higher id into a later wave.
+
+`hot_files` is the opposite list: shared wiring files (a router, a `main`, a
+route table, a DI container, a type union) that the node *will* touch but that
+must stay out of `scope`, because listing them there would serialize the whole
+graph into a chain. The planner does not serialize on them — it warns when two
+nodes in one wave declare the same hot file, because that is the shape that
+conflicts: "append-only edits merge cleanly" only holds while each node edits
+its own region. Two nodes appending to one import block, or writing one route
+table, are not append-only and will conflict at integration.
 
 Statuses: pending | in_progress | shipped | failed | blocked | skipped
 (`shipped` and `skipped` are complete; `failed` and `blocked` stall their
@@ -46,6 +63,8 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
+import subprocess
 import sys
 from datetime import datetime, timezone
 
@@ -83,6 +102,16 @@ def save_state(state: dict, path: str) -> None:
 
 def scope_set(node: dict) -> set[str]:
     raw = node.get("scope") or ""
+    if isinstance(raw, list):
+        parts = raw
+    else:
+        parts = raw.split(",")
+    return {p.strip().rstrip("/") for p in parts if p and p.strip()}
+
+
+def hot_set(node: dict) -> set[str]:
+    """Shared wiring files the node expects to touch but that stay out of `scope`."""
+    raw = node.get("hot_files") or ""
     if isinstance(raw, list):
         parts = raw
     else:
@@ -155,6 +184,23 @@ def layer(by_id: dict[int, dict]) -> tuple[list[list[int]], list[str]]:
         waves.append(wave)
         remaining.difference_update(wave)
         placed.update(wave)
+
+        # Hot files are deliberately outside `scope`, so the scope check above
+        # cannot see this collision. Warn rather than serialize: keeping these
+        # files out of scope is what lets a wave stay parallel at all.
+        holders: dict[str, list[int]] = {}
+        for nid in wave:
+            for path in hot_set(by_id[nid]):
+                holders.setdefault(path, []).append(nid)
+        for path in sorted(holders):
+            editors = holders[path]
+            if len(editors) > 1:
+                who = ", ".join(f"#{nid}" for nid in editors)
+                notes.append(
+                    f"wave {len(waves) - 1}: {who} all declare hot file {path} — "
+                    f"that only merges cleanly if each edits its own region; "
+                    f"serialize them or give one node ownership"
+                )
     return waves, notes
 
 
@@ -209,9 +255,43 @@ def dispatch_list(state: dict, index: int) -> list[str]:
     for nid in wave:
         node = state["nodes"][str(nid)]
         deps = ", ".join(f"#{d}" for d in node.get("deps") or []) or "none"
+        hot = node.get("hot_files") or []
+        hot_note = f" — hot: {', '.join(hot)}" if hot else ""
         out.append(f"  #{nid} [{node.get('type', 'task')}] {node['title']} — deps: {deps} "
-                   f"— scope: {', '.join(sorted(scope_set(node))) or '(unscoped)'}")
+                   f"— scope: {', '.join(sorted(scope_set(node))) or '(unscoped)'}{hot_note}")
     return out
+
+
+def carry_over(state: dict, path: str) -> list[str]:
+    """Carry a previous checkpoint's per-node outcomes onto a freshly layered plan.
+
+    Re-planning mid-run is normal: a node turns out to be already satisfied,
+    another has to move. Resetting every node to `pending` on a re-layer forces
+    the orchestrator to re-record what shipped by hand, and hand-kept accounting
+    is where drift starts. Ids that survive keep their outcome; ids that are new
+    start pending; ids that disappeared are reported rather than silently kept.
+    """
+    if not os.path.exists(path):
+        return ["--keep-shipped: no existing checkpoint to carry over from"]
+    previous = load_json(path, "state file")
+    old_nodes = previous.get("nodes") or {}
+    notes: list[str] = []
+    carried = 0
+    for key, node in state["nodes"].items():
+        old = old_nodes.get(key)
+        if not isinstance(old, dict):
+            continue
+        for field in ("status", "branch", "commit", "attempts", "error", "error_class"):
+            if field in old:
+                node[field] = old[field]
+        carried += 1
+    if carried:
+        notes.append(f"--keep-shipped: carried the outcome of {carried} node(s) from {path}")
+    dropped = sorted(set(old_nodes) - set(state["nodes"]), key=lambda k: (len(str(k)), str(k)))
+    if dropped:
+        notes.append("--keep-shipped: dropped " + ", ".join(f"#{key}" for key in dropped)
+                     + " (no longer in the nodes file)")
+    return notes
 
 
 def cmd_plan(args: argparse.Namespace) -> int:
@@ -244,12 +324,19 @@ def cmd_plan(args: argparse.Namespace) -> int:
                 "deps": node.get("deps") or [],
                 "type": node.get("type", "task"),
                 "scope": sorted(scope_set(node)),
+                "hot_files": sorted(hot_set(node)),
                 "criteria": node.get("criteria") or [],
                 "status": "pending",
             }
             for nid, node in sorted(by_id.items())
         },
     }
+
+    if args.keep_shipped:
+        carried = carry_over(state, args.state)
+        notes.extend(carried)
+
+    state["current_wave"] = current_wave(state)
     save_state(state, args.state)
 
     max_par = max(len(wave) for wave in waves)
@@ -261,10 +348,14 @@ def cmd_plan(args: argparse.Namespace) -> int:
     for note in notes:
         print(f"note: {note}")
     print("\n" + mermaid(state))
-    print("\nwave 0 — dispatch these together, one child each:")
-    for line in dispatch_list(state, 0):
-        print(line)
-    print("\nnext: render the tracker with render_graph_html.py, then dispatch wave 0.")
+    index = current_wave(state)
+    if index < len(state["waves"]):
+        print(f"\nwave {index} — dispatch these together, one child each:")
+        for line in dispatch_list(state, index):
+            print(line)
+        print("\nnext: render the tracker with render_graph_html.py, then dispatch this wave.")
+    else:
+        print("\nevery wave is already closed — nothing to dispatch.")
     return 0
 
 
@@ -327,6 +418,93 @@ def cmd_set(args: argparse.Namespace) -> int:
     return 0
 
 
+def node_slug(title: str, node_id: str) -> str:
+    slug = re.sub(r"[^a-z0-9]+", "-", str(title).lower()).strip("-")
+    return slug[:40] or f"node-{node_id}"
+
+
+def worktree_root(override: str | None) -> str:
+    """Where node worktrees go: a sibling of the repo root, matching the skill's recipe."""
+    if override:
+        return os.path.abspath(override)
+    try:
+        top = subprocess.run(["git", "rev-parse", "--show-toplevel"], check=True,
+                             capture_output=True, text=True).stdout.strip()
+    except (OSError, subprocess.CalledProcessError):
+        die("not inside a git repository — pass --worktrees to say where the worktrees go")
+    return os.path.join(os.path.dirname(top), ".graph-worktrees")
+
+
+def load_template(override: str | None) -> str:
+    """The node prompt body, read from the skill's own reference file.
+
+    One source of truth: the script renders exactly the template a human would
+    copy, so the two cannot drift apart.
+    """
+    path = override or os.path.join(
+        os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "references", "node-prompt.md")
+    try:
+        text = open(path, encoding="utf-8").read()
+    except OSError as exc:
+        die(f"node prompt template is unreadable ({path}): {exc}")
+    match = re.search(r"```markdown\n(.*?)\n```", text, re.S)
+    if not match:
+        die(f"no ```markdown template block in {path}")
+    return match.group(1)
+
+
+def cmd_prompt(args: argparse.Namespace) -> int:
+    state = load_json(args.state, "state file")
+    key = str(args.node)
+    if key not in state["nodes"]:
+        die(f"node {key} is not in {args.state}")
+    node = state["nodes"][key]
+
+    worktree = os.path.join(worktree_root(args.worktrees), f"node-{key}")
+    slug = node_slug(node.get("title", ""), key)
+    branch = f"feat/node-{key}-{slug}"
+
+    prompt = load_template(args.template)
+    criteria = node.get("criteria") or []
+    prompt = prompt.replace(
+        "- [ ] {criterion 1}\n- [ ] {criterion 2}",
+        "\n".join(f"- [ ] {criterion}" for criterion in criteria)
+        or "- [ ] (no criteria recorded — write them from the issue before dispatching)")
+    prompt = prompt.replace(
+        "{summaries of dependency nodes' outputs, or the referenced PRD/SPEC excerpt}",
+        "(FILL THIS IN: one or two lines per dependency — what it added, where, and anything this "
+        "node must know. The child cannot read the earlier nodes' conversations, so this is the "
+        "only channel the graph has.)")
+    for token, value in (
+        ("{WT}", worktree),
+        ("{N}", key),
+        ("{slug}", slug),
+        ("{title}", str(node.get("title", ""))),
+        ("{type}", str(node.get("type", "task"))),
+        ("{scope_hint}", ", ".join(node.get("scope") or []) or "(unscoped)"),
+    ):
+        prompt = prompt.replace(token, value)
+
+    deps = ", ".join(f"#{dep}" for dep in node.get("deps") or []) or "none"
+    hot = node.get("hot_files") or []
+    print(f"# node #{key} — {node.get('title', '')}")
+    print(f"# deps: {deps}   status: {node.get('status', 'pending')}")
+    if hot:
+        print(f"# hot files: {', '.join(hot)} — shared; expect a conflict with any other node "
+              f"in this wave that declares them unless each edits its own region")
+    print("#")
+    print("# create the worktree first — this is the branch the prompt below names:")
+    print(f'git worktree add -b {branch} "{worktree}" "$BASE"')
+    print()
+    print(prompt)
+
+    leftovers = sorted(set(re.findall(r"\{[a-z][^}]*\}", prompt)))
+    if leftovers:
+        print()
+        print("# unfilled placeholders: " + ", ".join(leftovers))
+    return 0
+
+
 def cmd_show(args: argparse.Namespace) -> int:
     state = load_json(args.state, "state file")
     if args.json:
@@ -344,6 +522,8 @@ def main() -> int:
     plan.add_argument("--nodes", required=True, help="path to the nodes JSON file")
     plan.add_argument("--state", default=".graph_state", help="checkpoint path (default .graph_state)")
     plan.add_argument("--max-parallel", type=int, default=0, help="split waves wider than this")
+    plan.add_argument("--keep-shipped", action="store_true",
+                      help="carry an existing checkpoint's per-node outcome onto the new layout")
     plan.set_defaults(func=cmd_plan)
 
     setter = sub.add_parser("set", help="record one node's outcome")
@@ -353,6 +533,13 @@ def main() -> int:
     setter.add_argument("--commit")
     setter.add_argument("--error")
     setter.set_defaults(func=cmd_set)
+
+    prompt = sub.add_parser("prompt", help="render one node's dispatch prompt from the checkpoint")
+    prompt.add_argument("--state", default=".graph_state")
+    prompt.add_argument("--node", required=True)
+    prompt.add_argument("--worktrees", help="worktree root (default: <repo parent>/.graph-worktrees)")
+    prompt.add_argument("--template", help="override the node prompt template path")
+    prompt.set_defaults(func=cmd_prompt)
 
     show = sub.add_parser("show", help="print the current plan and status")
     show.add_argument("--state", default=".graph_state")

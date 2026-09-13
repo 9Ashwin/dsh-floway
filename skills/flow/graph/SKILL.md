@@ -68,9 +68,20 @@ Write a nodes file — this is the planner's only input:
 ```
 
 `scope` is the comma-separated set of files/directories the node expects to touch. It is how
-the planner detects that two dependency-free nodes are not actually independent. Keep a shared
-*wiring* file (a router, a `main`, a DI container) **out** of every scope: append-only edits to
-such files merge cleanly, and listing them would serialize the whole graph into a chain.
+the planner detects that two dependency-free nodes are not actually independent.
+
+`hot_files` is the opposite list: shared *wiring* files (a router, a `main`, a route table, a DI
+container, a type union) the node **will** touch but that must stay **out** of `scope`, because
+listing them there would serialize the whole graph into a chain. The planner does not serialize on
+them — it warns when two nodes in one wave declare the same hot file.
+
+That warning exists because "append-only edits merge cleanly" has a premise, and the premise is
+**each node edits its own region**. Two nodes appending to one import block, writing one route
+table, or extending one type union are not append-only, and they will conflict at integration —
+that is not a merge accident, it is the shape of the change. When the warning fires, either
+serialize those nodes into different waves, or give one node ownership of the file and let the
+others expose a registration hook for it. Treating the file as append-only when it is not is how
+a wave ends up resolving the same conflict three times.
 
 ## Step 2: Plan, then confirm with the user
 
@@ -84,7 +95,15 @@ python3 <SKILL_DIR>/scripts/render_graph_html.py .graph_state graph.html
 
 The planner validates (cycles are fatal, phantom and self edges are dropped with warnings),
 layers the waves so dependencies and disjoint scopes both hold, writes `.graph_state`, and
-prints the plan, a Mermaid diagram and the wave-0 dispatch list.
+prints the plan, a Mermaid diagram and the dispatch list for the current wave. It also warns when
+two nodes in one wave declare the same hot file.
+
+**Re-planning mid-run keeps what shipped.** Add `--keep-shipped` when a node turns out to be
+already satisfied, a node has to move, or the graph grew: every id that survives keeps its
+`status`, `branch`, `commit` and error history, only new ids start pending, and ids you removed
+are reported rather than silently dropped. Without the flag a re-plan resets everything to
+pending, which is why re-planning used to mean re-recording the shipped nodes by hand.
+
 
 Keep the plan input out of git along with the checkpoint it produces:
 `grep -qxF 'nodes.json' .gitignore || printf 'nodes.json\n.graph_state\ngraph.html\n' >> .gitignore`,
@@ -112,8 +131,20 @@ git worktree add -b feat/node-{N}-{slug} "$WT" "$BASE"
 ```
 
 Then dispatch: **one child per node, all in a single assistant message** — that is what makes
-them concurrent. Each prompt is self-contained (a fresh child sees none of this conversation);
-copy `references/node-prompt.md` and fill the placeholders.
+them concurrent. Each prompt is self-contained (a fresh child sees none of this conversation).
+
+Render each node's prompt from the checkpoint rather than hand-writing it:
+
+```bash
+python3 <SKILL_DIR>/scripts/graph_state.py prompt --node {N}
+```
+
+That fills the worktree path, the branch, the title, the type, the scope, the hot files and the
+acceptance criteria straight out of `.graph_state`, and prints the `git worktree add` line the
+prompt's branch refers to — so the branch the child is told to use is the branch that actually
+exists. Two things are left for you, and it says so: the **dependency summaries** (no script can
+know what an earlier node actually produced) and anything the issue body adds. Read the rendered
+prompt before sending it: the generator removes the transcription errors, not the judgement.
 
 A deployment may trim a node child's tools — a node needs no skill, because the node prompt
 already carries its whole contract, while the full-strength path is what a wave reviewer or a
@@ -210,6 +241,7 @@ as a fresh node, then drop.
 - `references/claude-code-runtime.md` — the Claude Code side: plugin/skill discovery, `Agent` dispatch, the missing continuation/audit primitives, depth and concurrency, and the optional `allowed-tools` pre-approval. Read it before running a wave under Claude Code.
 - `references/node-prompt.md` — the node prompt template, how to fill it, and how to read a node's report.
 - `references/lean-subagent.md` — DSH-only deployment patch that strips a node child's skill catalog (optional cost lever), with its caveats.
-- `scripts/graph_state.py` (`plan` / `set` / `show`) — validation, layering and checkpoints.
+- `scripts/graph_state.py` (`plan` / `set` / `prompt` / `show`) — validation, layering,
+  checkpoints, and the node prompt rendered from them.
 - `scripts/test_graph_state.py` — the planner's unit tests; run them after any edit to it.
 - `scripts/render_graph_html.py` — the live `graph.html` dashboard.
