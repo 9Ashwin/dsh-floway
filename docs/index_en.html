@@ -763,7 +763,7 @@
           </div>
           <p>Automated batch issue implementation</p>
           <ul>
-            <li>Fetch issues → dependency sort → implement inline → commit; one review + one ship at batch end</li>
+            <li>Fetch issues → dependency sort → implement inline → commit; one review + one walkthrough + one ship at batch end</li>
             <li>Checkpoint/resume with .loop-state.json</li>
             <li>Structured error recovery (10 error classes)</li>
           </ul>
@@ -789,7 +789,7 @@
           <ul>
             <li>Task/PRD → DAG → layered into superstep waves</li>
             <li>Independent nodes per wave implemented concurrently by subagents</li>
-            <li>Each node implements and commits in its own worktree; the wave reviews and ships once</li>
+            <li>Each node implements and commits in its own worktree; the wave reviews, writes the walkthrough and ships once</li>
           </ul>
         </div>
         <div class="card">
@@ -1357,7 +1357,7 @@
       <p>
         <code class="inline-code">/loop-it</code> fetches the open GitHub issues and resolves their order with a <strong>dependency-aware topological sort</strong>. It implements <strong>one Issue at a time, inline</strong> (read the requirement → write the code → prove it with the project's gates) and <strong>commits on that Issue's own branch</strong> — without pushing or opening a PR. At the end of the batch it merges the surviving branches into a single batch branch (<strong>failed branches are never merged in</strong>) and runs <code class="inline-code">/review-it</code> once and <code class="inline-code">/ship-it</code> once. It checkpoints progress to <code class="inline-code">.loop-state.json</code> after every status change, so a crash or interruption can resume from the last checkpoint instead of restarting the whole batch.
       </p>
-      <pre><code><span class="comment"># Sequential: one Issue at a time, a commit per Issue, one review + one ship at batch end</span>
+      <pre><code><span class="comment"># Sequential: one Issue at a time, a commit per Issue, one review + one walkthrough + one ship at batch end</span>
 <span class="cmd">/loop-it</span></code></pre>
 
       <h3>/graph — Parallel Implementation</h3>
@@ -2019,7 +2019,7 @@
 <span class="cmd">/prd</span> → <span class="cmd">/prd-to-spec</span> → <span class="cmd">/to-issues</span> → <span class="cmd">/loop-it</span>
                                                │
                                                └→ per issue: implement inline → prove → commit (× N)
-                                                  batch end ×1: batch branch → <span class="cmd">/review-it</span> → <span class="cmd">/ship-it</span></code></pre>
+                                                  batch end ×1: batch branch → <span class="cmd">/review-it</span> → <span class="cmd">/walkthrough</span> → <span class="cmd">/ship-it</span></code></pre>
 
       <div style="text-align: center; margin: 1rem 0;">
         <img src="images/loop-it.png" alt="Loop-it Pipeline" style="max-width: 100%; border-radius: 12px; border: 1px solid #E8E4DE; box-shadow: 0 2px 8px rgba(0,0,0,0.06);">
@@ -2095,7 +2095,7 @@
         <h3>20. Bonus: /graph — Parallel Task-Graph Execution</h3>
       </div>
       <p>
-        <code class="inline-code">/graph</code> turns a task (or PRD / SPEC / issue set) into a <strong>directed acyclic graph (DAG)</strong>, layers it by dependency into <strong>supersteps (waves)</strong>, then implements the independent nodes of each wave <strong>concurrently</strong>: one subagent per node implements inline and commits on its own branch inside its <strong>own git worktree</strong>; a <strong>fan-in barrier</strong> between waves then runs the leak check, merges only the nodes that shipped, runs the gates on the integrated tree, and <strong>reviews once + ships once</strong> before dynamically re-planning the next wave.
+        <code class="inline-code">/graph</code> turns a task (or PRD / SPEC / issue set) into a <strong>directed acyclic graph (DAG)</strong>, layers it by dependency into <strong>supersteps (waves)</strong>, then implements the independent nodes of each wave <strong>concurrently</strong>: one subagent per node implements inline and commits on its own branch inside its <strong>own git worktree</strong>; a <strong>fan-in barrier</strong> between waves then runs the leak check, merges only the nodes that shipped, runs the gates on the integrated tree, and <strong>reviews once + writes the walkthrough once + ships once</strong> before dynamically re-planning the next wave.
       </p>
 
       <div class="note">
@@ -2155,14 +2155,14 @@ Wave 2 (parallel×1):  #6 integration (deps #4,#5)
 implement inline → prove → commit on its own branch
 
 <span class="comment"># End of each wave (once):</span>
-leak check → merge only shipped nodes → gates on the integrated tree → <span class="cmd">/review-it</span> → <span class="cmd">/ship-it</span></code></pre>
+leak check → merge only shipped nodes → gates on the integrated tree → <span class="cmd">/review-it</span> → <span class="cmd">/walkthrough</span> → <span class="cmd">/ship-it</span></code></pre>
 
       <h3>Pipeline integration</h3>
       <pre><code><span class="cmd">/prd</span> → <span class="cmd">/prd-to-spec</span> → <span class="cmd">/to-issues</span> ┬→ <span class="cmd">/loop-it</span>  <span class="comment"># sequential: one node at a time</span>
                                         └→ <span class="cmd">/graph</span>    <span class="comment"># parallel: whole wave at once</span></code></pre>
 
       <div class="tip">
-        <strong>Tip:</strong> Add <code class="inline-code">.graph_state</code> and <code class="inline-code">graph.html</code> to <code class="inline-code">.gitignore</code>. Subagents run in parallel only when dispatched as multiple calls in a <strong>single response</strong> — splitting them across responses degrades to sequential.
+        <strong>Tip:</strong> Add <code class="inline-code">nodes.json</code>, <code class="inline-code">.graph_state</code> and <code class="inline-code">graph.html</code> to <code class="inline-code">.gitignore</code>, and <strong>commit that ignore rule before the first wave</strong> — the leak check wants a clean shared checkout, and an uncommitted <code class="inline-code">.gitignore</code> edit would make the orchestrator flag itself as the leak. Subagents run in parallel only when dispatched as multiple calls in a <strong>single response</strong> — splitting them across responses degrades to sequential.
       </div>
     </div>
 

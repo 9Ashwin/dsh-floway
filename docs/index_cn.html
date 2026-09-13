@@ -763,7 +763,7 @@
           </div>
           <p>自动化 Issue 批量实现循环</p>
           <ul>
-            <li>获取 Issue → 依赖拓扑排序 → 内联实现 → commit；批末统一评审 + 交付</li>
+            <li>获取 Issue → 依赖拓扑排序 → 内联实现 → commit；批末统一评审、走查 + 交付</li>
             <li>检查点恢复（<code class="inline-code">.loop-state.json</code>），crash 不丢进度</li>
             <li>10 类错误分类，结构化恢复策略</li>
           </ul>
@@ -789,7 +789,7 @@
           <ul>
             <li>任务/PRD → DAG → 分层为超步 wave</li>
             <li>每波独立节点由子代理并发实现</li>
-            <li>每节点独立 worktree：内联实现 → commit；波末统一评审 + 交付</li>
+            <li>每节点独立 worktree：内联实现 → commit；波末统一评审、走查 + 交付</li>
           </ul>
         </div>
         <div class="card">
@@ -995,7 +995,7 @@
       <pre><code><span class="cmd">/prd</span> → <span class="cmd">/prd-to-spec</span> <span class="comment">（可选）</span> → <span class="cmd">/to-issues</span> ─┬─→ <span class="cmd">/implement</span>  <span class="comment">（单单元：内联实现 → 门禁自证 → /review-it → /ship-it）</span>
                                              ├─→ <span class="cmd">/loop-it</span>    <span class="comment">（串行：一次一个 Issue，带检查点恢复）</span>
                                              └─→ <span class="cmd">/graph</span>      <span class="comment">（并行：按波次 fan-out，每节点独立 git worktree，波次间 fan-in 屏障）</span>
-                                                     节点：内联实现 → 门禁自证 → commit；波末：集成 → <span class="cmd">/review-it</span> → <span class="cmd">/ship-it</span></code></pre>
+                                                     节点：内联实现 → 门禁自证 → commit；波末：集成 → <span class="cmd">/review-it</span> → <span class="cmd">/walkthrough</span> → <span class="cmd">/ship-it</span></code></pre>
 
       <div class="diagram-box">
         <svg viewBox="0 0 1140 220" style="min-width: 1030px;">
@@ -1339,7 +1339,7 @@
         <li>获取仓库中所有打开的 GitHub Issue</li>
         <li>解析 Issue 正文里的依赖关系，做依赖感知的拓扑排序，得到可安全开始的顺序</li>
         <li>一次一个 Issue <strong>内联实现</strong>（读需求 → 写代码 → 跑门禁自证），在该 Issue 自己的分支上 commit；<strong>不 push、不开 PR</strong></li>
-        <li>批末把各 Issue 分支汇总成一条批次分支（<strong>不并入 failed 的分支</strong>），只做一次 <code class="inline-code">/review-it</code> 与一次 <code class="inline-code">/ship-it</code></li>
+        <li>批末把各 Issue 分支汇总成一条批次分支（<strong>不并入 failed 的分支</strong>），只做一次 <code class="inline-code">/review-it</code>、一次 <code class="inline-code">/walkthrough</code> 与一次 <code class="inline-code">/ship-it</code></li>
         <li>每次状态变更立即写入 <code class="inline-code">.loop-state.json</code> 检查点，崩溃或中断后可从断点恢复</li>
       </ul>
       <p>适合节点之间大量共享文件、必须串行保证安全的场景；一次只处理一个 Issue。批末 PR 关闭多个 Issue，需按逐项证据表列出每项的 commit、关闭编号、验收证据与人工验收状态。</p>
@@ -1973,7 +1973,7 @@
         <h3>18. Bonus: /loop-it — 自动化 Issue 批量实现循环</h3>
       </div>
       <p>
-        <code class="inline-code">/loop-it</code> 获取所有打开的 GitHub Issue，解析依赖顺序，一次一个 Issue 内联实现（读需求 → 写代码 → 跑门禁自证），只在该 Issue 自己的分支上 commit（不 push、不开 PR）。批末把各分支汇总成一条批次分支（<strong>failed 的分支不并入</strong>），只做一次 <code class="inline-code">/review-it</code> 与一次 <code class="inline-code">/ship-it</code>。进度持久化到 <code class="inline-code">.loop-state.json</code>，崩溃或中断后可从断点恢复。
+        <code class="inline-code">/loop-it</code> 获取所有打开的 GitHub Issue，解析依赖顺序，一次一个 Issue 内联实现（读需求 → 写代码 → 跑门禁自证），只在该 Issue 自己的分支上 commit（不 push、不开 PR）。批末把各分支汇总成一条批次分支（<strong>failed 的分支不并入</strong>），只做一次 <code class="inline-code">/review-it</code>、一次 <code class="inline-code">/walkthrough</code> 与一次 <code class="inline-code">/ship-it</code>。进度持久化到 <code class="inline-code">.loop-state.json</code>，崩溃或中断后可从断点恢复。
       </p>
 
       <h3>如何调用</h3>
@@ -2001,7 +2001,7 @@
 <span class="cmd">/prd</span> → <span class="cmd">/prd-to-spec</span> → <span class="cmd">/to-issues</span> → <span class="cmd">/loop-it</span>
                                                │
                                                └→ 每个 Issue：内联实现 → 门禁自证 → commit（× N）
-                                                  批末 ×1：汇总批次分支 → <span class="cmd">/review-it</span> → <span class="cmd">/ship-it</span></code></pre>
+                                                  批末 ×1：汇总批次分支 → <span class="cmd">/review-it</span> → <span class="cmd">/walkthrough</span> → <span class="cmd">/ship-it</span></code></pre>
 
       <div style="text-align: center; margin: 1rem 0;">
         <img src="images/loop-it.png" alt="Loop-it Pipeline" style="max-width: 100%; border-radius: 12px; border: 1px solid #E8E4DE; box-shadow: 0 2px 8px rgba(0,0,0,0.06);">
@@ -2077,7 +2077,7 @@
         <h3>20. Bonus: /graph — 任务图并发实现</h3>
       </div>
       <p>
-        <code class="inline-code">/graph</code> 把一个任务（或 PRD / SPEC / Issue 集合）转化为<strong>有向无环图（DAG）</strong>，按依赖关系分层为若干<strong>超步（wave）</strong>，然后对每一层中相互独立的节点<strong>并发实现</strong>：每个节点由一个 subagent 在<strong>独立的 git worktree</strong> 中内联实现并 commit 到自己的分支；层与层之间用<strong>栅栏（fan-in barrier）</strong>汇聚——泄漏检查、只合并 shipped 的节点、在集成后的树上跑门禁，然后<strong>评审一次、ship 一次</strong>，并动态重规划下一层。
+        <code class="inline-code">/graph</code> 把一个任务（或 PRD / SPEC / Issue 集合）转化为<strong>有向无环图（DAG）</strong>，按依赖关系分层为若干<strong>超步（wave）</strong>，然后对每一层中相互独立的节点<strong>并发实现</strong>：每个节点由一个 subagent 在<strong>独立的 git worktree</strong> 中内联实现并 commit 到自己的分支；层与层之间用<strong>栅栏（fan-in barrier）</strong>汇聚——泄漏检查、只合并 shipped 的节点、在集成后的树上跑门禁，然后<strong>评审一次、走查一次、ship 一次</strong>，并动态重规划下一层。
       </p>
 
       <div class="note">
@@ -2137,14 +2137,14 @@ Wave 2 (并发×1):  #6 集成 (依赖 #4,#5)
 内联实现 → 门禁自证 → commit 到自己的分支
 
 <span class="comment"># 每波末（只做一次）：</span>
-泄漏检查 → 只合并 shipped 节点 → 集成后跑门禁 → <span class="cmd">/review-it</span> → <span class="cmd">/ship-it</span></code></pre>
+泄漏检查 → 只合并 shipped 节点 → 集成后跑门禁 → <span class="cmd">/review-it</span> → <span class="cmd">/walkthrough</span> → <span class="cmd">/ship-it</span></code></pre>
 
       <h3>流水线集成</h3>
       <pre><code><span class="cmd">/prd</span> → <span class="cmd">/prd-to-spec</span> → <span class="cmd">/to-issues</span> ┬→ <span class="cmd">/loop-it</span>  <span class="comment"># 串行：一次一个节点</span>
                                         └→ <span class="cmd">/graph</span>    <span class="comment"># 并行：整波一起跑</span></code></pre>
 
       <div class="tip">
-        <strong>提示：</strong>把 <code class="inline-code">.graph_state</code> 和 <code class="inline-code">graph.html</code> 加入 <code class="inline-code">.gitignore</code>。派发 subagent 必须在<strong>同一个响应</strong>内发出多个调用才是并发——分成多个响应会退化为串行。
+        <strong>提示：</strong>把 <code class="inline-code">nodes.json</code>、<code class="inline-code">.graph_state</code> 和 <code class="inline-code">graph.html</code> 加入 <code class="inline-code">.gitignore</code>，并在<strong>第一波之前提交这条忽略规则</strong>——/graph 的泄漏检查要求共享检出干净，未提交的 <code class="inline-code">.gitignore</code> 改动会让编排器把自己当成泄漏。派发 subagent 必须在<strong>同一个响应</strong>内发出多个调用才是并发——分成多个响应会退化为串行。
       </div>
     </div>
 
