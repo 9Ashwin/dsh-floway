@@ -1,7 +1,7 @@
 ---
 name: to-design
 description: "Write a Go-style design proposal from a PRD — Abstract / Background / Design / Rationale / Compatibility / Implementation, strong on the why. Triggers: to-design, 设计文档, 设计提案, design doc."
-user-invocable: true
+
 ---
 
 # to-design — PRD to Design Document

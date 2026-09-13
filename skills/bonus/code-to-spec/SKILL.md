@@ -1,7 +1,7 @@
 ---
 name: code-to-spec
 description: "Reverse-engineer a SPEC out of an existing project: read its code, config and tests, then write the specification. Triggers: code-to-spec, 逆向规格, 生成规格文档, reverse spec."
-user-invocable: true
+
 ---
 
 # to-spec — Reverse-Engineer Project Specification

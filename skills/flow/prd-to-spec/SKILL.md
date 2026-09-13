@@ -1,7 +1,7 @@
 ---
 name: prd-to-spec
 description: "Transform a PRD into a technical SPEC document — architecture, API design, data model, error handling, and implementation contracts. Triggers on: prd-to-spec, prd to spec, prd转spec, 需求转设计, 需求转规格, generate spec from prd, design from prd, 技术方案, 设计方案."
-user-invocable: true
+
 ---
 
 # prd-to-spec — PRD to Technical Specification

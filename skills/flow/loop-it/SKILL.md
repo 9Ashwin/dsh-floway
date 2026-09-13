@@ -1,7 +1,7 @@
 ---
 name: loop-it
 description: "Serial GitHub issue loop with checkpoint/resume: order open issues by dependency, implement each on its own branch, then review and ship the batch once. Triggers on: loop-it, issue loop, 批量实现, 循环实现, 恢复循环, resume loop."
-user-invocable: true
+
 ---
 
 # loop-it — 带检查点恢复的串行 Issue 循环

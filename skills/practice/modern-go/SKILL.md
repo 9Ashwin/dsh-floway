@@ -1,7 +1,7 @@
 ---
 name: modern-go
 description: "Modernize Go code to version-appropriate idioms, Go 1.0→1.27+, reading go.mod for the target version. Triggers: 现代化, 现代Go语言, modernize, gofix, idiomatic, update Go code."
-user-invocable: true
+
 ---
 
 # modern-go

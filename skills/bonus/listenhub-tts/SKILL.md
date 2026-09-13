@@ -6,7 +6,6 @@ description: >
   音色未指定时自动获取音色列表供用户选择，默认使用 chat-girl-105-cn（晓曼）。
   Use when user says: "tts", "text to speech", "语音合成", "文字转语音", "朗读",
   "生成语音", "生成音频", "转音频", "text to audio"
-user-invocable: true
 # 只可能被手敲的人用工具：不进模型目录，省下每个会话与每个子代理的固定成本。
 disable-model-invocation: true
 metadata:

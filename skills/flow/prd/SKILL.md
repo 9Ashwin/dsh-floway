@@ -1,7 +1,7 @@
 ---
 name: prd
 description: "Write a PRD for a new feature: clarify first, then state requirements as verifiable acceptance criteria. Hands off to /prd-to-spec then /to-issues. Triggers: 写PRD, 需求文档, 需求分析, 规格说明, plan this feature."
-user-invocable: true
+
 ---
 
 # PRD Generator

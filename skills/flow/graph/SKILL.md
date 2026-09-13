@@ -1,7 +1,7 @@
 ---
 name: graph
 description: "Parallel implementation: plan the DAG by script, one subagent per node per wave in its own git worktree, then review and ship each wave once. Triggers: graph, 并发实现, 并行实现, 任务图, DAG, fan-out."
-user-invocable: true
+
 ---
 
 # graph — DAG → parallel waves

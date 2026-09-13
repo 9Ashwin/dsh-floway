@@ -1,7 +1,6 @@
 ---
 name: article-icons
 description: "Illustrate an article (Markdown, HTML, etc.) with animated-style icons from itshover.com/icons. Fetches icons as clean inline SVG and places them at section headings, key concepts, lists, and callouts. Triggers on: /article-icons, 配图, 给文章配图标, add icons to article, illustrate with icons."
-user-invocable: true
 # 只可能被手敲的人用工具：不进模型目录，省下每个会话与每个子代理的固定成本。
 disable-model-invocation: true
 ---

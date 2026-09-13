@@ -5,7 +5,6 @@ description: >
   迭代改写直到效果达标或迭代 42 次为止。适用于中文文本的去 AI 化处理，包括通用文章、技术文档、学术论文等。
   Use when user says: "humanize this", "去AI味", "降AIGC", "人性化改写", "改成人话", "去除AI痕迹",
   "humanize document", "make text human-like", "去机器味", "降低AI率", "过AIGC检测"
-user-invocable: true
 # 只可能被手敲的人用工具：不进模型目录，省下每个会话与每个子代理的固定成本。
 disable-model-invocation: true
 metadata:

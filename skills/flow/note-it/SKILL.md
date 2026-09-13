@@ -1,7 +1,7 @@
 ---
 name: note-it
 description: "Capture implementation notes after code implementation and review/fix. Records design decisions, deviations, tradeoffs, and open questions to docs/issue#XXXX.html. Triggers on: /note-it, 记录笔记, implementation notes."
-user-invocable: true
+
 ---
 
 # Implementation Notes

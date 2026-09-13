@@ -1,7 +1,7 @@
 ---
 name: smell
 description: "Detect architecture smells, complexity hotspots and anti-patterns, and report them by severity. Triggers: smell, 代码坏味道, 架构坏味道, 反模式, complexity analysis, find anti-patterns."
-user-invocable: true
+
 ---
 
 # Smell — Architecture Bad Smell Detector

@@ -1,7 +1,7 @@
 ---
 name: to-issues
 description: "Decompose a PRD/SPEC into vertically-sliced Issues with real blocking edges, then create them on GitHub or locally. Triggers: 创建issue, 拆解issue, 生成卡片, create issues, issues from spec."
-user-invocable: true
+
 ---
 
 # to-issues — PRD/SPEC to Issues

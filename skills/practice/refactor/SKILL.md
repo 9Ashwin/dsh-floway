@@ -1,7 +1,7 @@
 ---
 name: refactor
 description: "Refactor toward maintainability without changing behaviour, from Fowler's catalog: smells, composing methods, moving features, simplifying conditionals. Triggers: refactor, 重构, clean up, extract method, simplify."
-user-invocable: true
+
 ---
 
 # Refactor — Expert Code Restructuring
