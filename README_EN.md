@@ -149,4 +149,4 @@ A DSH skill root is scanned **exactly one level deep** (`<root>/<name>/SKILL.md`
 
 ## License
 
-MIT — see [LICENSE](./LICENSE); upstream copyright notices are in [THIRD-PARTY-NOTICES.md](./THIRD-PARTY-NOTICES.md).
+MIT — see [LICENSE](./LICENSE).

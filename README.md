@@ -149,4 +149,4 @@ DSH 的技能根**只扫一层**（`<root>/<name>/SKILL.md`），所以 `cordis.
 
 ## 许可
 
-MIT，全文见 [LICENSE](./LICENSE)；上游来源的版权声明在 [THIRD-PARTY-NOTICES.md](./THIRD-PARTY-NOTICES.md)。
+MIT，全文见 [LICENSE](./LICENSE)。
