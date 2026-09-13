@@ -145,7 +145,6 @@ A DSH skill root is scanned **exactly one level deep** (`<root>/<name>/SKILL.md`
 
 - 🌐 [**Online docs**](https://9ashwin.github.io/stream-it/) — usage guides in Chinese and English
 - 🐛 [**Issues**](https://github.com/9Ashwin/stream-it/issues) — bugs, feature requests, and skill improvements
-- 🧩 [**DeepSeek Harness**](https://github.com/deepseek-ai/DeepSeek-Harness) — the host these skills run on
 
 ## License
 

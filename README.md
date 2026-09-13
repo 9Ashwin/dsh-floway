@@ -145,7 +145,6 @@ DSH 的技能根**只扫一层**（`<root>/<name>/SKILL.md`），所以 `cordis.
 
 - 🌐 [**在线文档**](https://9ashwin.github.io/stream-it/) — 中文 / English 使用指南
 - 🐛 [**Issues**](https://github.com/9Ashwin/stream-it/issues) — 报错、需求、技能改进建议
-- 🧩 [**DeepSeek Harness**](https://github.com/deepseek-ai/DeepSeek-Harness) — 这套技能运行的宿主
 
 ## 许可
 
