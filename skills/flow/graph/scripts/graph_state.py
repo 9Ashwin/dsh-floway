@@ -8,11 +8,19 @@ read the summary".
 
 Subcommands:
 
-  plan --nodes <file> [--state .graph_state.json] [--max-parallel N] [--keep-shipped]
+  plan --nodes <file> [--state .graph_state.json] [--max-parallel N] [--keep-shipped] [--only-pending]
       Read a nodes file, validate it, layer it into waves, write the checkpoint,
       and print the plan (human summary + Mermaid + the wave-0 dispatch list).
       With --keep-shipped, an existing checkpoint's per-node outcome is carried
       over for every id that survives, so a re-plan does not reset what shipped.
+      With --only-pending, nodes a previous checkpoint already settled (shipped
+      or skipped) stop reserving their scope, so remaining work may share a wave
+      with them. Their files are already on the branch; only a node still running
+      can collide with them. Nodes the checkpoint has in_progress keep their
+      scope and are layered ahead of pending work that shares it, so a re-plan
+      never dispatches a child into files another child is editing right now.
+      Pair it with --keep-shipped, which is what puts the settled outcomes in
+      place to read.
       The cap is persisted: omitting --max-parallel on a later plan reuses the
       recorded one instead of silently re-layering the waves.
 
@@ -211,7 +219,8 @@ def validate(nodes: list[dict]) -> tuple[dict[int, dict], list[str]]:
     return by_id, warnings
 
 
-def layer(by_id: dict[int, dict]) -> tuple[list[list[int]], list[str]]:
+def layer(by_id: dict[int, dict], settled: set[int] | None = None,
+          inflight: set[int] | None = None) -> tuple[list[list[int]], list[str]]:
     """Lay nodes into waves: dependencies first, then disjoint scopes.
 
     A single greedy pass, because the two constraints interact — a node held back
@@ -219,13 +228,52 @@ def layer(by_id: dict[int, dict]) -> tuple[list[list[int]], list[str]]:
     dependents must not land in the same wave as it. Only nodes whose deps are
     already placed are candidates, so ordering holds by construction; a candidate
     that clashes on scope simply waits for a later wave.
+
+    `settled` names nodes that are already finished (shipped or skipped). They are
+    still placed, so the layout keeps their positions and their dependents keep
+    their ordering, but they reserve no scope: a scope clash only matters between
+    two nodes that could run at the same time, and a settled node has already
+    landed on the branch. Without this, re-planning mid-run lets long-finished
+    nodes hold their files against the work that is actually left, which silently
+    serializes the tail of a graph into one node per wave.
+
+    `inflight` names nodes that are running right now. They are placed before
+    equally-ready pending nodes, because that tie used to be broken by id alone —
+    and id order runs the wrong way here. A running node is usually the reason the
+    nodes sharing its files are still pending, and those nodes have the lower id
+    about half the time, so they would be layered *ahead* of the work they were
+    waiting on and dispatched into a file another child is editing at that moment.
+
+    That collision is recorded as an edge rather than filtered inside the wave
+    loop. Filtering deadlocks: the pending node waits for a running node whose own
+    dependencies are not placed yet, no candidate survives, and the graph is
+    reported as a cycle. As an edge the layering places the running node first
+    wherever its dependencies allow, and its colliding dependents follow — which
+    is the same "wait for it to finish" with the ordering solver doing the work.
     """
+    settled = settled or set()
+    inflight = inflight or set()
+    deps = {nid: set(node["deps"]) for nid, node in by_id.items()}
+    for runner in sorted(inflight):
+        if runner not in by_id:
+            continue
+        runner_scope = scope_set(by_id[runner])
+        for nid in by_id:
+            # Only work that can still run needs the barrier. Wiring it onto a
+            # settled node invents an edge across history and can close a cycle
+            # through real dependencies — #135 and #140 both touch protocol.go,
+            # and #144 depends on #140, so "wait for #144" turned into
+            # #135 -> #144 -> #140 -> #135.
+            if nid == runner or nid in inflight or nid in settled:
+                continue
+            if scope_set(by_id[nid]) & runner_scope:
+                deps[nid].add(runner)
     notes: list[str] = []
     remaining = set(by_id)
     placed: set[int] = set()
     waves: list[list[int]] = []
     while remaining:
-        ready = sorted(nid for nid in remaining if set(by_id[nid]["deps"]) <= placed)
+        ready = sorted(nid for nid in remaining if deps[nid] <= placed)
         if not ready:
             cycle = ", ".join(f"#{nid}" for nid in sorted(remaining))
             die(f"dependency cycle among {cycle} — break it and re-plan")
@@ -241,7 +289,8 @@ def layer(by_id: dict[int, dict]) -> tuple[list[list[int]], list[str]]:
                 )
                 continue
             wave.append(nid)
-            used |= scope
+            if nid not in settled:
+                used |= scope
         if not wave:  # every ready node clashes; take the lowest id alone
             wave = [ready[0]]
             notes.append(f"#{ready[0]} gets its own wave: every ready node shares its scope")
@@ -259,6 +308,8 @@ def layer(by_id: dict[int, dict]) -> tuple[list[list[int]], list[str]]:
         # lets a wave stay parallel at all.
         interests: dict[str, dict[str, list[int]]] = {}
         for nid in wave:
+            if nid in settled:
+                continue  # already on the branch: it cannot collide with anything left
             for path in scope_set(by_id[nid]):
                 interests.setdefault(path, {"scope": [], "hot": []})["scope"].append(nid)
             for path in hot_set(by_id[nid]):
@@ -378,15 +429,45 @@ def cmd_plan(args: argparse.Namespace) -> int:
         die("nodes file must contain a non-empty 'nodes' array")
 
     by_id, warnings = validate(nodes)
-    waves, notes = layer(by_id)
+
+    # The previous checkpoint is read before layering, because --only-pending has
+    # to know which nodes are already finished, and which are mid-flight, before
+    # it can decide whose scope still counts.
+    previous, legacy_note = read_previous(args.state)
+    checkout_nodes = (previous or {}).get("nodes") or {}
+    settled: set[int] = set()
+    inflight: set[int] = set()
+    if args.only_pending:
+        for key, old in checkout_nodes.items():
+            if not isinstance(old, dict):
+                continue
+            if old.get("status") in {"shipped", "skipped"}:
+                settled.add(int(key))
+            elif old.get("status") == "in_progress":
+                inflight.add(int(key))
+        settled &= set(by_id)
+        inflight &= set(by_id)
+        if previous is None:
+            notes_later = "--only-pending: no existing checkpoint, so nothing is settled"
+        elif not settled:
+            notes_later = "--only-pending: the checkpoint has no shipped or skipped node"
+        else:
+            notes_later = (f"--only-pending: {len(settled)} settled node(s) no longer "
+                           f"reserve their scope")
+            if inflight:
+                notes_later += (f"; {len(inflight)} in-flight node(s) "
+                                f"({', '.join(f'#{nid}' for nid in sorted(inflight))}) keep theirs")
+    else:
+        notes_later = ""
+    waves, notes = layer(by_id, settled, inflight)
+    if notes_later:
+        notes.append(notes_later)
 
     # The concurrency cap shapes the layout, so it belongs in the checkpoint:
     # re-planning without it would silently re-layer the waves and nobody would
     # see the change, because every node's status is preserved either way.
-    previous, legacy_note = read_previous(args.state)
     # The checkpoint is the only place a criterion sometimes lives (issues are filed
     # and criteria pasted straight into it). Re-planning must not be destructive.
-    checkout_nodes = (previous or {}).get("nodes") or {}
     previous_criteria = {k: v.get("criteria") for k, v in checkout_nodes.items() if v.get("criteria")}
     previous_context = {k: v.get("context") for k, v in checkout_nodes.items() if v.get("context")}
     if legacy_note:
@@ -677,6 +758,8 @@ def main() -> int:
                       help="split waves wider than this (reused from the checkpoint when omitted)")
     plan.add_argument("--keep-shipped", action="store_true",
                       help="carry an existing checkpoint's per-node outcome onto the new layout")
+    plan.add_argument("--only-pending", action="store_true",
+                      help="let shipped/skipped nodes stop reserving their scope when re-layering")
     plan.set_defaults(func=cmd_plan)
 
     setter = sub.add_parser("set", help="record one node's outcome")

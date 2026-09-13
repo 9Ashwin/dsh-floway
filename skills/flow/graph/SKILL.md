@@ -117,6 +117,18 @@ already satisfied, a node has to move, or the graph grew: every id that survives
 are reported rather than silently dropped. Without the flag a re-plan resets everything to
 pending, which is why re-planning used to mean re-recording the shipped nodes by hand.
 
+**Pair it with `--only-pending` once anything has shipped.** Layering is about what runs at the
+same time, and a node that shipped weeks ago cannot collide with anything — but by default it still
+reserves its files, so every later node that touches them is pushed into a wave of its own. On a
+graph that had run most of the way this silently flattened the whole tail into one node per wave.
+`--only-pending` frees the scope of `shipped`/`skipped` nodes and keeps it for `in_progress` ones,
+which are running right now: a pending node that shares files with one of those is ordered behind
+it, because otherwise the shorter of the two dependency chains decides the order and the pending
+node gets dispatched into files a child is editing at that moment. Use both flags together —
+`--keep-shipped` is what puts the outcomes in the checkpoint for `--only-pending` to read.
+Re-plan before a wave whenever nodes have shipped since the last plan; the widest layout is not
+the one computed at kickoff.
+
 `--max-parallel` is written into the checkpoint (`max_parallel`), so a later re-plan that omits
 the flag reuses it instead of silently re-layering the waves; a re-plan that changes it says so.
 The nodes file can carry `"max_parallel": 4` for the same reason — the cap shapes the layout, and
@@ -274,10 +286,12 @@ nodes; with one node it is pure ceremony.
    The checkpoint itself is already current. `set` writes it with each node's outcome, including
    the last node of the wave, so there is nothing extra to run for durability — and the board
    derives the wave still in progress from those statuses, so a re-render alone shows the right
-   one. Re-layering with `plan --keep-shipped` belongs to the next step, and only when the plan
-   actually changed.
+   one. Re-layering with `plan --keep-shipped --only-pending` belongs to the next step, and only
+   when the plan actually changed.
 6. **Re-plan.** Read each node's `NEW_WORK:` line; if any is not `none`, add the node(s) and
-   re-layer the remaining work with the planner before the next wave. Show the user the delta.
+   re-layer the remaining work with the planner before the next wave — `--keep-shipped
+   --only-pending` here too, so the nodes that already shipped stop holding their files. Show the
+   user the delta.
 
 ## Step 5: When a node fails
 

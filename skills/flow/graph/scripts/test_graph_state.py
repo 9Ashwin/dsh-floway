@@ -204,6 +204,7 @@ def test_keep_shipped_carries_outcome():
                                               {"id": 2, "title": "b", "scope": "y"}]}, handle)
         with contextlib.redirect_stdout(io.StringIO()):
             gs.cmd_plan(gs.argparse.Namespace(nodes=nodes_path, state=state_path,
+                                              only_pending=False,
                                               max_parallel=None, keep_shipped=False))
             gs.cmd_set(gs.argparse.Namespace(state=state_path, node="1", status="shipped",
                                              commit="abc1234", branch="feat/issue-9-reworked",
@@ -214,6 +215,7 @@ def test_keep_shipped_carries_outcome():
                                               {"id": 3, "title": "c", "scope": "z"}]}, handle)
         with contextlib.redirect_stdout(io.StringIO()):
             gs.cmd_plan(gs.argparse.Namespace(nodes=nodes_path, state=state_path,
+                                              only_pending=False,
                                               max_parallel=None, keep_shipped=True))
         carried = json.load(open(state_path, encoding="utf-8"))
         check("shipped survives a re-plan", carried["nodes"]["1"]["status"] == "shipped",
@@ -229,6 +231,7 @@ def test_keep_shipped_carries_outcome():
         # Negative control: without the flag a re-plan resets the shipped node.
         with contextlib.redirect_stdout(io.StringIO()):
             gs.cmd_plan(gs.argparse.Namespace(nodes=nodes_path, state=state_path,
+                                              only_pending=False,
                                               max_parallel=None, keep_shipped=False))
         reset = json.load(open(state_path, encoding="utf-8"))
         check("without --keep-shipped the outcome is reset",
@@ -321,6 +324,7 @@ def test_replan_keeps_criteria_and_context_only_the_checkpoint_holds():
             json.dump({"task": "t", "nodes": [{"id": 1, "title": "a", "scope": "src/a.ts"}]}, handle)
         with contextlib.redirect_stdout(io.StringIO()):
             gs.cmd_plan(gs.argparse.Namespace(nodes=nodes_path, state=state_path,
+                                              only_pending=False,
                                               max_parallel=None, keep_shipped=False))
         # the way the orchestrator records them once the issue is filed
         state = json.load(open(state_path, encoding="utf-8"))
@@ -331,6 +335,7 @@ def test_replan_keeps_criteria_and_context_only_the_checkpoint_holds():
 
         with contextlib.redirect_stdout(io.StringIO()):
             gs.cmd_plan(gs.argparse.Namespace(nodes=nodes_path, state=state_path,
+                                              only_pending=False,
                                               max_parallel=None, keep_shipped=True))
         again = json.load(open(state_path, encoding="utf-8"))
         check("criteria survive a re-plan",
@@ -398,6 +403,7 @@ def test_set_records_the_branch_for_later_prompts():
             json.dump({"task": "t", "nodes": [{"id": 1, "title": "a", "scope": "x"}]}, handle)
         with contextlib.redirect_stdout(io.StringIO()):
             gs.cmd_plan(gs.argparse.Namespace(nodes=nodes_path, state=state_path,
+                                              only_pending=False,
                                               max_parallel=None, keep_shipped=False))
             gs.cmd_set(gs.argparse.Namespace(state=state_path, node="1", status="in_progress",
                                              commit=None, branch="feat/a-renamed", error=None))
@@ -425,6 +431,7 @@ def test_max_parallel_persists_and_is_reused_on_replan():
 
         with contextlib.redirect_stdout(io.StringIO()):
             gs.cmd_plan(gs.argparse.Namespace(nodes=nodes_path, state=state_path,
+                                              only_pending=False,
                                               max_parallel=4, keep_shipped=False))
         first = json.load(open(state_path, encoding="utf-8"))
         check("the cap is written to the checkpoint", first.get("max_parallel") == 4, str(first))
@@ -434,6 +441,7 @@ def test_max_parallel_persists_and_is_reused_on_replan():
         out = io.StringIO()
         with contextlib.redirect_stdout(out):
             gs.cmd_plan(gs.argparse.Namespace(nodes=nodes_path, state=state_path,
+                                              only_pending=False,
                                               max_parallel=None, keep_shipped=True))
         again = json.load(open(state_path, encoding="utf-8"))
         check("re-planning without the flag keeps the cap", again.get("max_parallel") == 4, str(again))
@@ -446,6 +454,7 @@ def test_max_parallel_persists_and_is_reused_on_replan():
         out = io.StringIO()
         with contextlib.redirect_stdout(out):
             gs.cmd_plan(gs.argparse.Namespace(nodes=nodes_path, state=state_path,
+                                              only_pending=False,
                                               max_parallel=6, keep_shipped=True))
         raised = json.load(open(state_path, encoding="utf-8"))
         check("a new cap is applied", raised["waves"] == [[1, 2, 3, 4, 5, 6]], str(raised["waves"]))
@@ -456,6 +465,7 @@ def test_max_parallel_persists_and_is_reused_on_replan():
         out = io.StringIO()
         with contextlib.redirect_stdout(out):
             gs.cmd_plan(gs.argparse.Namespace(nodes=nodes_path, state=state_path,
+                                              only_pending=False,
                                               max_parallel=0, keep_shipped=True))
         free = json.load(open(state_path, encoding="utf-8"))
         check("an explicit 0 clears the cap", free.get("max_parallel") == 0, str(free))
@@ -470,6 +480,7 @@ def test_max_parallel_persists_and_is_reused_on_replan():
             json.dump(spec, handle)
         with contextlib.redirect_stdout(io.StringIO()):
             gs.cmd_plan(gs.argparse.Namespace(nodes=nodes_path, state=state_path,
+                                              only_pending=False,
                                               max_parallel=None, keep_shipped=True))
         from_spec = json.load(open(state_path, encoding="utf-8"))
         check("the nodes file can set the cap",
@@ -551,6 +562,7 @@ def test_nodes_file_can_clear_a_checkpoint_value():
                 json.dump(spec, handle)
             with contextlib.redirect_stdout(io.StringIO()):
                 gs.cmd_plan(gs.argparse.Namespace(nodes=nodes_path, state=state_path,
+                                                  only_pending=False,
                                                   max_parallel=None, keep_shipped=True))
             return json.load(open(state_path, encoding="utf-8"))["nodes"]["1"]
 
@@ -580,6 +592,102 @@ def test_nodes_file_can_clear_a_checkpoint_value():
               node["criteria"] == ["replaced"] and node["context"] == "replaced", str(node))
 
 
+def test_only_pending_frees_a_settled_nodes_scope():
+    # The bug this guards: re-planning a graph mid-run let nodes that shipped long
+    # ago keep holding their scope, so every node still to do that touched the same
+    # directory was pushed into a wave of its own. The cost was real — a graph whose
+    # tail could fit in four waves laid out as seven.
+    by_id = nodes((1, [], "internal/db"), (2, [], "internal/db"), (3, [], "internal/api"))
+    without, _ = gs.layer(by_id)
+    with_settled, _ = gs.layer(by_id, settled={1})
+    before = {nid: i for i, wave in enumerate(without) for nid in wave}
+    after = {nid: i for i, wave in enumerate(with_settled) for nid in wave}
+    check("a settled owner still serializes without the flag", before[1] != before[2])
+    check("its scope stops reserving a slot with it", after[1] == after[2], str(with_settled))
+    check("an unrelated node keeps its wave", after[3] == 0)
+    check("the settled node is still placed, not dropped",
+          sorted(nid for wave in with_settled for nid in wave) == [1, 2, 3], str(with_settled))
+
+
+def test_only_pending_still_serializes_two_pending_nodes():
+    # Negative control for the above: freeing settled scope must not turn scope
+    # collision detection off. Two nodes that will actually run together still split.
+    by_id = nodes((1, [], "internal/db"), (2, [], "internal/db"), (3, [], "internal/api"))
+    waves, notes = gs.layer(by_id, settled={3})
+    index = {nid: i for i, wave in enumerate(waves) for nid in wave}
+    check("two pending nodes on one path still split", index[1] != index[2], str(waves))
+    check("and the collision is still reported", any("waits one wave" in n for n in notes), str(notes))
+
+
+def test_only_pending_via_plan_moves_work_into_earlier_waves():
+    with tempfile.TemporaryDirectory() as tmp:
+        nodes_path = os.path.join(tmp, "nodes.json")
+        state_path = os.path.join(tmp, ".graph_state.json")
+        with open(nodes_path, "w", encoding="utf-8") as handle:
+            json.dump({"task": "t", "nodes": [{"id": 1, "title": "a", "scope": "internal/db"},
+                                              {"id": 2, "title": "b", "scope": "internal/db"},
+                                              {"id": 3, "title": "c", "scope": "internal/db"}]}, handle)
+        with contextlib.redirect_stdout(io.StringIO()):
+            gs.cmd_plan(gs.argparse.Namespace(nodes=nodes_path, state=state_path,
+                                              only_pending=False,
+                                              max_parallel=None, keep_shipped=False))
+            gs.cmd_set(gs.argparse.Namespace(state=state_path, node="1", status="shipped",
+                                             commit=None, branch=None, error=None))
+        # Without the flag the shipped node still takes a slot of its own.
+        with contextlib.redirect_stdout(io.StringIO()):
+            gs.cmd_plan(gs.argparse.Namespace(nodes=nodes_path, state=state_path,
+                                              only_pending=False,
+                                              max_parallel=None, keep_shipped=True))
+        held = json.load(open(state_path, encoding="utf-8"))
+        check("shipped node holds a wave without the flag", len(held["waves"]) == 3,
+              str(held["waves"]))
+        # With it, the two nodes left can share the first wave they are ready for.
+        with contextlib.redirect_stdout(io.StringIO()):
+            freed = gs.cmd_plan(gs.argparse.Namespace(nodes=nodes_path, state=state_path,
+                                                      only_pending=True,
+                                                      max_parallel=None, keep_shipped=True))
+        state = json.load(open(state_path, encoding="utf-8"))
+        check("re-planning with the flag succeeds", freed == 0, str(freed))
+        check("the layout collapses to two waves", len(state["waves"]) == 2, str(state["waves"]))
+        check("the outcome is still carried", state["nodes"]["1"]["status"] == "shipped")
+        check("and it is still placed", any(1 in wave for wave in state["waves"]), str(state["waves"]))
+
+
+def test_only_pending_layers_inflight_ahead_of_what_it_blocks():
+    # The shape that bit: #208 is running on internal/webui and it is the reason
+    # #165/#173/#174/#190 are still pending — but every one of those has a lower id,
+    # so id-order tie-breaking laid them out first and would have dispatched them
+    # into files #208 was editing at that moment.
+    by_id = nodes((165, [], "internal/webui"), (208, [], "internal/webui"))
+    plain, _ = gs.layer(by_id)
+    guarded, _ = gs.layer(by_id, inflight={208})
+    plain_index = {nid: i for i, wave in enumerate(plain) for nid in wave}
+    kept_index = {nid: i for i, wave in enumerate(guarded) for nid in wave}
+    check("by id alone the blocker is laid out last", plain_index[208] > plain_index[165],
+          str(plain))
+    check("in-flight work takes the slot it is already using", kept_index[208] == 0, str(guarded))
+    check("and what it blocks waits", kept_index[165] == 1, str(guarded))
+    check("in-flight work still reserves its scope", kept_index[165] != kept_index[208])
+
+
+def test_only_pending_does_not_invent_a_cycle_across_settled_nodes():
+    # Real shape that broke it: #135 and #140 are both shipped and both touch
+    # internal/fleetq/protocol.go; #144 is running and depends on #140. Wiring the
+    # in-flight barrier onto the settled #135 closed #135 -> #144 -> #140 -> #135
+    # and the whole graph was reported as a dependency cycle.
+    by_id = nodes((2, [], "internal/fleetq/protocol.go"),
+                  (1, [2], "internal/fleetq/protocol.go"))
+    try:
+        waves, _ = gs.layer(by_id, settled={2}, inflight={1})
+    except SystemExit as exc:
+        check("a settled node is never wired to a running one", False,
+              f"layer() died with {exc.code}")
+        return
+    index = {nid: i for i, wave in enumerate(waves) for nid in wave}
+    check("layer() survives the settled sibling", sorted(index) == [1, 2], str(waves))
+    check("the real dependency still orders them", index[2] < index[1], str(waves))
+
+
 def main() -> int:
     print("graph_state.py tests")
     for test in (test_dependencies_hold_across_waves, test_scope_collision_defers_without_breaking_order,
@@ -591,6 +699,11 @@ def main() -> int:
                  test_hot_file_overlap_warns_without_serializing,
                  test_hot_file_colliding_with_a_scope_is_reported,
                  test_keep_shipped_carries_outcome,
+                 test_only_pending_frees_a_settled_nodes_scope,
+                 test_only_pending_still_serializes_two_pending_nodes,
+                 test_only_pending_via_plan_moves_work_into_earlier_waves,
+                 test_only_pending_layers_inflight_ahead_of_what_it_blocks,
+                 test_only_pending_does_not_invent_a_cycle_across_settled_nodes,
                  test_prompt_renders_from_the_checkpoint,
                  test_node_context_fills_the_dependency_slot,
                  test_replan_keeps_criteria_and_context_only_the_checkpoint_holds,
