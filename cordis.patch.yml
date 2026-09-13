@@ -1,0 +1,29 @@
+# dsh bundle patch — inserts a skill-filesystem provider that serves this package's
+# ./skills tree.
+#
+# A DSH skill root is scanned exactly one level deep (`<root>/<name>/SKILL.md`), so
+# the buckets under ./skills are listed as separate roots instead of pointing at
+# ./skills itself: one root per bucket is what makes the bundle install find the same
+# 25 skills `npx skills` installs. Adding a bucket means adding a root here, and
+# `scripts/check_skills.py` fails when a bucket is missing from this list.
+#
+# The roots are resolved at config-evaluation time through the *profile's own* module
+# resolution: `baseUrl` is the profile directory, and `createRequire` anchored there
+# finds `dsh-floway-skills/package.json` for a link, git, tarball, or npm install
+# alike — including the `link:` installs `dsh plugin add ./path` produces, where the
+# package's real path sits outside the profile and a plain ESM import would fail.
+#
+# `includeDefaultRoots: false` keeps this provider from re-scanning the project and
+# user roots the host already scans; it serves only the bundled directories, under its
+# own provider name so it never collides with the host provider.
+- insert:
+    - id: dsh-floway-skills
+      name: '@deepseek-ai/dsh-skill-filesystem'
+      config:
+        providerName: dsh-floway
+        includeDefaultRoots: false
+        customSkillDirs:
+          - !!js "process.getBuiltinModule('node:path').join(process.getBuiltinModule('node:path').dirname(process.getBuiltinModule('node:module').createRequire(new URL('package.json', baseUrl)).resolve('dsh-floway-skills/package.json')), 'skills', 'flow')"
+          - !!js "process.getBuiltinModule('node:path').join(process.getBuiltinModule('node:path').dirname(process.getBuiltinModule('node:module').createRequire(new URL('package.json', baseUrl)).resolve('dsh-floway-skills/package.json')), 'skills', 'practice')"
+          - !!js "process.getBuiltinModule('node:path').join(process.getBuiltinModule('node:path').dirname(process.getBuiltinModule('node:module').createRequire(new URL('package.json', baseUrl)).resolve('dsh-floway-skills/package.json')), 'skills', 'meta')"
+          - !!js "process.getBuiltinModule('node:path').join(process.getBuiltinModule('node:path').dirname(process.getBuiltinModule('node:module').createRequire(new URL('package.json', baseUrl)).resolve('dsh-floway-skills/package.json')), 'skills', 'bonus')"

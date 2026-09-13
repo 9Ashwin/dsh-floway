@@ -1,0 +1,5 @@
+.claude
+.idea/
+.understand/
+__pycache__/
+*.pyc

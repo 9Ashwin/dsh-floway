@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>dsh-floway</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: #FAF9F6;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .landing {
+      text-align: center;
+      max-width: 480px;
+      padding: 2rem;
+    }
+    .pulse-dot {
+      width: 10px; height: 10px;
+      background: #D97757;
+      border-radius: 50%;
+      margin: 0 auto 1.5rem;
+      animation: pulse 2.5s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.6; transform: scale(0.9); }
+    }
+    h1 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #1a1a1a;
+      margin-bottom: 0.5rem;
+      letter-spacing: -0.02em;
+    }
+    .subtitle {
+      color: #8B8680;
+      font-size: 0.875rem;
+      margin-bottom: 2.5rem;
+    }
+    .cards {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+    }
+    .card {
+      flex: 1;
+      background: #FFFFFF;
+      border-radius: 12px;
+      border: 1px solid #E8E4DE;
+      padding: 2rem 1.5rem;
+      text-decoration: none;
+      color: inherit;
+      transition: all 0.3s ease;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    }
+    .card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+      border-color: #D97757;
+    }
+    .card-lang {
+      font-size: 2rem;
+      margin-bottom: 0.5rem;
+    }
+    .card-title {
+      font-size: 0.9375rem;
+      font-weight: 600;
+      color: #1a1a1a;
+      margin-bottom: 0.25rem;
+    }
+    .card-desc {
+      font-size: 0.75rem;
+      color: #8B8680;
+      line-height: 1.5;
+    }
+    .github-link {
+      position: fixed;
+      bottom: 2rem;
+      font-size: 0.75rem;
+      color: #B0AAA4;
+      text-decoration: none;
+    }
+    .github-link:hover {
+      color: #D97757;
+    }
+  </style>
+</head>
+<body>
+  <div class="landing">
+    <div class="pulse-dot"></div>
+    <h1>dsh-floway</h1>
+    <p class="subtitle">AI 驱动的研发工作流 — 从需求到交付，全程在 DeepSeek Harness 中完成</p>
+    <div class="cards">
+      <a href="index_cn.html" class="card">
+        <div class="card-lang">📖</div>
+        <div class="card-title">简体中文</div>
+        <div class="card-desc">使用指南 · 安装 · 工作流 · FAQ</div>
+      </a>
+      <a href="index_en.html" class="card">
+        <div class="card-lang">📘</div>
+        <div class="card-title">English</div>
+        <div class="card-desc">Usage Guide · Install · Workflow · FAQ</div>
+      </a>
+    </div>
+    <a class="github-link" href="https://github.com/9Ashwin/dsh-floway">github.com/9Ashwin/dsh-floway</a>
+    <p class="card-desc" style="margin-top:0.5rem">MIT License</p>
+  </div>
+  <script>
+    const lang = navigator.language || '';
+    const target = lang.startsWith('zh') ? 'index_cn.html' : 'index_en.html';
+    window.location.replace(target);
+  </script>
+</body>
+</html>

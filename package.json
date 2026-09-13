@@ -1,0 +1,25 @@
+{
+  "name": "dsh-floway-skills",
+  "version": "1.0.0",
+  "description": "AI-driven development workflow skills for the DeepSeek Harness — PRD to shipped code.",
+  "license": "MIT",
+  "files": [
+    "cordis.patch.yml",
+    "skills",
+    "README.md",
+    "README_EN.md",
+    "LICENSE"
+  ],
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  },
+  "keywords": [
+    "dsh",
+    "deepseek-harness",
+    "skills",
+    "workflow",
+    "prd"
+  ]
+}
