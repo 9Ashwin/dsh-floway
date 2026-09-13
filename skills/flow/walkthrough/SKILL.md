@@ -200,7 +200,7 @@ git diff --name-status
 
 ```
 per issue / per node:   implement ──► commit on its own branch
-                        (note-it: one docs/issue#N.html per issue)
+                        (note-it: one docs/issue#NNNN.md per issue)
 
 batch end / wave fan-in, once:
                         review-it ──► walkthrough ──► ship-it

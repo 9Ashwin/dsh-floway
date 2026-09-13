@@ -126,7 +126,7 @@ python3 <SKILL_DIR>/scripts/loop_state.py summary
 
 批末评审同样**逐 issue 分节**过一遍合并 diff，重点看 issue 之间的结合部（共享接口、装配文件、配置与状态），而不是每个 issue 的内部实现。
 
-`walkthrough` 也只在批末做一次，理由与评审相同：它证明的是集成后的整体，而逐 issue 走查会为每个可能活不过集成的 diff 各付一轮截图；它的 Review Gate 产出的正是这个批次 PR 的 body 与合并清单。`note-it` 是唯一留在 issue 级的——它一份 issue 一份 `docs/issue#N.html`，且不付截图成本。PR body 按 `/ship-it` 的「多个 issue 共用一个 PR」逐项列出每个 issue 的 commit、关闭编号、验收证据与人工验收状态。`failed` 的 issue 不进批次分支，也不进这张表。
+`walkthrough` 也只在批末做一次，理由与评审相同：它证明的是集成后的整体，而逐 issue 走查会为每个可能活不过集成的 diff 各付一轮截图；它的 Review Gate 产出的正是这个批次 PR 的 body 与合并清单。`note-it` 是唯一留在 issue 级的——它一份 issue 一份 `docs/issue#NNNN.md`，且不付截图成本。PR body 按 `/ship-it` 的「多个 issue 共用一个 PR」逐项列出每个 issue 的 commit、关闭编号、验收证据与人工验收状态。`failed` 的 issue 不进批次分支，也不进这张表。
 
 `/ship-it` 之后保留 `.loop-state.json` 作为记录，由用户决定何时删除。
 
@@ -162,5 +162,5 @@ python3 <SKILL_DIR>/scripts/loop_state.py summary
 
 每个 issue / 每个节点:  内联实现 → 门禁自证 → commit 到自己的分支
 批末 / 波末（各一次）:  /review-it → /walkthrough → /ship-it
-                        （/note-it 逐 issue 产出 docs/issue#N.html）
+                        （/note-it 逐 issue 产出 docs/issue#NNNN.md）
 ```

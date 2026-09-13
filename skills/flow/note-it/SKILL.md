@@ -1,51 +1,56 @@
 ---
 name: note-it
-description: "Capture implementation notes after code implementation and review/fix. Records design decisions, deviations, tradeoffs, and open questions to docs/issue#XXXX.html. Triggers on: /note-it, 记录笔记, implementation notes."
-
+description: "Capture implementation notes after code implementation and review/fix. Records design decisions, deviations, tradeoffs, and open questions to docs/issue#NNNN.md. Triggers on: /note-it, 记录笔记, implementation notes."
 ---
 
 # Implementation Notes
 
 After completing implementation and review/fix for an Issue, capture a running implementation notes file that documents how the implementation diverges from or interprets the spec.
 
+**Markdown, not HTML.** The same four categories already go out as a Markdown issue comment when the work ships; a second copy in HTML is a second format that only renders after someone downloads it and opens a browser. Markdown stays readable in the repo, in a diff, and pasted anywhere.
+
 ## Triggers
 
 Use when:
 - After the implementation and its review/fix are both complete
 - User says "记录笔记", "implementation notes", "note-it", "/note-it"
-- Before `/ship-it` (as a final checkpoint)
+- Before **ship-it** (as a final checkpoint)
 - Any time the user wants to capture design rationale
 
 ## The Job
 
 1. Determine the Issue number from context (branch name, the objective you are working under, or user input)
 2. Review the implementation against the Issue spec / PRD
-3. Generate an HTML notes file at `docs/issue#XXXX.html`
-4. Present a summary to the user
+3. Write the notes file at `docs/issue#NNNN.md`
+4. Summarize it for the user
 
 ## Notes Structure
 
-The HTML file must cover these four categories. If a category has nothing to report, write "None" with a brief explanation.
+The file must cover these four categories, in this order. If a category has nothing to report, write `None` with a brief explanation — never drop the heading.
 
 ### 1. Design Decisions
+
 Choices made where the spec was ambiguous or silent:
 - What was the ambiguity?
 - What choice did you make?
 - What was the rationale?
 
 ### 2. Deviations
+
 Places where you intentionally departed from the spec:
 - What did the spec say?
 - What did you implement instead?
 - Why was the deviation necessary or better?
 
 ### 3. Tradeoffs
+
 Alternatives you considered and why you picked what you did:
 - What were the viable alternatives?
 - What were the pros/cons of each?
 - Why did the chosen approach win?
 
 ### 4. Open Questions
+
 Anything you'd want confirmed or revised:
 - What assumption are you unsure about?
 - What should the user verify?
@@ -53,110 +58,64 @@ Anything you'd want confirmed or revised:
 
 ## Output
 
-- **Format:** HTML
+- **Format:** Markdown
 - **Location:** `docs/`
-- **Filename:** `issue#XXXX.html` (where XXXX is the zero-padded Issue number, e.g., `issue#0042.html`)
+- **Filename:** `issue#NNNN.md` (NNNN is the zero-padded Issue number, e.g. `issue#0042.md`)
 
-## HTML Template
+## Template
 
-Use this exact HTML structure:
+````markdown
+# Implementation Notes — Issue #NNNN
 
-```html
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Implementation Notes — Issue #XXXX</title>
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      background: #FAF9F6;
-      color: #1a1a1a;
-      padding: 2.5rem 2rem;
-      line-height: 1.7;
-    }
-    .container { max-width: 800px; margin: 0 auto; }
-    h1 { font-size: 1.375rem; font-weight: 700; margin-bottom: 0.25rem; }
-    .meta { color: #8B8680; font-size: 0.8125rem; margin-bottom: 2rem; }
-    h2 {
-      font-size: 1rem;
-      font-weight: 600;
-      margin-top: 2rem;
-      margin-bottom: 0.75rem;
-      padding-bottom: 0.375rem;
-      border-bottom: 1px solid #E8E4DE;
-      display: flex; align-items: center; gap: 0.5rem;
-    }
-    .dot {
-      width: 8px; height: 8px; border-radius: 50%; display: inline-block;
-    }
-    .dot.design { background: #5B8A72; }
-    .dot.deviation { background: #D97757; }
-    .dot.tradeoff { background: #4A6FA5; }
-    .dot.question { background: #D4A843; }
-    .item {
-      background: #FFFFFF;
-      border: 1px solid #E8E4DE;
-      border-radius: 8px;
-      padding: 1rem 1.25rem;
-      margin-bottom: 0.75rem;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.03);
-    }
-    .item h3 { font-size: 0.875rem; font-weight: 600; margin-bottom: 0.375rem; }
-    .item p { font-size: 0.8125rem; color: #4A4540; margin-bottom: 0.375rem; }
-    .label {
-      display: inline-block;
-      font-size: 0.6875rem;
-      font-weight: 500;
-      padding: 0.125rem 0.5rem;
-      border-radius: 4px;
-      margin-right: 0.375rem;
-    }
-    .label-design { background: #F5F8F6; color: #5B8A72; border: 1px solid #5B8A72; }
-    .label-deviation { background: #FFF5F0; color: #D97757; border: 1px solid #D97757; }
-    .label-tradeoff { background: #F0F4F8; color: #4A6FA5; border: 1px solid #4A6FA5; }
-    .label-question { background: #FDF8F0; color: #D4A843; border: 1px solid #D4A843; }
-    .none { color: #B0AAA4; font-style: italic; font-size: 0.8125rem; }
-    .footer {
-      text-align: center; margin-top: 2.5rem; color: #B0AAA4;
-      font-size: 0.6875rem;
-    }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <h1>Implementation Notes</h1>
-    <p class="meta">Issue <a href="{{ISSUE_URL}}">#{{ISSUE_NUMBER}}</a> &mdash; {{ISSUE_TITLE}} &mdash; {{DATE}}</p>
+> {Issue title} · {date} · {branch}
 
-    <h2><span class="dot design"></span> Design Decisions</h2>
-    <!-- One .item per decision, or .none if none -->
+## Design Decisions
 
-    <h2><span class="dot deviation"></span> Deviations</h2>
-    <!-- One .item per deviation, or .none if none -->
+**{short decision title}**
 
-    <h2><span class="dot tradeoff"></span> Tradeoffs</h2>
-    <!-- One .item per tradeoff, or .none if none -->
+- **Ambiguity:** {what the spec left open}
+- **Choice:** {what you did}
+- **Rationale:** {why}
 
-    <h2><span class="dot question"></span> Open Questions</h2>
-    <!-- One .item per question, or .none if none -->
+_None — the spec was explicit here._
 
-    <p class="footer">Generated by stream-it /note-it</p>
-  </div>
-</body>
-</html>
-```
+## Deviations
 
-## Example Item
+**{what diverges}**
 
-```html
-<div class="item">
-  <h3><span class="label label-design">Decision</span> Used interface-based polymorphism instead of switch</h3>
-  <p><strong>Ambiguity:</strong> The spec said "handle different types" without specifying how.</p>
-  <p><strong>Choice:</strong> Defined a <code>Handler</code> interface with per-type implementations.</p>
-  <p><strong>Rationale:</strong> Adding new types requires no changes to existing code (Open/Closed Principle). A switch would grow unboundedly.</p>
-</div>
+- **Spec said:** {the spec's wording}
+- **Implemented:** {what actually shipped}
+- **Why:** {why the departure was necessary or better}
+
+_None — implementation followed the spec as written._
+
+## Tradeoffs
+
+**{the choice made}**
+
+- **Alternatives:** {what else was viable}
+- **Pros/cons:** {of each}
+- **Why this won:** {the deciding factor}
+
+_None — no real alternative was on the table._
+
+## Open Questions
+
+- {an assumption worth confirming}
+- {something that should be verified before or after shipping}
+
+_None._
+````
+
+## Example entry
+
+```markdown
+**Used interface-based polymorphism instead of a switch**
+
+- **Ambiguity:** The spec said "handle different types" without specifying how.
+- **Choice:** Defined a `Handler` interface with per-type implementations.
+- **Rationale:** Adding a new type requires no change to existing code. A switch would grow
+  unboundedly and every new case would touch the same function.
 ```
 
 ## How to Determine the Issue Number
@@ -175,14 +134,15 @@ Use this exact HTML structure:
 | Notes file already exists for this Issue | Ask: "Update existing notes or overwrite?" — default to update (append new items) |
 | No deviations or open questions | Write "None — implementation followed the spec as written." |
 | Spec/PRD file not found | Note in Open Questions: "No PRD found at tasks/prd-*.md — verify against original requirements." |
+| A pre-existing `.html` note for the same Issue | Leave it alone; write the Markdown file going forward and say so rather than rewriting history |
 
 ## Checklist
 
 Before saving:
 - [ ] Issue number identified
-- [ ] All four categories reviewed (even if some are "None")
+- [ ] All four categories present, even when some are "None"
 - [ ] Design decisions explain rationale, not just what was done
-- [ ] Deviations clearly contrast spec vs implementation
-- [ ] Tradeoffs mention specific alternatives considered
-- [ ] Open questions are actionable (user can answer yes/no or give direction)
-- [ ] HTML is well-formed and renders correctly
+- [ ] Deviations contrast spec against implementation
+- [ ] Tradeoffs name the specific alternatives considered
+- [ ] Open questions are actionable (answerable with a yes/no or a direction)
+- [ ] Saved to `docs/issue#NNNN.md`

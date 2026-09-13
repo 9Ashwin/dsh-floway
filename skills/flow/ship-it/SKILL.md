@@ -131,7 +131,7 @@ EOF
 - 「实现亮点」提炼本次实现最值得关注的技术点（性能、设计、复用、测试等），无则写 `None`
 - 核心变更从 PR body 的 Summary 部分提取，保持简洁（3-5 条 bullet）
 - 附加 PR 编号和 commit hash，方便直接跳转
-- 若已通过 `/note-it` 生成 `docs/issue#XXXX.html`，可直接复用其四类内容，并在末尾附上该文件链接
+- 若已通过 `/note-it` 生成 `docs/issue#NNNN.md`，它本来就是 Markdown，四类内容可直接复用，并在末尾附上该文件链接
 
 ### Step 6: 手动关闭 Issue（仅当未自动关闭时）
 
