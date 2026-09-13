@@ -44,7 +44,7 @@ description: "Serial GitHub issue loop with checkpoint/resume: order open issues
 | gh 已认证 | `gh auth status` | 停止，提示 `gh auth login` |
 | 在 git 仓库内 | `git rev-parse --is-inside-work-tree` | 停止 |
 | 工作树干净 | `git status --porcelain` | 让用户选：stash 后继续 / 中止（默认）/ 强制继续 |
-| 在默认分支 | `git branch --show-current` | 提示切回默认分支并 `git pull` |
+| 在默认分支 | `git branch --show-current` | 提示切回默认分支，并在有 upstream 时 `git pull` |
 | 远程可达 | `git ls-remote --heads origin` | 停止，检查网络与权限 |
 | 恢复还是重来 | `.loop-state.json` 是否存在 | 恢复 / 删除重来 / 中止；`scan` 会自动合并旧状态，只有损坏文件才要求用户处理 |
 
@@ -90,10 +90,14 @@ python3 <SKILL_DIR>/scripts/loop_state.py summary   # 进度表
 python3 <SKILL_DIR>/scripts/loop_state.py set --issue N --status in_progress
 
 # 分支：每次 bash 都是全新 shell，多步 git 必须写在同一条命令里
+set -e   # 任一步失败就停：基线切错比中断更贵
 # 默认分支不一定是 main，先解析再切
 BASE="$(git symbolic-ref -q --short refs/remotes/origin/HEAD 2>/dev/null | sed 's|^origin/||')"
 BASE="${BASE:-$(git rev-parse --abbrev-ref HEAD)}"
-git checkout "$BASE" && git pull && git checkout -b feat/issue-N-slug
+git checkout "$BASE"
+# 只有配置了 upstream 才 pull —— 裸 `git pull` 在没有 upstream 的仓库里退出 1
+git rev-parse --abbrev-ref --symbolic-full-name '@{u}' >/dev/null 2>&1 && git pull
+git checkout -b feat/issue-N-slug
 ```
 
 然后**内联实现**：读 issue 标题与正文，提取全部验收条件；正文引用的 PRD/SPEC（如 `tasks/prd-*.md`）一并读；按目标仓库既有风格改代码；跑该项目的门禁自证；长时间构建/测试作为**后台任务**运行。持续到验收条件全部满足、门禁通过，然后在该 issue 的分支上 commit。
@@ -137,7 +141,7 @@ python3 <SKILL_DIR>/scripts/loop_state.py summary
 ## 运行须知
 
 - 「实现 issue」就是 agent 自己读 issue、写代码、跑门禁；不依赖任何外部命令替你完成，**也不要在循环里另起一个长期目标**。
-- 每次 shell 调用都是全新 shell：`cd`、变量不跨调用保留；`git checkout "$BASE" && git pull` 这类多步（含解析默认分支那两行）必须写在同一条命令里。
+- 每次 shell 调用都是全新 shell：`cd`、变量不跨调用保留；切基线 + 条件 pull + 开分支（含解析默认分支那两行）必须写在同一条命令里。
 - 维护每个 issue 一条的**任务清单**；它与 `.loop-state.json` 在同一状态转换后更新，冲突时以脚本为准。
 - 长构建/测试作为**后台任务**运行，不要阻塞在单次调用里。
 - 严格串行：一次只处理一个 issue（实现会改工作树）。依赖图里有真并行分支时改用 `/graph`。
