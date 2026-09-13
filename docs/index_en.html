@@ -520,17 +520,18 @@
         <li><a href="#step-refactor">12. Bonus: /refactor — Expert-Level Code Refactoring</a></li>
         <li><a href="#step-modern-go">13. Bonus: /modern-go — Go Code Modernization</a></li>
         <li><a href="#step-note-it">14. Bonus: /note-it — Implementation Notes</a></li>
-        <li><a href="#step-code-to-spec">15. Bonus: /code-to-spec — Reverse-Generate SPEC</a></li>
-        <li><a href="#step-smell">16. Bonus: /smell — Architecture Smell Detection</a></li>
-        <li><a href="#step-loop-it">17. Bonus: /loop-it — Automated Issue Implementation Loop</a></li>
-        <li><a href="#step-to-design">18. Bonus: /to-design — PRD to Design Document</a></li>
-        <li><a href="#step-graph">19. Bonus: /graph — Parallel Task-Graph Execution</a></li>
-        <li><a href="#step-understand">20. Bonus: /understand — Interactive Change Review</a></li>
-        <li><a href="#step-ask-flow">21. Bonus: /ask-flow — Which Skill Do I Use?</a></li>
-        <li><a href="#step-triage">22. Bonus: /triage — Triaging Inbound Issues</a></li>
-        <li><a href="#step-diagnose">23. Bonus: /diagnose — The Debugging Loop</a></li>
-        <li><a href="#step-conflict">24. Bonus: /conflict — Resolving Merge / Rebase Conflicts</a></li>
-        <li><a href="#faq">25. FAQ</a></li>
+        <li><a href="#step-walkthrough">15. Bonus: /walkthrough — Pre-Ship Walkthrough</a></li>
+        <li><a href="#step-code-to-spec">16. Bonus: /code-to-spec — Reverse-Generate SPEC</a></li>
+        <li><a href="#step-smell">17. Bonus: /smell — Architecture Smell Detection</a></li>
+        <li><a href="#step-loop-it">18. Bonus: /loop-it — Automated Issue Implementation Loop</a></li>
+        <li><a href="#step-to-design">19. Bonus: /to-design — PRD to Design Document</a></li>
+        <li><a href="#step-graph">20. Bonus: /graph — Parallel Task-Graph Execution</a></li>
+        <li><a href="#step-understand">21. Bonus: /understand — Interactive Change Review</a></li>
+        <li><a href="#step-ask-flow">22. Bonus: /ask-flow — Which Skill Do I Use?</a></li>
+        <li><a href="#step-triage">23. Bonus: /triage — Triaging Inbound Issues</a></li>
+        <li><a href="#step-diagnose">24. Bonus: /diagnose — The Debugging Loop</a></li>
+        <li><a href="#step-conflict">25. Bonus: /conflict — Resolving Merge / Rebase Conflicts</a></li>
+        <li><a href="#faq">26. FAQ</a></li>
       </ul>
     </div>
 
@@ -541,7 +542,7 @@
         <h3>1. Overview</h3>
       </div>
       <p>
-        <strong>stream-it</strong> is a set of development-workflow skills: 25 skills that take a change from "an idea" to "shipped code" through standard steps — requirements, design, breakdown, implementation, review, shipping — each owned by one skill.
+        <strong>stream-it</strong> is a set of development-workflow skills: 26 skills that take a change from "an idea" to "shipped code" through standard steps — requirements, design, breakdown, implementation, review, shipping — each owned by one skill.
       </p>
       <p>
         It enables AI agents to act like experienced engineers — from understanding requirements, breaking down tasks, writing code, reviewing quality, to final submission and merge — autonomously completing the entire process. You just describe the feature idea, and the workflow handles the rest.
@@ -721,6 +722,18 @@
         </div>
         <div class="card">
           <div class="card-header">
+            <div class="card-dot teal"></div>
+            <h4>/walkthrough</h4>
+          </div>
+          <p>Pre-ship walkthrough</p>
+          <ul>
+            <li>Change summary + real verification output</li>
+            <li>Visual proof of the demo path</li>
+            <li>Review gate: diff stat / draft PR / merge checklist</li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="card-header">
             <div class="card-dot sage"></div>
             <h4>/code-to-spec</h4>
           </div>
@@ -866,7 +879,7 @@
       </div>
 
       <div class="note">
-        <strong>Skill groups:</strong> the 25 skills split into four buckets by the role they play — <code class="inline-code">flow</code> (the pipeline itself, 9), <code class="inline-code">practice</code> (engineering practice you reach for mid-flow, 7), <code class="inline-code">meta</code> (the router that describes the set itself, 1), and <code class="inline-code">bonus</code> (produces non-code artifacts, 8).
+        <strong>Skill groups:</strong> the 26 skills split into four buckets by the role they play — <code class="inline-code">flow</code> (the pipeline itself, 10), <code class="inline-code">practice</code> (engineering practice you reach for mid-flow, 7), <code class="inline-code">meta</code> (the router that describes the set itself, 1), and <code class="inline-code">bonus</code> (produces non-code artifacts, 8).
       </div>
     </div>
 
@@ -900,6 +913,7 @@
 <span class="cmd">npx skills add 9Ashwin/stream-it</span> <span class="flag">--skill</span> <span class="value">understand</span>
 <span class="cmd">npx skills add 9Ashwin/stream-it</span> <span class="flag">--skill</span> <span class="value">ship-it</span>
 <span class="cmd">npx skills add 9Ashwin/stream-it</span> <span class="flag">--skill</span> <span class="value">note-it</span>
+<span class="cmd">npx skills add 9Ashwin/stream-it</span> <span class="flag">--skill</span> <span class="value">walkthrough</span>
 <span class="cmd">npx skills add 9Ashwin/stream-it</span> <span class="flag">--skill</span> <span class="value">humanize-it</span>
 <span class="cmd">npx skills add 9Ashwin/stream-it</span> <span class="flag">--skill</span> <span class="value">listenhub-tts</span>
 <span class="cmd">npx skills add 9Ashwin/stream-it</span> <span class="flag">--skill</span> <span class="value">insight-diagram</span>
@@ -956,7 +970,7 @@
       </table>
 
       <div class="tip">
-        <strong>Tip:</strong> After installation, type <code class="inline-code">/ask-flow</code>, <code class="inline-code">/prd</code>, <code class="inline-code">/prd-to-spec</code>, <code class="inline-code">/to-issues</code>, <code class="inline-code">/triage</code>, <code class="inline-code">/to-design</code>, <code class="inline-code">/design-it</code>, <code class="inline-code">/implement</code>, <code class="inline-code">/test-first</code>, <code class="inline-code">/loop-it</code>, <code class="inline-code">/graph</code>, <code class="inline-code">/diagnose</code>, <code class="inline-code">/conflict</code>, <code class="inline-code">/review-it</code>, <code class="inline-code">/ship-it</code>, <code class="inline-code">/note-it</code>, <code class="inline-code">/understand</code>, <code class="inline-code">/refactor</code>, <code class="inline-code">/modern-go</code>, <code class="inline-code">/code-to-spec</code>, <code class="inline-code">/smell</code>, <code class="inline-code">/humanize-it</code>, <code class="inline-code">/listenhub-tts</code>, <code class="inline-code">/insight-diagram</code>, <code class="inline-code">/article-icons</code> to directly invoke the corresponding skill. <code class="inline-code">/goal</code> is a DSH command that a human types, not a skill.
+        <strong>Tip:</strong> After installation, type <code class="inline-code">/ask-flow</code>, <code class="inline-code">/prd</code>, <code class="inline-code">/prd-to-spec</code>, <code class="inline-code">/to-issues</code>, <code class="inline-code">/triage</code>, <code class="inline-code">/to-design</code>, <code class="inline-code">/design-it</code>, <code class="inline-code">/implement</code>, <code class="inline-code">/test-first</code>, <code class="inline-code">/loop-it</code>, <code class="inline-code">/graph</code>, <code class="inline-code">/diagnose</code>, <code class="inline-code">/conflict</code>, <code class="inline-code">/review-it</code>, <code class="inline-code">/ship-it</code>, <code class="inline-code">/note-it</code>, <code class="inline-code">/walkthrough</code>, <code class="inline-code">/understand</code>, <code class="inline-code">/refactor</code>, <code class="inline-code">/modern-go</code>, <code class="inline-code">/code-to-spec</code>, <code class="inline-code">/smell</code>, <code class="inline-code">/humanize-it</code>, <code class="inline-code">/listenhub-tts</code>, <code class="inline-code">/insight-diagram</code>, <code class="inline-code">/article-icons</code> to directly invoke the corresponding skill. <code class="inline-code">/goal</code> is a DSH command that a human types, not a skill.
       </div>
 
       <div class="note">
@@ -1121,6 +1135,12 @@
           <td><code class="inline-code">/review-it</code></td>
           <td>Code changes (dirty / branch)</td>
           <td>Clean code that passes review</td>
+        </tr>
+        <tr>
+          <td><span class="badge badge-review">3.5 Walkthrough</span></td>
+          <td><code class="inline-code">/walkthrough</code></td>
+          <td>Reviewed changes</td>
+          <td><code class="inline-code">tasks/walkthrough-&lt;feature&gt;.md</code> walkthrough (optional)</td>
         </tr>
         <tr>
           <td><span class="badge badge-ship">4. Ship</span></td>
@@ -1812,11 +1832,57 @@
       </div>
     </div>
 
-    <!-- Section 15: /code-to-spec -->
+    <!-- Section 15: /walkthrough -->
+    <div class="section" id="step-walkthrough">
+      <div class="section-title">
+        <div class="section-dot teal"></div>
+        <h3>15. Bonus: /walkthrough — Pre-Ship Walkthrough</h3>
+      </div>
+      <p>
+        <code class="inline-code">/walkthrough</code> runs after implementation, its verification pass and <code class="inline-code">/review-it</code>, and before <code class="inline-code">/ship-it</code>: it writes one Markdown artifact a reviewer can read to catch up on <strong>what changed</strong> and <strong>what is proven to work</strong>, with visual proof of the demo path. The point is evidence, not assertion — a diff says what the code looks like; a walkthrough says what you ran, what it printed and what you saw.
+      </p>
+
+      <h3>How to Invoke</h3>
+      <pre><code><span class="comment"># Run this directly</span>
+<span class="cmd">/walkthrough</span>
+
+<span class="comment"># Or use trigger phrases</span>
+<span class="cmd">Walkthrough: </span><span class="value">write the pre-ship walkthrough for user-auth</span>
+<span class="cmd">Write the walkthrough: </span><span class="value">collect the verification evidence and a draft PR</span></code></pre>
+
+      <h3>The Four Parts of the Artifact</h3>
+      <table>
+        <tr><th>Part</th><th>What it holds</th><th>Key points</th></tr>
+        <tr><td>1. Change summary</td><td>The diff described for someone who has not seen the work</td><td>3–6 bullets: what was built, the key files and components, the requirement / Issue it serves</td></tr>
+        <tr><td>2. Verification steps</td><td>The commands actually run and what they printed</td><td>Paste the exact command and its real output (keep pass counts, truncate noise); record UI scenarios as action → observed result → pass/fail</td></tr>
+        <tr><td>3. Visual proof</td><td>Screenshots or a short recording of the demo path</td><td>2–4 shots that prove the path (before → action → after), not a screenshot dump</td></tr>
+        <tr><td>4. Review gate</td><td>What a reader checks before merging</td><td>Diff stat and file list, high-risk notes, a paste-ready PR body, and a merge checklist</td></tr>
+      </table>
+
+      <h3>Output</h3>
+      <ul class="step-list">
+        <li>Format: Markdown, one file</li>
+        <li>Saved to <code class="inline-code">tasks/walkthrough-&lt;feature&gt;.md</code> (<code class="inline-code">tasks/</code> is the collection's default directory for working artifacts)</li>
+        <li>Filename in kebab-case; take the feature name from the user first, then the branch or a matching <code class="inline-code">tasks/prd-*.md</code> / <code class="inline-code">spec-*.md</code>, and ask if none exists</li>
+        <li>Images <strong>default to relative paths</strong> (<code class="inline-code">![caption](tasks/shot.png)</code>), committed alongside the file: the artifact stays small and the diff stays reviewable</li>
+        <li>Use a base64 data URI only when the artifact <strong>must survive on its own</strong> (pasted into a chat, an issue comment — anywhere the images will not travel with it), and say which mode you used</li>
+      </ul>
+
+      <h3>Positioning</h3>
+      <p>
+        <code class="inline-code">/walkthrough</code> is <code class="inline-code">/note-it</code>'s sibling: both produce an artifact after review and before shipping, but they own different things — <code class="inline-code">/note-it</code> records <strong>design rationale</strong> (why it was built this way), while a walkthrough records <strong>evidence</strong> (what was run, what was seen) plus a pre-merge checklist. It <strong>records gate output; it does not replace the project's own gates</strong>. A step you could not verify is written as unverified or as a blocker — never as proven.
+      </p>
+
+      <div class="tip">
+        <strong>Tip:</strong> a one-line or purely mechanical change does not deserve a walkthrough — there is no demo path and nothing to catch up on, so hand over the diff instead. Write it <strong>after</strong> review, too: a walkthrough of code that is about to change is a walkthrough you rewrite.
+      </div>
+    </div>
+
+    <!-- Section 16: /code-to-spec -->
     <div class="section" id="step-code-to-spec">
       <div class="section-title">
         <div class="section-dot sage"></div>
-        <h3>15. Bonus: /code-to-spec — Reverse-Generate SPEC</h3>
+        <h3>16. Bonus: /code-to-spec — Reverse-Generate SPEC</h3>
       </div>
       <p>
         <code class="inline-code">/code-to-spec</code> analyzes an existing project's code, configuration, tests, and structure, then reverse-generates a complete SPEC document. The output can be used for project reconstruction, onboarding new team members, or comparing actual implementation against intended design.
@@ -1875,7 +1941,7 @@
     <div class="section" id="step-smell">
       <div class="section-title">
         <div class="section-dot gold"></div>
-        <h3>16. Bonus: /smell — Architecture Smell Detection</h3>
+        <h3>17. Bonus: /smell — Architecture Smell Detection</h3>
       </div>
       <p>
         <code class="inline-code">/smell</code> analyzes a codebase for architectural anti-patterns, code smells, and algorithmic complexity hotspots. It produces a detailed markdown report with severity levels, evidence, and a refactoring roadmap.
@@ -1922,7 +1988,7 @@
     <div class="section" id="step-loop-it">
       <div class="section-title">
         <div class="section-dot plum"></div>
-        <h3>17. Bonus: /loop-it — Automated Issue Implementation Loop</h3>
+        <h3>18. Bonus: /loop-it — Automated Issue Implementation Loop</h3>
       </div>
       <p>
         <code class="inline-code">/loop-it</code> fetches all open GitHub issues and resolves dependency order. It implements <strong>one Issue at a time, inline</strong> (read the requirement → write the code → prove it with the project's gates) and <strong>commits on that Issue's own branch</strong> (no push, no PR). At the end of the batch it merges the surviving branches into a single batch branch (<strong>failed branches are never merged in</strong>) and runs <code class="inline-code">/review-it</code> once and <code class="inline-code">/ship-it</code> once. It persists progress to <code class="inline-code">.loop-state.json</code> so you can resume from where you left off after a crash or interruption.
@@ -1964,11 +2030,11 @@
       </div>
     </div>
 
-    <!-- Section 18: /to-design -->
+    <!-- Section 19: /to-design -->
     <div class="section" id="step-to-design">
       <div class="section-title">
         <div class="section-dot terracotta"></div>
-        <h3>18. Bonus: /to-design — PRD to Design Document</h3>
+        <h3>19. Bonus: /to-design — PRD to Design Document</h3>
       </div>
       <p>
         <code class="inline-code">/to-design</code> turns a PRD (or a rough idea) into a <strong>design document</strong> written in the style of Go's official design proposals: plain language, concrete examples, and — above all — an honest account of <strong>why this approach and not the alternatives</strong>.
@@ -2022,11 +2088,11 @@
       </div>
     </div>
 
-    <!-- Section 19: /graph -->
+    <!-- Section 20: /graph -->
     <div class="section" id="step-graph">
       <div class="section-title">
         <div class="section-dot plum"></div>
-        <h3>19. Bonus: /graph — Parallel Task-Graph Execution</h3>
+        <h3>20. Bonus: /graph — Parallel Task-Graph Execution</h3>
       </div>
       <p>
         <code class="inline-code">/graph</code> turns a task (or PRD / SPEC / issue set) into a <strong>directed acyclic graph (DAG)</strong>, layers it by dependency into <strong>supersteps (waves)</strong>, then implements the independent nodes of each wave <strong>concurrently</strong>: one subagent per node implements inline and commits on its own branch inside its <strong>own git worktree</strong>; a <strong>fan-in barrier</strong> between waves then runs the leak check, merges only the nodes that shipped, runs the gates on the integrated tree, and <strong>reviews once + ships once</strong> before dynamically re-planning the next wave.
@@ -2100,11 +2166,11 @@ leak check → merge only shipped nodes → gates on the integrated tree → <sp
       </div>
     </div>
 
-    <!-- Section 20: /understand -->
+    <!-- Section 21: /understand -->
     <div class="section" id="step-understand">
       <div class="section-title">
         <div class="section-dot coral"></div>
-        <h3>20. Bonus: /understand — Interactive Change Review</h3>
+        <h3>21. Bonus: /understand — Interactive Change Review</h3>
       </div>
       <p>
         <code class="inline-code">/understand</code> turns the changes you just generated (usually AI-written) into a single-file interactive review webpage, so you can actually understand what changed before reviewing or shipping it. It scans the repo's uncommitted / branch changes and builds a Claude-style light-themed two-column page: a project file tree on the left, and the selected file's syntax-highlighted diff on the right, with a side rail that pairs each code segment with its unit requirement and a plain-language explanation.
@@ -2143,11 +2209,11 @@ leak check → merge only shipped nodes → gates on the integrated tree → <sp
       </div>
     </div>
 
-    <!-- Section 21: /ask-flow -->
+    <!-- Section 22: /ask-flow -->
     <div class="section" id="step-ask-flow">
       <div class="section-title">
         <div class="section-dot terracotta"></div>
-        <h3>21. Bonus: /ask-flow — Which Skill Do I Use?</h3>
+        <h3>22. Bonus: /ask-flow — Which Skill Do I Use?</h3>
       </div>
       <p>
         <code class="inline-code">/ask-flow</code> is the <strong>entry point</strong> to the whole skill set: you cannot remember what all these skills own, so you ask. Describe where you are (a half-formed idea, a pile of inbound issues, code that will not work, a long implementation) and it gives you the <strong>next step</strong>, plus which decisions inside that step are yours to make.
@@ -2163,7 +2229,7 @@ leak check → merge only shipped nodes → gates on the integrated tree → <sp
 
       <h3>What It Routes</h3>
       <ul class="step-list">
-        <li><strong>Main line:</strong> <code class="inline-code">/prd</code> → <code class="inline-code">/prd-to-spec</code> (when the design is complex) → <code class="inline-code">/to-issues</code> → the fork (true parallelism <code class="inline-code">/graph</code> / sequential <code class="inline-code">/loop-it</code> / a single unit <code class="inline-code">/implement</code>) → implement inline → prove with the gates → <code class="inline-code">/review-it</code> → <code class="inline-code">/ship-it</code>; add <code class="inline-code">/note-it</code> when decisions need a record</li>
+        <li><strong>Main line:</strong> <code class="inline-code">/prd</code> → <code class="inline-code">/prd-to-spec</code> (when the design is complex) → <code class="inline-code">/to-issues</code> → the fork (true parallelism <code class="inline-code">/graph</code> / sequential <code class="inline-code">/loop-it</code> / a single unit <code class="inline-code">/implement</code>) → implement inline → prove with the gates → <code class="inline-code">/review-it</code> → <code class="inline-code">/ship-it</code>; add <code class="inline-code">/note-it</code> when decisions need a record, and <code class="inline-code">/walkthrough</code> for the pre-ship walkthrough</li>
         <li><strong>Bypasses:</strong> a bug goes to <code class="inline-code">/diagnose</code>, raw inbound items to <code class="inline-code">/triage</code>, pinning behaviour down first to <code class="inline-code">/test-first</code>, and an in-progress merge / rebase to <code class="inline-code">/conflict</code></li>
         <li><strong>It suggests, never executes:</strong> it will not grill your requirements, write a spec or edit a file, and it will not quietly run the skill you just asked about</li>
         <li><strong>It reports its own gaps:</strong> the maintenance rule requires it to be re-read and updated whenever a skill is added, renamed or deleted — along with both READMEs and these two HTML guides — because <strong>a lying router is worse than no router</strong></li>
@@ -2174,11 +2240,11 @@ leak check → merge only shipped nodes → gates on the integrated tree → <sp
       </div>
     </div>
 
-    <!-- Section 22: /triage -->
+    <!-- Section 23: /triage -->
     <div class="section" id="step-triage">
       <div class="section-title">
         <div class="section-dot amber"></div>
-        <h3>22. Bonus: /triage — Triaging Inbound Issues</h3>
+        <h3>23. Bonus: /triage — Triaging Inbound Issues</h3>
       </div>
       <p>
         <code class="inline-code">/triage</code> handles <strong>raw items that arrive from outside</strong>: bug reports, user feedback, requests filed by other people. It reproduces / understands first, assigns each item exactly one role, and fills the <code class="inline-code">ready</code> ones out into agent-executable cards. <strong>Never triage <code class="inline-code">/to-issues</code> output</strong> — that is already agent-ready.
@@ -2207,11 +2273,11 @@ leak check → merge only shipped nodes → gates on the integrated tree → <sp
       </div>
     </div>
 
-    <!-- Section 23: /diagnose -->
+    <!-- Section 24: /diagnose -->
     <div class="section" id="step-diagnose">
       <div class="section-title">
         <div class="section-dot coral"></div>
-        <h3>23. Bonus: /diagnose — The Debugging Loop</h3>
+        <h3>24. Bonus: /diagnose — The Debugging Loop</h3>
       </div>
       <p>
         The discipline for hard bugs, intermittent flakes and performance regressions: <strong>no reasoning starts until there is a command already red on <em>this</em> bug</strong> — jumping straight to "I bet it's here" is exactly the failure this skill exists to prevent. It does <strong>no <code class="inline-code">/review-it</code> / <code class="inline-code">/ship-it</code></strong>; once the cause is pinned down, go back to the main line as a single-point change.
@@ -2240,11 +2306,11 @@ leak check → merge only shipped nodes → gates on the integrated tree → <sp
       </div>
     </div>
 
-    <!-- Section 24: /conflict -->
+    <!-- Section 25: /conflict -->
     <div class="section" id="step-conflict">
       <div class="section-title">
         <div class="section-dot plum"></div>
-        <h3>24. Bonus: /conflict — Resolving Merge / Rebase Conflicts</h3>
+        <h3>25. Bonus: /conflict — Resolving Merge / Rebase Conflicts</h3>
       </div>
       <p>
         <code class="inline-code">/conflict</code> resolves an <strong>in-progress</strong> git merge / rebase: recover both sides' intent, resolve hunk by hunk, run the project gates, and finish the operation. <strong>Always resolve, never <code class="inline-code">--abort</code></strong>.
@@ -2264,11 +2330,11 @@ leak check → merge only shipped nodes → gates on the integrated tree → <sp
       </div>
     </div>
 
-    <!-- Section 25: FAQ -->
+    <!-- Section 26: FAQ -->
     <div class="section" id="faq">
       <div class="section-title">
         <div class="section-dot terracotta"></div>
-        <h3>25. FAQ</h3>
+        <h3>26. FAQ</h3>
       </div>
 
       <h3>Q: Do I have to use all steps in order?</h3>
