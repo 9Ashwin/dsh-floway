@@ -43,7 +43,8 @@ Do not use it when:
 
 Review and ship are wave-scoped on purpose. A per-node `/review-it` is a self-review of a diff
 that may not survive integration, and a per-node `/ship-it` means N PRs, N CI runs and N chances
-to stall on a merge conflict. Per-node PRs remain available when the user explicitly wants a
+to stall on a merge conflict. The **walkthrough** is wave-scoped for the same reason: it proves
+the integrated result, and its review gate produces the single PR body the wave ships. Per-node PRs remain available when the user explicitly wants a
 reviewable PR per node — that is the expensive mode; say so and confirm before using it.
 
 ## Step 1: Decompose into nodes
@@ -167,8 +168,10 @@ nodes; with one node it is pure ceremony.
    diff is large or independence matters more. Apply `/review-it`'s Review Focus section by
    section, fix what is accepted, re-run the gates. This is the only review the wave gets; never
    skip it, and never let one feature's section absorb the whole pass.
-4. **Ship the wave once** with the **ship-it** skill: one commit/PR, merge, close the issues the
-   wave satisfied. One squash commit buries N features, so the PR body must carry `ship-it`'s
+4. **Write the walkthrough, then ship the wave once.** Run the **walkthrough** skill over the
+   integrated diff — what changed, what you ran and what it printed, and the visual proof of the
+   demo path. Its review gate hands you the PR body and the merge checklist, which the **ship-it**
+   skill then opens: one commit/PR, merge, close the issues the wave satisfied. One squash commit buries N features, so the PR body must carry `ship-it`'s
    per-item evidence table (commit, issue, the test that proves it, manual-acceptance status) —
    without it neither you nor the user can audit or revert a single feature afterwards.
 5. Remove finished worktrees (keep failed ones), re-render the tracker, and checkpoint.

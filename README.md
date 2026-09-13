@@ -26,7 +26,7 @@
 
 ## stream-it 是什么
 
-stream-it 是一套研发工作流技能集：25 个技能，把「想法 → 交付」拆成标准步骤——需求、设计、拆解、实现、审查、交付——每一步由一个技能负责。你说想做什么，剩下的交给 Agent：澄清问题、写 PRD、拆成有阻塞关系的 Issue、在隔离的工作树里并行实现、审查、开 PR、合入。
+stream-it 是一套研发工作流技能集：26 个技能，把「想法 → 交付」拆成标准步骤——需求、设计、拆解、实现、审查、交付——每一步由一个技能负责。你说想做什么，剩下的交给 Agent：澄清问题、写 PRD、拆成有阻塞关系的 Issue、在隔离的工作树里并行实现、审查、开 PR、合入。
 
 **实现节点是子代理**，每个节点一个独立 git worktree，职责到「实现 → 跑通项目门禁自证 → commit 到自己分支」为止。泄漏检查、集成、集成后的门禁、评审、交付收成一件事，**按波次各做一次**：一个 PR 关闭这一波满足的全部 Issue。
 
@@ -114,12 +114,12 @@ dsh --profile web --dump-config | grep -A3 stream-it   # 应看到 "# == stream-
 | 拆解与分诊 | `/to-issues` · `/triage` | 把自己的 PRD/SPEC 拆成垂直切片 · 把**外面进来的**原始 issue 分流成可执行卡片 |
 | 实现 | `/implement` · `/test-first` · `/graph` · `/loop-it` | 单个单元内联做完 · 红-绿写测试 · DAG 波次并行（每节点独立 worktree）· issue 依赖序串行（检查点可恢复） |
 | 排障 | `/diagnose` · `/conflict` | 先拿到一条会变红的命令再推理的排查循环 · 逐 hunk 按意图解 merge/rebase 冲突 |
-| 审查与交付 | `/review-it` · `/ship-it` · `/note-it` | 双轴评审（Spec + 8 维度标准）· 提交/PR/合入/关闭 Issue · 为 Issue 留实现笔记 |
+| 审查与交付 | `/review-it` · `/walkthrough` · `/ship-it` · `/note-it` | 双轴评审（Spec + 8 维度标准）· 合并前交出「改了什么 + 什么被验证过」的走查件 · 提交/PR/合入/关闭 Issue · 为 Issue 留实现笔记 |
 | 代码质量 | `/smell` · `/refactor` · `/modern-go` | 架构坏味道与复杂度热点 · Fowler 重构目录 · Go 1.0→1.27+ 现代化 |
 | 逆向与文档 | `/code-to-spec` · `/understand` · `/insight-diagram` | 从代码逆向出 SPEC · 把本次改动变成可交互审阅网页 · UML/架构图 |
 | 内容 | `/humanize-it` · `/article-icons` · `/listenhub-tts` | 去 AI 味改写 · 文章配图 · 文本转语音 |
 
-标了 `disable-model-invocation` 的 5 个技能（`/ask-flow` · `/insight-diagram` · 最后一行三个内容工具）**不进模型目录**：模型不会主动挑它们，你直接敲命令就行——省下的是每个会话和**每个子代理**都要付的那份固定成本。当前 25 个技能、目录总量 4818 字符，模型实际看到 **3651 字符**。这 5 个技能还各带一份 `agents/openai.yaml`（`policy.allow_implicit_invocation: false`）。
+标了 `disable-model-invocation` 的 5 个技能（`/ask-flow` · `/insight-diagram` · 最后一行三个内容工具）**不进模型目录**：模型不会主动挑它们，你直接敲命令就行——省下的是每个会话和**每个子代理**都要付的那份固定成本。当前 26 个技能、目录总量 5077 字符，模型实际看到 **3806 字符**。这 5 个技能还各带一份 `agents/openai.yaml`（`policy.allow_implicit_invocation: false`）。
 
 `/goal` 是 DSH 的**命令**（不是技能）：由你在命令行里敲，创建一个带自动续跑轮次的持久目标。这条能力的模型侧是 `create_goal` / `update_goal`，但 `create_goal` 只在**顶层直接的人类回合**执行——子代理和编排中途都铸造不了长期目标。
 
@@ -127,7 +127,7 @@ dsh --profile web --dump-config | grep -A3 stream-it   # 应看到 "# == stream-
 
 ```
 skills/
-├── flow/       # PRD → 交付这条链上的一环，按顺序跑（9 个）
+├── flow/       # PRD → 交付这条链上的一环，按顺序跑（10 个）
 ├── practice/   # 流程中途随时单独触发的工程实践（7 个）
 ├── meta/       # 关于这套技能集本身：路由（1 个）
 └── bonus/      # 产出非代码工件：设计文档、图表、规格逆向、内容（8 个）

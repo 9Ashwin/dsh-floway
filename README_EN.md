@@ -26,7 +26,7 @@
 
 ## What is stream-it?
 
-stream-it is a set of development-workflow skills: 25 skills that take a change from "an idea" to "shipped code" through standard steps — requirements, design, breakdown, implementation, review, shipping — each owned by one skill. You say what you want; the agent asks the questions, writes the PRD, splits it into Issues with blocking edges, implements in parallel inside isolated worktrees, reviews, opens the PR and merges.
+stream-it is a set of development-workflow skills: 26 skills that take a change from "an idea" to "shipped code" through standard steps — requirements, design, breakdown, implementation, review, shipping — each owned by one skill. You say what you want; the agent asks the questions, writes the PRD, splits it into Issues with blocking edges, implements in parallel inside isolated worktrees, reviews, opens the PR and merges.
 
 **An implementation node is a subagent** in its own git worktree, and its job stops at "implement → prove it against the project's gates → commit on its own branch". Leak check, integration, gates on the integrated tree, review and shipping are one step, done **once per wave**: a single PR closes every Issue the wave satisfies.
 
@@ -114,12 +114,12 @@ A few deliberate design choices:
 | Breakdown & triage | `/to-issues` · `/triage` | Split your own PRD/SPEC into vertical slices · turn **incoming** raw issues into agent-ready cards |
 | Implementation | `/implement` · `/test-first` · `/graph` · `/loop-it` | Finish a single unit inline · red-green testing · DAG waves in parallel (one worktree per node) · Issues in dependency order, serial (resumable checkpoints) |
 | Diagnosis | `/diagnose` · `/conflict` | A debugging loop that demands a red-capable command first · resolve merge/rebase conflicts hunk by hunk by intent |
-| Review & shipping | `/review-it` · `/ship-it` · `/note-it` | Two-axis review (Spec + 8 standards dimensions) · commit/PR/merge/close Issue · implementation notes for an Issue |
+| Review & shipping | `/review-it` · `/walkthrough` · `/ship-it` · `/note-it` | Two-axis review (Spec + 8 standards dimensions) · the pre-merge walkthrough proving what changed and what was verified · commit/PR/merge/close Issue · implementation notes for an Issue |
 | Code quality | `/smell` · `/refactor` · `/modern-go` | Architecture smells and complexity hotspots · Fowler's refactoring catalog · Go 1.0→1.27+ modernization |
 | Reverse engineering & docs | `/code-to-spec` · `/understand` · `/insight-diagram` | Reverse a SPEC out of code · turn the current change into an interactive review page · UML/architecture diagrams |
 | Content | `/humanize-it` · `/article-icons` · `/listenhub-tts` | De-AI-ify documents · article icons · text to speech |
 
-Five skills carry `disable-model-invocation` (`/ask-flow`, `/insight-diagram`, and the three content tools in the last row) and stay **out of the model catalog**: the model will not reach for them on its own, you type the command — which saves the fixed cost every session **and every subagent** would otherwise pay. Across the current 25 skills the catalog is 4,818 characters, of which the model actually sees **3,651**. Those five also ship an `agents/openai.yaml` (`policy.allow_implicit_invocation: false`).
+Five skills carry `disable-model-invocation` (`/ask-flow`, `/insight-diagram`, and the three content tools in the last row) and stay **out of the model catalog**: the model will not reach for them on its own, you type the command — which saves the fixed cost every session **and every subagent** would otherwise pay. Across the current 26 skills the catalog is 5,077 characters, of which the model actually sees **3,806**. Those five also ship an `agents/openai.yaml` (`policy.allow_implicit_invocation: false`).
 
 `/goal` is a DSH **command**, not a skill: you type it at the prompt to create a persisted goal with automatic continuation rounds. The model side of that surface is `create_goal` / `update_goal`, but `create_goal` only runs in a **direct top-level human turn** — a subagent or a mid-orchestration step cannot mint a long-horizon goal for itself.
 
@@ -127,7 +127,7 @@ Five skills carry `disable-model-invocation` (`/ask-flow`, `/insight-diagram`, a
 
 ```
 skills/
-├── flow/       # one link in the PRD → ship chain, run in order (9)
+├── flow/       # one link in the PRD → ship chain, run in order (10)
 ├── practice/   # engineering practice you reach for mid-flow (7)
 ├── meta/       # about the skill set itself: the router (1)
 └── bonus/      # produces non-code artifacts: design docs, diagrams, specs, content (8)

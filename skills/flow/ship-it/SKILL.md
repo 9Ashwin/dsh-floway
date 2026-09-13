@@ -145,6 +145,8 @@ gh issue close {issue-number} --reason completed
 
 `/graph` 的一波与 `/loop-it` 的一批默认把多个 issue 收进同一个 PR（squash 后只剩一个 commit）。此时 PR body **必须逐项列出证据**，不能只写一行 `Closes #1 #2 #3`——否则单项特性既没法审计也没法单独回滚。
 
+这份 body 与合并清单通常由波末/批末的 `/walkthrough` 产出（它的 Review Gate 就是为这一步准备的）；本技能负责把它开出去。
+
 ```markdown
 | 项 | commit | 关闭的 issue | 验收证据（测试名 / 命令） | 人工验收 |
 | --- | --- | --- | --- | --- |

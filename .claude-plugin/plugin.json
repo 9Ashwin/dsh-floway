@@ -28,6 +28,7 @@
     "./skills/flow/review-it",
     "./skills/flow/ship-it",
     "./skills/flow/note-it",
+    "./skills/flow/walkthrough",
     "./skills/practice/test-first",
     "./skills/practice/diagnose",
     "./skills/practice/refactor",
