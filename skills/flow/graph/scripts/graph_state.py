@@ -8,7 +8,7 @@ read the summary".
 
 Subcommands:
 
-  plan --nodes <file> [--state .graph_state] [--max-parallel N] [--keep-shipped]
+  plan --nodes <file> [--state .graph_state.json] [--max-parallel N] [--keep-shipped]
       Read a nodes file, validate it, layer it into waves, write the checkpoint,
       and print the plan (human summary + Mermaid + the wave-0 dispatch list).
       With --keep-shipped, an existing checkpoint's per-node outcome is carried
@@ -16,15 +16,15 @@ Subcommands:
       The cap is persisted: omitting --max-parallel on a later plan reuses the
       recorded one instead of silently re-layering the waves.
 
-  set --state .graph_state --node N --status <s> [--commit SHA] [--branch NAME] [--error TEXT]
+  set --state .graph_state.json --node N --status <s> [--commit SHA] [--branch NAME] [--error TEXT]
       Record one node's outcome, and optionally the branch it actually lives on.
       Pass --status pending to clear a retry. Prints what the orchestrator should
       do next.
 
-  show --state .graph_state [--json]
+  show --state .graph_state.json [--json]
       Print the current plan and per-node status.
 
-  prompt --node N [--state .graph_state] [--worktrees DIR]
+  prompt --node N [--state .graph_state.json] [--worktrees DIR]
       Render the node prompt for one node from references/node-prompt.md, with
       the worktree path, branch, title, type, scope and acceptance criteria
       filled in from the checkpoint. A `branch` recorded by `plan` or `set` is
@@ -84,6 +84,12 @@ from datetime import datetime, timezone
 STATUSES = ("pending", "in_progress", "shipped", "failed", "blocked", "skipped")
 WAVE_DONE = {"shipped", "skipped", "failed", "blocked"}
 
+# The checkpoint was called `.graph_state` (no extension) before it was renamed
+# to match the sibling `.loop-state.json`. The old name is still read so a graph
+# that is already running does not lose its progress; it is never written.
+STATE_DEFAULT = ".graph_state.json"
+LEGACY_STATE = ".graph_state"
+
 
 def die(message: str) -> None:
     print(f"graph_state: {message}", file=sys.stderr)
@@ -102,6 +108,42 @@ def load_json(path: str, what: str) -> dict:
         die(f"{what} not found: {path}")
     except json.JSONDecodeError as exc:
         die(f"{what} is not valid JSON ({path}): {exc}")
+
+
+def legacy_path_for(requested: str) -> str:
+    """The pre-rename checkpoint that sits beside `requested`.
+
+    Resolved from the requested path, not from the process cwd, so
+    `--state /work/repo/.graph_state.json` finds `/work/repo/.graph_state`.
+    """
+    directory = os.path.dirname(requested)
+    return os.path.join(directory, LEGACY_STATE) if directory else LEGACY_STATE
+
+
+def read_state(requested: str) -> tuple[dict, str | None]:
+    """Load the checkpoint, falling back to the pre-rename name.
+
+    Only the default file name falls back: an explicit `--state foo.json` means
+    the caller named the file it wants, and quietly reading a different one
+    would be worse than saying it is missing.
+    """
+    legacy = legacy_path_for(requested)
+    if (not os.path.exists(requested) and os.path.basename(requested) == STATE_DEFAULT
+            and os.path.exists(legacy)):
+        return (load_json(legacy, "state file"),
+                f"read the pre-rename checkpoint {legacy}; the next write goes to {requested}")
+    return load_json(requested, "state file"), None
+
+
+def read_previous(requested: str) -> tuple[dict | None, str | None]:
+    """Same fallback as read_state, but a missing checkpoint is not an error."""
+    if os.path.exists(requested):
+        return load_json(requested, "state file"), None
+    legacy = legacy_path_for(requested)
+    if os.path.basename(requested) == STATE_DEFAULT and os.path.exists(legacy):
+        return (load_json(legacy, "state file"),
+                f"read the pre-rename checkpoint {legacy}; the next write goes to {requested}")
+    return None, None
 
 
 def save_state(state: dict, path: str) -> None:
@@ -332,7 +374,9 @@ def cmd_plan(args: argparse.Namespace) -> int:
     # The concurrency cap shapes the layout, so it belongs in the checkpoint:
     # re-planning without it would silently re-layer the waves and nobody would
     # see the change, because every node's status is preserved either way.
-    previous = load_json(args.state, "state file") if os.path.exists(args.state) else None
+    previous, legacy_note = read_previous(args.state)
+    if legacy_note:
+        notes.append(legacy_note)
     recorded = int((previous or {}).get("max_parallel") or 0)
     if args.max_parallel is not None:
         limit = args.max_parallel
@@ -408,7 +452,7 @@ def cmd_plan(args: argparse.Namespace) -> int:
 def cmd_set(args: argparse.Namespace) -> int:
     if args.status not in STATUSES:
         die(f"unknown status {args.status!r} (expected one of: {', '.join(STATUSES)})")
-    state = load_json(args.state, "state file")
+    state, legacy_note = read_state(args.state)
     key = str(args.node)
     if key not in state["nodes"]:
         die(f"node {key} is not in {args.state}")
@@ -429,6 +473,8 @@ def cmd_set(args: argparse.Namespace) -> int:
     index_of = wave_of(state)
     node_wave = index_of.get(int(key))
     index = current_wave(state)
+    if legacy_note:
+        print(f"note: {legacy_note}")
     print(f"node #{key}: {previous} -> {args.status}")
     print(render(state))
 
@@ -502,7 +548,7 @@ def load_template(override: str | None) -> str:
 
 
 def cmd_prompt(args: argparse.Namespace) -> int:
-    state = load_json(args.state, "state file")
+    state, legacy_note = read_state(args.state)
     key = str(args.node)
     if key not in state["nodes"]:
         die(f"node {key} is not in {args.state}")
@@ -545,6 +591,8 @@ def cmd_prompt(args: argparse.Namespace) -> int:
 
     deps = ", ".join(f"#{dep}" for dep in node.get("deps") or []) or "none"
     hot = node.get("hot_files") or []
+    if legacy_note:
+        print(f"note: {legacy_note}")
     print(f"# node #{key} — {node.get('title', '')}")
     print(f"# deps: {deps}   status: {node.get('status', 'pending')}")
     if hot:
@@ -572,7 +620,9 @@ def cmd_prompt(args: argparse.Namespace) -> int:
 
 
 def cmd_show(args: argparse.Namespace) -> int:
-    state = load_json(args.state, "state file")
+    state, legacy_note = read_state(args.state)
+    if legacy_note and not args.json:
+        print(f"note: {legacy_note}")
     if args.json:
         print(json.dumps(state, indent=2, ensure_ascii=False))
     else:
@@ -586,7 +636,8 @@ def main() -> int:
 
     plan = sub.add_parser("plan", help="validate, layer into waves, write the checkpoint")
     plan.add_argument("--nodes", required=True, help="path to the nodes JSON file")
-    plan.add_argument("--state", default=".graph_state", help="checkpoint path (default .graph_state)")
+    plan.add_argument("--state", default=STATE_DEFAULT,
+                      help=f"checkpoint path (default {STATE_DEFAULT})")
     plan.add_argument("--max-parallel", type=int, default=None,
                       help="split waves wider than this (reused from the checkpoint when omitted)")
     plan.add_argument("--keep-shipped", action="store_true",
@@ -594,7 +645,7 @@ def main() -> int:
     plan.set_defaults(func=cmd_plan)
 
     setter = sub.add_parser("set", help="record one node's outcome")
-    setter.add_argument("--state", default=".graph_state")
+    setter.add_argument("--state", default=STATE_DEFAULT)
     setter.add_argument("--node", required=True)
     setter.add_argument("--status", required=True, choices=STATUSES)
     setter.add_argument("--commit")
@@ -603,14 +654,14 @@ def main() -> int:
     setter.set_defaults(func=cmd_set)
 
     prompt = sub.add_parser("prompt", help="render one node's dispatch prompt from the checkpoint")
-    prompt.add_argument("--state", default=".graph_state")
+    prompt.add_argument("--state", default=STATE_DEFAULT)
     prompt.add_argument("--node", required=True)
     prompt.add_argument("--worktrees", help="worktree root (default: <repo parent>/.graph-worktrees)")
     prompt.add_argument("--template", help="override the node prompt template path")
     prompt.set_defaults(func=cmd_prompt)
 
     show = sub.add_parser("show", help="print the current plan and status")
-    show.add_argument("--state", default=".graph_state")
+    show.add_argument("--state", default=STATE_DEFAULT)
     show.add_argument("--json", action="store_true")
     show.set_defaults(func=cmd_show)
 

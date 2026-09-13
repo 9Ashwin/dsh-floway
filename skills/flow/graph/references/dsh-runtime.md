@@ -96,7 +96,7 @@ the default branch (`$BASE`), and that branch is what gets reviewed and shipped.
 
 ## State file and tracker
 
-`.graph_state` lives at the repo root and must be in `.gitignore`. Commit that ignore rule before
+`.graph_state.json` lives at the repo root and must be in `.gitignore` (the pre-rename name `.graph_state` is still read, so keep it ignored too until a run has migrated). Commit that ignore rule before
 the first wave: it is a tracked file, so an uncommitted edit would make the Step 4 leak check flag
 the orchestrator itself. The planner script owns it — never hand-write it. Its schema:
 
@@ -124,7 +124,7 @@ Render the live dashboard any time (it auto-refreshes every 5 s; a `present` cal
 in DSH):
 
 ```bash
-python3 <SKILL_DIR>/scripts/render_graph_html.py .graph_state graph.html
+python3 <SKILL_DIR>/scripts/render_graph_html.py .graph_state.json graph.html
 ```
 
 On resume: `python3 <SKILL_DIR>/scripts/graph_state.py show`, ask the user about `failed` nodes

@@ -1365,7 +1365,7 @@
 
       <h3>/graph — Parallel Implementation</h3>
       <p>
-        <code class="inline-code">/graph</code> turns a task, PRD, or Issue set into a <strong>DAG</strong>, layers it into <strong>waves</strong>, and dispatches one subagent per independent node <strong>concurrently</strong>. Each node works in its <strong>own git worktree</strong> and commits only to its own branch, so parallel edits never clobber each other. Every wave ends with a mandatory <strong>fan-in barrier</strong>: wait for all of the wave's settlement notices → leak check → integrate (<strong>merge only the nodes that shipped</strong>, never a failed one) → run the gates on the <strong>integrated tree</strong> → <strong>review once</strong> (section by section, node by node) → <strong>ship once</strong> (one PR, closing the Issues the wave satisfied). Progress is checkpointed to <code class="inline-code">.graph_state</code>, and a <code class="inline-code">graph.html</code> tracker re-renders from that checkpoint at every wave boundary.
+        <code class="inline-code">/graph</code> turns a task, PRD, or Issue set into a <strong>DAG</strong>, layers it into <strong>waves</strong>, and dispatches one subagent per independent node <strong>concurrently</strong>. Each node works in its <strong>own git worktree</strong> and commits only to its own branch, so parallel edits never clobber each other. Every wave ends with a mandatory <strong>fan-in barrier</strong>: wait for all of the wave's settlement notices → leak check → integrate (<strong>merge only the nodes that shipped</strong>, never a failed one) → run the gates on the <strong>integrated tree</strong> → <strong>review once</strong> (section by section, node by node) → <strong>ship once</strong> (one PR, closing the Issues the wave satisfied). Progress is checkpointed to <code class="inline-code">.graph_state.json</code>, and a <code class="inline-code">graph.html</code> tracker re-renders from that checkpoint at every wave boundary.
       </p>
       <pre><code><span class="comment"># Parallel: task/PRD/issues → DAG → waves → one worktree per node → fan-in barrier</span>
 <span class="cmd">/graph</span> <span class="value">tasks/prd-url-shortener.md</span></code></pre>
@@ -2123,8 +2123,8 @@
         <tr><td>Superstep / Wave</td><td>A set of nodes whose deps are all satisfied — run concurrently</td></tr>
         <tr><td>Fan-out</td><td>Dispatch one subagent per node in the current wave</td></tr>
         <tr><td>Fan-in (barrier)</td><td>Wait for <strong>all</strong> nodes in the wave before the next</td></tr>
-        <tr><td>State channel</td><td><code class="inline-code">.graph_state</code> — shared checkpoint between waves, resume source</td></tr>
-        <tr><td>Live tracker</td><td><code class="inline-code">graph.html</code> — Claude-style light-theme dashboard, re-rendered from <code class="inline-code">.graph_state</code> at every checkpoint</td></tr>
+        <tr><td>State channel</td><td><code class="inline-code">.graph_state.json</code> — shared checkpoint between waves, resume source</td></tr>
+        <tr><td>Live tracker</td><td><code class="inline-code">graph.html</code> — Claude-style light-theme dashboard, re-rendered from <code class="inline-code">.graph_state.json</code> at every checkpoint</td></tr>
         <tr><td>Dynamic re-plan</td><td>Revise the graph after a wave if new work/deps emerged</td></tr>
       </table>
 
@@ -2144,7 +2144,7 @@
         <li><strong>Scope-collision serialization</strong> — dep-free nodes editing the same logic split across waves; a shared "wiring file" (router/main) is exempt so it doesn't serialize the whole graph</li>
         <li><strong>Dynamic re-plan</strong> — subagents report new work via a <code class="inline-code">NEW_WORK:</code> line; the barrier revises and re-layers the graph</li>
         <li><strong>Failure blocks dependents</strong> — a failed node marks all its dependents blocked and skips them</li>
-        <li><strong>Checkpoint / resume</strong> — each wave writes <code class="inline-code">.graph_state</code>; a crash resumes at the wave boundary, and <code class="inline-code">graph.html</code> is re-rendered (open it in a browser — it auto-refreshes every 5s to track waves, node statuses, and progress live)</li>
+        <li><strong>Checkpoint / resume</strong> — each wave writes <code class="inline-code">.graph_state.json</code>; a crash resumes at the wave boundary, and <code class="inline-code">graph.html</code> is re-rendered (open it in a browser — it auto-refreshes every 5s to track waves, node statuses, and progress live)</li>
         <li><strong>Concurrency cap</strong> — default 3–4 parallel subagents to avoid rate limits and merge contention</li>
       </ul>
 
@@ -2165,7 +2165,7 @@ leak check → merge only shipped nodes → gates on the integrated tree → <sp
                                         └→ <span class="cmd">/graph</span>    <span class="comment"># parallel: whole wave at once</span></code></pre>
 
       <div class="tip">
-        <strong>Tip:</strong> Add <code class="inline-code">nodes.json</code>, <code class="inline-code">.graph_state</code> and <code class="inline-code">graph.html</code> to <code class="inline-code">.gitignore</code>, and <strong>commit that ignore rule before the first wave</strong> — the leak check wants a clean shared checkout, and an uncommitted <code class="inline-code">.gitignore</code> edit would make the orchestrator flag itself as the leak. Subagents run in parallel only when dispatched as multiple calls in a <strong>single response</strong> — splitting them across responses degrades to sequential.
+        <strong>Tip:</strong> Add <code class="inline-code">nodes.json</code>, <code class="inline-code">.graph_state.json</code> and <code class="inline-code">graph.html</code> to <code class="inline-code">.gitignore</code>, and <strong>commit that ignore rule before the first wave</strong> — the leak check wants a clean shared checkout, and an uncommitted <code class="inline-code">.gitignore</code> edit would make the orchestrator flag itself as the leak. Subagents run in parallel only when dispatched as multiple calls in a <strong>single response</strong> — splitting them across responses degrades to sequential.
       </div>
     </div>
 

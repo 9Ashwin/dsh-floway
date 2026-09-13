@@ -90,11 +90,11 @@ reported when it loaded this skill. The bundled default is `~/.agents/skills/gra
 
 ```bash
 python3 <SKILL_DIR>/scripts/graph_state.py plan --nodes nodes.json --max-parallel 4
-python3 <SKILL_DIR>/scripts/render_graph_html.py .graph_state graph.html
+python3 <SKILL_DIR>/scripts/render_graph_html.py .graph_state.json graph.html
 ```
 
 The planner validates (cycles are fatal, phantom and self edges are dropped with warnings),
-layers the waves so dependencies and disjoint scopes both hold, writes `.graph_state`, and
+layers the waves so dependencies and disjoint scopes both hold, writes `.graph_state.json`, and
 prints the plan, a Mermaid diagram and the dispatch list for the current wave. It also warns when
 two nodes in one wave declare the same hot file.
 
@@ -111,11 +111,16 @@ a layout nobody can reproduce is a layout nobody can check.
 
 
 Keep the plan input out of git along with the checkpoint it produces:
-`grep -qxF 'nodes.json' .gitignore || printf 'nodes.json\n.graph_state\ngraph.html\n' >> .gitignore`,
+`grep -qxF 'nodes.json' .gitignore || printf 'nodes.json\n.graph_state.json\n.graph_state\ngraph.html\n' >> .gitignore`,
 then **commit that ignore rule before the first wave**. Step 4's leak check wants a clean shared
 checkout, and an uncommitted `.gitignore` edit would make the orchestrator flag itself as the leak.
-(If you would rather not commit an ignore rule, put the same three lines in the untracked
-`.git/info/exclude` instead.) The nodes file is per-run working state, like `.graph_state`.
+(If you would rather not commit an ignore rule, put the same lines in the untracked
+`.git/info/exclude` instead.) The nodes file is per-run working state, like `.graph_state.json`.
+
+The checkpoint used to be called `.graph_state` (no extension). That name is still **read** — a
+graph that is already running keeps its progress through the rename, and the script says so — but
+every write now goes to `.graph_state.json`, so the next `set`/`plan` migrates it. Both names are
+in the ignore rule above; once a run has migrated, the old file can be deleted.
 
 Show the user the plan and let them adjust nodes, edges or the concurrency cap **before** any
 child starts. Then hand `graph.html` to the user so they can watch it live.
@@ -145,7 +150,7 @@ python3 <SKILL_DIR>/scripts/graph_state.py prompt --node {N}
 ```
 
 That fills the worktree path, the branch, the title, the type, the scope, the hot files and the
-acceptance criteria straight out of `.graph_state`, and prints the `git worktree add` line for the
+acceptance criteria straight out of `.graph_state.json`, and prints the `git worktree add` line for the
 branch it names. **The branch is the checkpoint's, not the script's:** if a `branch` is recorded
 for the node it is used verbatim, and only an unrecorded node gets a name derived from its title —
 in which case the header says the name was derived and that the branch does not exist yet. So
@@ -257,7 +262,7 @@ as a fresh node, then drop.
 - **Never force-push to the default branch.** Nodes commit to their own branches; the wave ships one PR.
 - **Respect the depth budget** — a node must not dispatch children of its own; a node is a leaf.
 - **Cap concurrency** (3–4 by default), **prefer waves of 2–3 nodes**, and **keep the child count honest** — the wave is the blast radius of one bad integration, so do trivia inline.
-- **Confirm the plan** before the first fan-out, and keep `.graph_state` + `graph.html` current.
+- **Confirm the plan** before the first fan-out, and keep `.graph_state.json` + `graph.html` current.
 
 ## References
 

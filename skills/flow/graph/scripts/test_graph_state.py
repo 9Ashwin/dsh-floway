@@ -84,7 +84,7 @@ def test_self_dep_is_dropped():
 def test_end_to_end_plan_and_set():
     with tempfile.TemporaryDirectory() as tmp:
         nodes_path = os.path.join(tmp, "nodes.json")
-        state_path = os.path.join(tmp, ".graph_state")
+        state_path = os.path.join(tmp, ".graph_state.json")
         with open(nodes_path, "w", encoding="utf-8") as handle:
             json.dump({"task": "t", "nodes": [
                 {"id": 1, "title": "a", "scope": "x"},
@@ -126,7 +126,7 @@ def test_closing_a_wave_announces_fan_in_for_that_wave():
     """Regression: the fan-in checklist must describe the wave that just closed."""
     import io, contextlib, tempfile
     with tempfile.TemporaryDirectory() as tmp:
-        state_path = os.path.join(tmp, ".graph_state")
+        state_path = os.path.join(tmp, ".graph_state.json")
         state = {"version": 1, "task": "t", "repo": "", "waves": [[1, 2], [3]], "current_wave": 0,
                  "nodes": {str(n): {"title": f"n{n}", "deps": [], "status": "shipped" if n < 3 else "pending"}
                            for n in (1, 2, 3)}}
@@ -153,7 +153,7 @@ def test_single_node_wave_skips_wave_branch():
     """Regression: a one-node wave must not be told to create a wave branch (D4)."""
     import io, contextlib, tempfile
     with tempfile.TemporaryDirectory() as tmp:
-        state_path = os.path.join(tmp, ".graph_state")
+        state_path = os.path.join(tmp, ".graph_state.json")
         state = {"version": 1, "task": "t", "repo": "", "waves": [[1], [2]], "current_wave": 0,
                  "nodes": {"1": {"title": "n1", "deps": [], "status": "in_progress"},
                            "2": {"title": "n2", "deps": [1], "status": "pending"}}}
@@ -198,7 +198,7 @@ def test_hot_file_overlap_warns_without_serializing():
 def test_keep_shipped_carries_outcome():
     with tempfile.TemporaryDirectory() as tmp:
         nodes_path = os.path.join(tmp, "nodes.json")
-        state_path = os.path.join(tmp, ".graph_state")
+        state_path = os.path.join(tmp, ".graph_state.json")
         with open(nodes_path, "w", encoding="utf-8") as handle:
             json.dump({"task": "t", "nodes": [{"id": 1, "title": "a", "scope": "x"},
                                               {"id": 2, "title": "b", "scope": "y"}]}, handle)
@@ -237,7 +237,7 @@ def test_keep_shipped_carries_outcome():
 
 def test_prompt_renders_from_the_checkpoint():
     with tempfile.TemporaryDirectory() as tmp:
-        state_path = os.path.join(tmp, ".graph_state")
+        state_path = os.path.join(tmp, ".graph_state.json")
         worktrees = os.path.join(tmp, "wt")
         state = {"version": 1, "task": "t", "repo": "", "waves": [[7]], "current_wave": 0,
                  "nodes": {"7": {"title": "wire the router", "deps": [3], "type": "frontend",
@@ -288,7 +288,7 @@ def test_hot_file_colliding_with_a_scope_is_reported():
 def test_recorded_branch_beats_the_synthesized_name():
     """Regression: `prompt` must not invent a branch a node is not actually on."""
     with tempfile.TemporaryDirectory() as tmp:
-        state_path = os.path.join(tmp, ".graph_state")
+        state_path = os.path.join(tmp, ".graph_state.json")
         worktrees = os.path.join(tmp, "wt")
         state = {"version": 1, "task": "t", "repo": "", "waves": [[7]], "current_wave": 0,
                  "nodes": {"7": {"title": "webui", "deps": [], "scope": ["src/app.ts"],
@@ -337,7 +337,7 @@ def test_recorded_branch_beats_the_synthesized_name():
 def test_set_records_the_branch_for_later_prompts():
     with tempfile.TemporaryDirectory() as tmp:
         nodes_path = os.path.join(tmp, "nodes.json")
-        state_path = os.path.join(tmp, ".graph_state")
+        state_path = os.path.join(tmp, ".graph_state.json")
         with open(nodes_path, "w", encoding="utf-8") as handle:
             json.dump({"task": "t", "nodes": [{"id": 1, "title": "a", "scope": "x"}]}, handle)
         with contextlib.redirect_stdout(io.StringIO()):
@@ -361,7 +361,7 @@ def test_max_parallel_persists_and_is_reused_on_replan():
     """Regression: re-planning without the flag silently re-layered the waves."""
     with tempfile.TemporaryDirectory() as tmp:
         nodes_path = os.path.join(tmp, "nodes.json")
-        state_path = os.path.join(tmp, ".graph_state")
+        state_path = os.path.join(tmp, ".graph_state.json")
         spec = {"task": "t", "nodes": [{"id": n, "title": f"n{n}", "scope": f"src/{n}.ts"}
                                        for n in range(1, 7)]}
         with open(nodes_path, "w", encoding="utf-8") as handle:
@@ -420,6 +420,65 @@ def test_max_parallel_persists_and_is_reused_on_replan():
               from_spec["waves"] == [[1, 2], [3, 4], [5, 6]], str(from_spec["waves"]))
 
 
+def test_legacy_checkpoint_name_is_still_read():
+    """The checkpoint was renamed to .graph_state.json — a graph that is already
+    running must not lose its progress because of the rename."""
+    with tempfile.TemporaryDirectory() as tmp:
+        cwd = os.getcwd()
+        os.chdir(tmp)
+        try:
+            legacy = {"version": 1, "task": "legacy run", "repo": "", "waves": [[1]],
+                      "current_wave": 0,
+                      "nodes": {"1": {"title": "n1", "deps": [], "status": "shipped"}}}
+            with open(gs.LEGACY_STATE, "w", encoding="utf-8") as handle:
+                json.dump(legacy, handle)
+
+            buffer = io.StringIO()
+            with contextlib.redirect_stdout(buffer):
+                gs.cmd_show(gs.argparse.Namespace(state=gs.STATE_DEFAULT, json=False))
+            out = buffer.getvalue()
+            check("the pre-rename checkpoint is still read", "legacy run" in out, out[:200])
+            check("and the rename is disclosed", "pre-rename" in out, out[:200])
+
+            buffer = io.StringIO()
+            with contextlib.redirect_stdout(buffer):
+                gs.cmd_set(gs.argparse.Namespace(state=gs.STATE_DEFAULT, node="1",
+                                                 status="in_progress", commit=None,
+                                                 branch=None, error=None))
+            check("a write migrates to the new name", os.path.exists(gs.STATE_DEFAULT),
+                  str(os.listdir(".")))
+            migrated = json.load(open(gs.STATE_DEFAULT, encoding="utf-8"))
+            check("with the migrated state", migrated["nodes"]["1"]["status"] == "in_progress",
+                  str(migrated["nodes"]["1"]))
+
+            # Negative control: once the new file exists it wins, even if the old
+            # one is still on disk with different content.
+            with open(gs.LEGACY_STATE, "w", encoding="utf-8") as handle:
+                json.dump({**legacy, "task": "stale legacy"}, handle)
+            buffer = io.StringIO()
+            with contextlib.redirect_stdout(buffer):
+                gs.cmd_show(gs.argparse.Namespace(state=gs.STATE_DEFAULT, json=True))
+            out = buffer.getvalue()
+            check("the new checkpoint wins over a stale legacy file", "stale legacy" not in out)
+            check("and nothing is reported as pre-rename", "pre-rename" not in out)
+
+            # Absolute paths must resolve the legacy name beside the requested
+            # file, not beside the process cwd — that is how /graph is invoked
+            # when the checkpoint lives outside the current directory.
+            elsewhere = os.path.join(tmp, "elsewhere")
+            os.makedirs(elsewhere, exist_ok=True)
+            with open(os.path.join(elsewhere, gs.LEGACY_STATE), "w", encoding="utf-8") as handle:
+                json.dump({**legacy, "task": "absolute legacy"}, handle)
+            buffer = io.StringIO()
+            with contextlib.redirect_stdout(buffer):
+                gs.cmd_show(gs.argparse.Namespace(
+                    state=os.path.join(elsewhere, gs.STATE_DEFAULT), json=True))
+            check("an absolute path finds the legacy file beside it",
+                  "absolute legacy" in buffer.getvalue(), buffer.getvalue()[:200])
+        finally:
+            os.chdir(cwd)
+
+
 def main() -> int:
     print("graph_state.py tests")
     for test in (test_dependencies_hold_across_waves, test_scope_collision_defers_without_breaking_order,
@@ -434,7 +493,8 @@ def main() -> int:
                  test_prompt_renders_from_the_checkpoint,
                  test_recorded_branch_beats_the_synthesized_name,
                  test_set_records_the_branch_for_later_prompts,
-                 test_max_parallel_persists_and_is_reused_on_replan):
+                 test_max_parallel_persists_and_is_reused_on_replan,
+                 test_legacy_checkpoint_name_is_still_read):
         print(f"- {test.__name__}")
         test()
     if failures:

@@ -1354,7 +1354,7 @@
         <li>每个波次里相互独立的节点由一个子代理 <strong>并发实现</strong>，<strong>每个节点独占一个 git worktree</strong>，并行编辑互不污染工作树</li>
         <li>节点只 commit 到自己的分支；波次之间设<strong>强制 fan-in 屏障</strong>（BSP 语义）——等齐本波<strong>所有</strong>节点的完成通知后才收尾</li>
         <li>屏障到达后统一收尾：泄漏检查 → 集成（<strong>只合并 shipped 的节点</strong>，failed 的绝不合并）→ 在<strong>集成后的树</strong>上跑门禁 → <strong>评审一次</strong>（逐节点分节）→ <strong>ship 一次</strong>（一个 PR，关闭该波满足的 Issue）</li>
-        <li>每波写入 <code class="inline-code">.graph_state</code> 检查点，并据此重新渲染 <code class="inline-code">graph.html</code> 实时看板</li>
+        <li>每波写入 <code class="inline-code">.graph_state.json</code> 检查点，并据此重新渲染 <code class="inline-code">graph.html</code> 实时看板</li>
       </ul>
       <p>适合 DAG 中存在真正并行度（相互独立的子系统）的场景。单节点波没有可集成的对象，跳过 wave 分支与 merge 仪式，直接对该节点分支 review + ship。详见 <a href="#step-loop-it" style="color: #5B8A72; text-decoration: none;">17. /loop-it</a> 与 <a href="#step-graph" style="color: #5B8A72; text-decoration: none;">19. /graph</a>。</p>
 
@@ -2106,8 +2106,8 @@
         <tr><td>超步 / 波次 Wave</td><td>依赖已全部满足的一组节点——并发执行</td></tr>
         <tr><td>Fan-out</td><td>为当前波次的每个节点派发一个 subagent</td></tr>
         <tr><td>Fan-in（栅栏）</td><td>等待本波<strong>全部</strong>节点完成，再开始下一波</td></tr>
-        <tr><td>状态通道</td><td><code class="inline-code">.graph_state</code>——波次之间共享的检查点，可断点恢复</td></tr>
-        <tr><td>实时看板</td><td><code class="inline-code">graph.html</code>——浅色风格仪表盘，每次检查点从 <code class="inline-code">.graph_state</code> 重新渲染</td></tr>
+        <tr><td>状态通道</td><td><code class="inline-code">.graph_state.json</code>——波次之间共享的检查点，可断点恢复</td></tr>
+        <tr><td>实时看板</td><td><code class="inline-code">graph.html</code>——浅色风格仪表盘，每次检查点从 <code class="inline-code">.graph_state.json</code> 重新渲染</td></tr>
         <tr><td>动态重规划</td><td>一波结束后，若冒出新工作/新依赖则修订图</td></tr>
       </table>
 
@@ -2127,7 +2127,7 @@
         <li><strong>scope 冲突串行化</strong> — 无依赖但改同一逻辑的节点自动分到不同波次；共享的"接线文件"（router/main）例外，不因此串行全图</li>
         <li><strong>动态重规划</strong> — subagent 通过 <code class="inline-code">NEW_WORK:</code> 行上报新工作，栅栏处修订图并重新分层</li>
         <li><strong>失败阻塞下游</strong> — 某节点失败则其所有依赖节点标记 blocked 并跳过</li>
-        <li><strong>断点恢复</strong> — 每波写入 <code class="inline-code">.graph_state</code>，崩溃后按波边界恢复；同时重新渲染 <code class="inline-code">graph.html</code>（浏览器打开后每 5s 自动刷新，实时跟踪波次、节点状态与进度）</li>
+        <li><strong>断点恢复</strong> — 每波写入 <code class="inline-code">.graph_state.json</code>，崩溃后按波边界恢复；同时重新渲染 <code class="inline-code">graph.html</code>（浏览器打开后每 5s 自动刷新，实时跟踪波次、节点状态与进度）</li>
         <li><strong>并发上限</strong> — 默认 3–4 个并发 subagent，避免限流与合并冲突</li>
       </ul>
 
@@ -2148,7 +2148,7 @@ Wave 2 (并发×1):  #6 集成 (依赖 #4,#5)
                                         └→ <span class="cmd">/graph</span>    <span class="comment"># 并行：整波一起跑</span></code></pre>
 
       <div class="tip">
-        <strong>提示：</strong>把 <code class="inline-code">nodes.json</code>、<code class="inline-code">.graph_state</code> 和 <code class="inline-code">graph.html</code> 加入 <code class="inline-code">.gitignore</code>，并在<strong>第一波之前提交这条忽略规则</strong>——/graph 的泄漏检查要求共享检出干净，未提交的 <code class="inline-code">.gitignore</code> 改动会让编排器把自己当成泄漏。派发 subagent 必须在<strong>同一个响应</strong>内发出多个调用才是并发——分成多个响应会退化为串行。
+        <strong>提示：</strong>把 <code class="inline-code">nodes.json</code>、<code class="inline-code">.graph_state.json</code> 和 <code class="inline-code">graph.html</code> 加入 <code class="inline-code">.gitignore</code>，并在<strong>第一波之前提交这条忽略规则</strong>——/graph 的泄漏检查要求共享检出干净，未提交的 <code class="inline-code">.gitignore</code> 改动会让编排器把自己当成泄漏。派发 subagent 必须在<strong>同一个响应</strong>内发出多个调用才是并发——分成多个响应会退化为串行。
       </div>
     </div>
 

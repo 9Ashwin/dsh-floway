@@ -75,7 +75,7 @@ disable-model-invocation: true
 
 ## 前置条件
 
-流程假设三件事成立，否则门禁与泄漏检查都是空的：仓库有一个真实可跑的门禁命令（例如 `mise run check`）；工作树状态文件（`.graph_state`、`graph.html`、`.loop-state.json`、`nodes.json`）已进 `.gitignore`；`gh` 已登录（`/ship-it` 用它开 PR）。
+流程假设三件事成立，否则门禁与泄漏检查都是空的：仓库有一个真实可跑的门禁命令（例如 `mise run check`）；工作树状态文件（`.graph_state.json`、`graph.html`、`.loop-state.json`、`nodes.json`）已进 `.gitignore`；`gh` 已登录（`/ship-it` 用它开 PR）。
 
 ## 维护规则
 
