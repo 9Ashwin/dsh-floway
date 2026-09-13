@@ -41,4 +41,4 @@ Trigger with prompts like:
 
 - `SKILL.md` — Skill definition, scope and the evidence/report workflow
 - `references/` — The lookup material, loaded on demand: the anti-pattern catalog, the per-family smell tables, the complexity heuristics, the severity rubric, and the report template with a worked example
-- `test-prompts.json` — Test prompts for validation
+- `test-prompts.json` — Trigger phrases used to check that the skill is picked for the right requests

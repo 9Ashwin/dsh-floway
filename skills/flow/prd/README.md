@@ -36,8 +36,4 @@ Trigger with prompts like:
 ## Files
 
 - `SKILL.md` — Skill definition and instructions
-- `test-prompts.json` — Test prompts for validation
-
-## Attribution
-
-This skill is adapted from [ralph/skills/prd](https://github.com/snarktank/ralph/tree/main/skills/prd).
+- `evals/evals.json` — Test prompts with the expectations a run is graded against

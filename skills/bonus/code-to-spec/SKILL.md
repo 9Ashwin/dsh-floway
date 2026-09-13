@@ -56,57 +56,18 @@ If the project is large (>500 files), recommend starting with Overview or a spec
 
 Systematically analyze the following (adapt to what exists):
 
-### 2.1 Project Identity
-- `package.json`, `go.mod`, `Cargo.toml`, `pyproject.toml`, `pom.xml`, etc.
-- README, LICENSE
-- Git history (first commit date, recent activity, contributor count)
+**Read `references/scan-checklist.md` in full before scanning.** It carries the per-dimension checklists — what to read and how to judge each finding — plus the heuristics for identifying purpose, architecture, business rules, API contracts and data models. The list below is only the index of dimensions; do not scan from it alone.
 
-### 2.2 Architecture
-- Directory structure and organization pattern (monorepo, layered, hexagonal, etc.)
-- Entry points (main files, CLI commands, server bootstrap)
-- Module boundaries and dependency graph (internal)
-
-### 2.3 Tech Stack
-- Language(s) and version constraints
-- Frameworks and major libraries
-- Build tools and bundlers
-- Runtime requirements (Node version, Docker, etc.)
-
-### 2.4 Features & Behavior
-- Route definitions / CLI commands / exported functions
-- Business logic modules and their responsibilities
-- Background jobs, cron tasks, event handlers
-
-### 2.5 Data Model
-- Database schemas, migrations, ORMs
-- Key data structures and their relationships
-- State management approach
-
-### 2.6 API Surface
-- HTTP endpoints (method, path, request/response shapes)
-- GraphQL schema / gRPC protos / WebSocket events
-- CLI interface (commands, flags, arguments)
-- Exported library API (public functions, classes, types)
-
-### 2.7 Configuration & Environment
-- Environment variables and their purpose
-- Config files and their schema
-- Feature flags, toggles
-
-### 2.8 External Dependencies
-- Third-party services (databases, queues, APIs)
-- Infrastructure requirements (cloud services, storage)
-- Authentication/authorization providers
-
-### 2.9 Testing & Quality
-- Test framework and approach (unit, integration, e2e)
-- Coverage patterns (what's tested, what's not)
-- Linting, formatting, type checking setup
-
-### 2.10 Deployment & Operations
-- CI/CD configuration
-- Deployment targets and strategies
-- Monitoring, logging, health checks
+1. **Project Identity** — package manifests, README/LICENSE, git history
+2. **Architecture** — directory organization, entry points, module boundaries and internal dependency graph
+3. **Tech Stack** — languages and versions, frameworks, build tools, runtime requirements
+4. **Features & Behavior** — routes, CLI commands, exported functions, business logic modules, background jobs and event handlers
+5. **Data Model** — schemas, migrations, ORMs, key structures and relationships, state management
+6. **API Surface** — HTTP endpoints, GraphQL/gRPC/WebSocket, CLI interface, exported library API
+7. **Configuration & Environment** — environment variables, config file schemas, feature flags
+8. **External Dependencies** — third-party services, infrastructure, authentication/authorization providers
+9. **Testing & Quality** — test framework and approach, coverage patterns, lint/format/type-check setup
+10. **Deployment & Operations** — CI/CD, deployment targets and strategies, monitoring, logging, health checks
 
 ---
 
@@ -114,128 +75,20 @@ Systematically analyze the following (adapt to what exists):
 
 Generate the SPEC with these sections. Omit sections that don't apply.
 
-```markdown
-# SPEC: [Project Name]
+**Read `references/spec-template.md` in full before writing.** It is the exact document skeleton plus the per-section writing requirements, tables and examples; copy its structure instead of improvising one. The list below only names the sections.
 
-> Reverse-engineered specification — generated [date] from commit [short-hash]
-
-## 1. Overview
-
-### 1.1 Purpose
-[One paragraph: what problem this project solves and for whom]
-
-### 1.2 Key Capabilities
-- [Bullet list of what the system can do, from a user's perspective]
-
-### 1.3 Architecture Style
-[e.g., "Monolithic Express.js API with React SPA frontend", "CLI tool with plugin system", "Microservices communicating over gRPC"]
-
----
-
-## 2. Tech Stack
-
-| Layer | Technology | Version |
-|-------|-----------|---------|
-| Language | ... | ... |
-| Framework | ... | ... |
-| Database | ... | ... |
-| Build | ... | ... |
-| Test | ... | ... |
-| Deploy | ... | ... |
-
----
-
-## 3. Project Structure
-
-[Directory tree with annotations explaining each top-level directory's purpose]
-
----
-
-## 4. Data Model
-
-### 4.1 Core Entities
-[For each entity: name, fields, relationships, constraints]
-
-### 4.2 State Transitions
-[If applicable: lifecycle states and valid transitions]
-
----
-
-## 5. API Surface
-
-### 5.1 [Interface Type: REST / CLI / Library / etc.]
-
-[For each endpoint/command/function:]
-| Method | Path/Command | Description | Auth |
-|--------|-------------|-------------|------|
-| ... | ... | ... | ... |
-
-### 5.2 Request/Response Schemas
-[Key request/response shapes with field types]
-
----
-
-## 6. Configuration
-
-| Variable / Key | Required | Default | Description |
-|---------------|----------|---------|-------------|
-| ... | ... | ... | ... |
-
----
-
-## 7. External Dependencies
-
-| Service | Purpose | Failure Impact |
-|---------|---------|----------------|
-| ... | ... | ... |
-
----
-
-## 8. Business Rules & Constraints
-
-- [Numbered list of invariants, validation rules, and business logic constraints discovered in the code]
-
----
-
-## 9. Non-Functional Characteristics
-
-### 9.1 Performance
-[Observed patterns: caching, pagination, batch processing, etc.]
-
-### 9.2 Security
-[Auth mechanism, input validation patterns, secrets management]
-
-### 9.3 Error Handling
-[Error strategy: custom error types, error codes, retry policies]
-
----
-
-## 10. Testing Strategy
-
-| Type | Framework | Coverage Pattern |
-|------|-----------|-----------------|
-| Unit | ... | ... |
-| Integration | ... | ... |
-| E2E | ... | ... |
-
----
-
-## 11. Known Gaps & Assumptions
-
-- [Things that are unclear from the code alone]
-- [Assumptions made during analysis]
-- [Areas with no tests or documentation]
-
----
-
-## 12. Appendix
-
-### A. Dependency Graph
-[Key module dependencies, import relationships]
-
-### B. Environment Setup
-[Steps to run the project locally, derived from config and scripts]
-```
+1. **Overview** — purpose, key capabilities, architecture style
+2. **Tech Stack**
+3. **Project Structure**
+4. **Data Model** — core entities, state transitions
+5. **API Surface** — interfaces, request/response schemas
+6. **Configuration**
+7. **External Dependencies**
+8. **Business Rules & Constraints**
+9. **Non-Functional Characteristics** — performance, security, error handling
+10. **Testing Strategy**
+11. **Known Gaps & Assumptions**
+12. **Appendix** — dependency graph, environment setup
 
 ---
 
@@ -269,37 +122,6 @@ A. docs/SPEC.md (recommended)
 B. SPEC.md (project root)
 C. Custom path: [specify]
 ```
-
----
-
-## Analysis Heuristics
-
-### Identifying Purpose
-- Look at README first line, package description field, CLI help text
-- Check the main entry point — what does it bootstrap?
-- Look at test descriptions — they often describe expected behavior in plain language
-
-### Discovering Architecture
-- Map `import`/`require` statements to build dependency graph
-- Identify layers by directory naming: `controllers`, `services`, `models`, `routes`, `handlers`, `domain`, `infra`
-- Check for dependency injection patterns, middleware chains, plugin registrations
-
-### Extracting Business Rules
-- Look for validation functions, guard clauses, assertion statements
-- Check error messages — they often describe what went wrong in business terms
-- Examine test assertions — they encode expected behavior
-
-### Finding API Contracts
-- Route registrations (Express: `app.get()`, FastAPI: `@app.get()`, Go: `mux.HandleFunc()`)
-- OpenAPI/Swagger files if present
-- Request validation schemas (Joi, Zod, Pydantic, struct tags)
-- CLI flag/argument definitions (cobra, argparse, yargs)
-
-### Detecting Data Models
-- ORM model definitions (Prisma, SQLAlchemy, GORM, TypeORM)
-- Migration files (in chronological order)
-- Type/interface definitions for core domain objects
-- Database seed files
 
 ---
 
