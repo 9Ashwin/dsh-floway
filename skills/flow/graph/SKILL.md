@@ -104,6 +104,11 @@ already satisfied, a node has to move, or the graph grew: every id that survives
 are reported rather than silently dropped. Without the flag a re-plan resets everything to
 pending, which is why re-planning used to mean re-recording the shipped nodes by hand.
 
+`--max-parallel` is written into the checkpoint (`max_parallel`), so a later re-plan that omits
+the flag reuses it instead of silently re-layering the waves; a re-plan that changes it says so.
+The nodes file can carry `"max_parallel": 4` for the same reason — the cap shapes the layout, and
+a layout nobody can reproduce is a layout nobody can check.
+
 
 Keep the plan input out of git along with the checkpoint it produces:
 `grep -qxF 'nodes.json' .gitignore || printf 'nodes.json\n.graph_state\ngraph.html\n' >> .gitignore`,
@@ -127,7 +132,7 @@ BASE="$(git symbolic-ref -q --short refs/remotes/origin/HEAD 2>/dev/null | sed '
 BASE="${BASE:-$(git rev-parse --abbrev-ref HEAD)}"
 mkdir -p "$(dirname "$ROOT")/.graph-worktrees"
 WT="$(cd "$(dirname "$ROOT")/.graph-worktrees" && pwd)/node-{N}"
-git worktree add -b feat/node-{N}-{slug} "$WT" "$BASE"
+git worktree add -b feat/node-{N}-{slug} "$WT" "$BASE"   # `prompt` prints this exact line
 ```
 
 Then dispatch: **one child per node, all in a single assistant message** — that is what makes
@@ -140,11 +145,20 @@ python3 <SKILL_DIR>/scripts/graph_state.py prompt --node {N}
 ```
 
 That fills the worktree path, the branch, the title, the type, the scope, the hot files and the
-acceptance criteria straight out of `.graph_state`, and prints the `git worktree add` line the
-prompt's branch refers to — so the branch the child is told to use is the branch that actually
-exists. Two things are left for you, and it says so: the **dependency summaries** (no script can
-know what an earlier node actually produced) and anything the issue body adds. Read the rendered
-prompt before sending it: the generator removes the transcription errors, not the judgement.
+acceptance criteria straight out of `.graph_state`, and prints the `git worktree add` line for the
+branch it names. **The branch is the checkpoint's, not the script's:** if a `branch` is recorded
+for the node it is used verbatim, and only an unrecorded node gets a name derived from its title —
+in which case the header says the name was derived and that the branch does not exist yet. So
+record the real name as soon as it exists, especially if it diverges from the derived one:
+
+```bash
+python3 <SKILL_DIR>/scripts/graph_state.py set --node {N} --status in_progress --branch {real-branch}
+```
+
+Two things are still left for you, and the render says so: the **dependency summaries** (no script
+can know what an earlier node actually produced) and anything the issue body adds. Read the
+rendered prompt before sending it: the generator removes the transcription errors, not the
+judgement.
 
 A deployment may trim a node child's tools — a node needs no skill, because the node prompt
 already carries its whole contract, while the full-strength path is what a wave reviewer or a
@@ -250,6 +264,7 @@ as a fresh node, then drop.
 - `references/node-prompt.md` — the node prompt template, how to fill it, and how to read a node's report.
 - `references/lean-subagent.md` — DSH-only deployment patch that strips a node child's skill catalog (optional cost lever), with its caveats.
 - `scripts/graph_state.py` (`plan` / `set` / `prompt` / `show`) — validation, layering,
-  checkpoints, and the node prompt rendered from them.
+  checkpoints, and the node prompt rendered from them. `set --branch` records where a node
+  actually lives; `prompt` prefers that over a name derived from the title.
 - `scripts/test_graph_state.py` — the planner's unit tests; run them after any edit to it.
 - `scripts/render_graph_html.py` — the live `graph.html` dashboard.

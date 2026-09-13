@@ -134,7 +134,7 @@ def test_closing_a_wave_announces_fan_in_for_that_wave():
         with open(state_path, "w", encoding="utf-8") as handle:
             json.dump(state, handle)
         args = type("A", (), {"state": state_path, "node": "2", "status": "shipped",
-                              "commit": "abc1234", "error": None})()
+                              "commit": "abc1234", "branch": None, "error": None})()
         out = io.StringIO()
         with contextlib.redirect_stdout(out):
             gs.cmd_set(args)
@@ -160,7 +160,7 @@ def test_single_node_wave_skips_wave_branch():
         with open(state_path, "w", encoding="utf-8") as handle:
             json.dump(state, handle)
         args = type("A", (), {"state": state_path, "node": "1", "status": "shipped",
-                              "commit": "abc1234", "error": None})()
+                              "commit": "abc1234", "branch": None, "error": None})()
         out = io.StringIO()
         with contextlib.redirect_stdout(out):
             gs.cmd_set(args)
@@ -204,16 +204,16 @@ def test_keep_shipped_carries_outcome():
                                               {"id": 2, "title": "b", "scope": "y"}]}, handle)
         with contextlib.redirect_stdout(io.StringIO()):
             gs.cmd_plan(gs.argparse.Namespace(nodes=nodes_path, state=state_path,
-                                              max_parallel=0, keep_shipped=False))
+                                              max_parallel=None, keep_shipped=False))
             gs.cmd_set(gs.argparse.Namespace(state=state_path, node="1", status="shipped",
-                                             commit="abc1234", error=None))
+                                             commit="abc1234", branch=None, error=None))
         with open(nodes_path, "w", encoding="utf-8") as handle:
             json.dump({"task": "t", "nodes": [{"id": 1, "title": "a", "scope": "x"},
                                               {"id": 2, "title": "b", "scope": "y"},
                                               {"id": 3, "title": "c", "scope": "z"}]}, handle)
         with contextlib.redirect_stdout(io.StringIO()):
             gs.cmd_plan(gs.argparse.Namespace(nodes=nodes_path, state=state_path,
-                                              max_parallel=0, keep_shipped=True))
+                                              max_parallel=None, keep_shipped=True))
         carried = json.load(open(state_path, encoding="utf-8"))
         check("shipped survives a re-plan", carried["nodes"]["1"]["status"] == "shipped",
               str(carried["nodes"]["1"]))
@@ -223,7 +223,7 @@ def test_keep_shipped_carries_outcome():
         # Negative control: without the flag a re-plan resets the shipped node.
         with contextlib.redirect_stdout(io.StringIO()):
             gs.cmd_plan(gs.argparse.Namespace(nodes=nodes_path, state=state_path,
-                                              max_parallel=0, keep_shipped=False))
+                                              max_parallel=None, keep_shipped=False))
         reset = json.load(open(state_path, encoding="utf-8"))
         check("without --keep-shipped the outcome is reset",
               reset["nodes"]["1"]["status"] == "pending", str(reset["nodes"]["1"]))
@@ -247,7 +247,7 @@ def test_prompt_renders_from_the_checkpoint():
         out = buffer.getvalue()
         check("worktree path is named for the node",
               os.path.join(worktrees, "node-7") in out, out[:400])
-        check("the printed branch is the branch the prompt names",
+        check("with nothing recorded, the header and prompt agree on the derived name",
               "feat/node-7-wire-the-router" in out)
         check("criteria render as a checklist",
               "- [ ] the route resolves" in out and "- [ ] lint passes" in out)
@@ -279,6 +279,141 @@ def test_hot_file_colliding_with_a_scope_is_reported():
           not any("merges cleanly" in n for n in quiet), str(quiet))
 
 
+def test_recorded_branch_beats_the_synthesized_name():
+    """Regression: `prompt` must not invent a branch a node is not actually on."""
+    with tempfile.TemporaryDirectory() as tmp:
+        state_path = os.path.join(tmp, ".graph_state")
+        worktrees = os.path.join(tmp, "wt")
+        state = {"version": 1, "task": "t", "repo": "", "waves": [[7]], "current_wave": 0,
+                 "nodes": {"7": {"title": "webui", "deps": [], "scope": ["src/app.ts"],
+                                 "branch": "feat/node-7-webui-auth-e2e", "status": "pending"}}}
+        with open(state_path, "w", encoding="utf-8") as handle:
+            json.dump(state, handle)
+        out = io.StringIO()
+        with contextlib.redirect_stdout(out):
+            gs.cmd_prompt(gs.argparse.Namespace(state=state_path, node="7",
+                                                worktrees=worktrees, template=None))
+        text = out.getvalue()
+        check("the recorded branch is used", "feat/node-7-webui-auth-e2e" in text, text[:400])
+        check("the worktree command names the recorded branch",
+              "git worktree add -b feat/node-7-webui-auth-e2e" in text, text[:400])
+        check("a nonexistent worktree is not called ready",
+              "already created and checked out" not in text, text[:400])
+        check("the prompt says the branch does not exist yet", "NOT created yet" in text)
+
+        # Negative control: with no recorded branch, the synthesized name is used
+        # and the header admits it was derived rather than presenting it as fact.
+        state["nodes"]["7"].pop("branch")
+        with open(state_path, "w", encoding="utf-8") as handle:
+            json.dump(state, handle)
+        out = io.StringIO()
+        with contextlib.redirect_stdout(out):
+            gs.cmd_prompt(gs.argparse.Namespace(state=state_path, node="7",
+                                                worktrees=worktrees, template=None))
+        text = out.getvalue()
+        check("with nothing recorded the name is derived from the title",
+              "feat/node-7-webui" in text, text[:400])
+        check("the derivation is disclosed", "derived from the title" in text, text[:600])
+        check("and offered to the checkpoint", "--branch feat/node-7-webui" in text, text[:600])
+
+        # An existing worktree must not be told to run `git worktree add`.
+        os.makedirs(os.path.join(worktrees, "node-7"))
+        out = io.StringIO()
+        with contextlib.redirect_stdout(out):
+            gs.cmd_prompt(gs.argparse.Namespace(state=state_path, node="7",
+                                                worktrees=worktrees, template=None))
+        text = out.getvalue()
+        check("an existing worktree is not re-created", "git worktree add" not in text, text[:400])
+        check("the prompt says the branch is already checked out",
+              "already created and checked out" in text)
+
+
+def test_set_records_the_branch_for_later_prompts():
+    with tempfile.TemporaryDirectory() as tmp:
+        nodes_path = os.path.join(tmp, "nodes.json")
+        state_path = os.path.join(tmp, ".graph_state")
+        with open(nodes_path, "w", encoding="utf-8") as handle:
+            json.dump({"task": "t", "nodes": [{"id": 1, "title": "a", "scope": "x"}]}, handle)
+        with contextlib.redirect_stdout(io.StringIO()):
+            gs.cmd_plan(gs.argparse.Namespace(nodes=nodes_path, state=state_path,
+                                              max_parallel=None, keep_shipped=False))
+            gs.cmd_set(gs.argparse.Namespace(state=state_path, node="1", status="in_progress",
+                                             commit=None, branch="feat/a-renamed", error=None))
+        check("the branch lands in the checkpoint",
+              json.load(open(state_path, encoding="utf-8"))["nodes"]["1"]["branch"] == "feat/a-renamed")
+
+        out = io.StringIO()
+        with contextlib.redirect_stdout(out):
+            gs.cmd_prompt(gs.argparse.Namespace(state=state_path, node="1",
+                                                worktrees=os.path.join(tmp, "wt"), template=None))
+        text = out.getvalue()
+        check("the prompt picks it up", "feat/a-renamed" in text, text[:400])
+        check("nothing is left to guess", "derived from the title" not in text, text[:600])
+
+
+def test_max_parallel_persists_and_is_reused_on_replan():
+    """Regression: re-planning without the flag silently re-layered the waves."""
+    with tempfile.TemporaryDirectory() as tmp:
+        nodes_path = os.path.join(tmp, "nodes.json")
+        state_path = os.path.join(tmp, ".graph_state")
+        spec = {"task": "t", "nodes": [{"id": n, "title": f"n{n}", "scope": f"src/{n}.ts"}
+                                       for n in range(1, 7)]}
+        with open(nodes_path, "w", encoding="utf-8") as handle:
+            json.dump(spec, handle)
+
+        with contextlib.redirect_stdout(io.StringIO()):
+            gs.cmd_plan(gs.argparse.Namespace(nodes=nodes_path, state=state_path,
+                                              max_parallel=4, keep_shipped=False))
+        first = json.load(open(state_path, encoding="utf-8"))
+        check("the cap is written to the checkpoint", first.get("max_parallel") == 4, str(first))
+        check("and it shaped the layout", first["waves"] == [[1, 2, 3, 4], [5, 6]], str(first["waves"]))
+
+        # The defect: drop the flag on the re-plan and the layout must not change.
+        out = io.StringIO()
+        with contextlib.redirect_stdout(out):
+            gs.cmd_plan(gs.argparse.Namespace(nodes=nodes_path, state=state_path,
+                                              max_parallel=None, keep_shipped=True))
+        again = json.load(open(state_path, encoding="utf-8"))
+        check("re-planning without the flag keeps the cap", again.get("max_parallel") == 4, str(again))
+        check("and keeps the same waves", again["waves"] == [[1, 2, 3, 4], [5, 6]], str(again["waves"]))
+        note = out.getvalue()
+        check("the inheritance is announced, not silent", "reusing the 4 recorded" in note, note[:600])
+        check("the render shows the cap", "cap 4" in gs.render(again), gs.render(again))
+
+        # A deliberate change must be applied and reported as a change.
+        out = io.StringIO()
+        with contextlib.redirect_stdout(out):
+            gs.cmd_plan(gs.argparse.Namespace(nodes=nodes_path, state=state_path,
+                                              max_parallel=6, keep_shipped=True))
+        raised = json.load(open(state_path, encoding="utf-8"))
+        check("a new cap is applied", raised["waves"] == [[1, 2, 3, 4, 5, 6]], str(raised["waves"]))
+        check("the mismatch is reported", "differs from the 4 recorded" in out.getvalue(),
+              out.getvalue()[:600])
+
+        # Negative control: an explicit 0 means "no cap" and must not inherit.
+        out = io.StringIO()
+        with contextlib.redirect_stdout(out):
+            gs.cmd_plan(gs.argparse.Namespace(nodes=nodes_path, state=state_path,
+                                              max_parallel=0, keep_shipped=True))
+        free = json.load(open(state_path, encoding="utf-8"))
+        check("an explicit 0 clears the cap", free.get("max_parallel") == 0, str(free))
+        check("and collapses back to one wave",
+              free["waves"] == [[1, 2, 3, 4, 5, 6]], str(free["waves"]))
+        check("an explicit 0 is not described as unset",
+              "reusing the" not in out.getvalue(), out.getvalue()[:600])
+
+        # The nodes file can carry the cap too, for a plan that outlives one shell.
+        spec["max_parallel"] = 2
+        with open(nodes_path, "w", encoding="utf-8") as handle:
+            json.dump(spec, handle)
+        with contextlib.redirect_stdout(io.StringIO()):
+            gs.cmd_plan(gs.argparse.Namespace(nodes=nodes_path, state=state_path,
+                                              max_parallel=None, keep_shipped=True))
+        from_spec = json.load(open(state_path, encoding="utf-8"))
+        check("the nodes file can set the cap",
+              from_spec["waves"] == [[1, 2], [3, 4], [5, 6]], str(from_spec["waves"]))
+
+
 def main() -> int:
     print("graph_state.py tests")
     for test in (test_dependencies_hold_across_waves, test_scope_collision_defers_without_breaking_order,
@@ -288,9 +423,12 @@ def main() -> int:
                  test_closing_a_wave_announces_fan_in_for_that_wave,
                  test_single_node_wave_skips_wave_branch,
                  test_hot_file_overlap_warns_without_serializing,
+                 test_hot_file_colliding_with_a_scope_is_reported,
                  test_keep_shipped_carries_outcome,
                  test_prompt_renders_from_the_checkpoint,
-                 test_hot_file_colliding_with_a_scope_is_reported):
+                 test_recorded_branch_beats_the_synthesized_name,
+                 test_set_records_the_branch_for_later_prompts,
+                 test_max_parallel_persists_and_is_reused_on_replan):
         print(f"- {test.__name__}")
         test()
     if failures:

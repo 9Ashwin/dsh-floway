@@ -13,10 +13,13 @@ Subcommands:
       and print the plan (human summary + Mermaid + the wave-0 dispatch list).
       With --keep-shipped, an existing checkpoint's per-node outcome is carried
       over for every id that survives, so a re-plan does not reset what shipped.
+      The cap is persisted: omitting --max-parallel on a later plan reuses the
+      recorded one instead of silently re-layering the waves.
 
-  set --state .graph_state --node N --status <s> [--commit SHA] [--error TEXT]
-      Record one node's outcome. Pass --status pending to clear a retry. Prints
-      what the orchestrator should do next.
+  set --state .graph_state --node N --status <s> [--commit SHA] [--branch NAME] [--error TEXT]
+      Record one node's outcome, and optionally the branch it actually lives on.
+      Pass --status pending to clear a retry. Prints what the orchestrator should
+      do next.
 
   show --state .graph_state [--json]
       Print the current plan and per-node status.
@@ -24,19 +27,23 @@ Subcommands:
   prompt --node N [--state .graph_state] [--worktrees DIR]
       Render the node prompt for one node from references/node-prompt.md, with
       the worktree path, branch, title, type, scope and acceptance criteria
-      filled in from the checkpoint. Prints the git worktree command first so
-      the branch it names is the branch that gets created. The dependency
-      summaries are left as a marked gap — only the orchestrator knows them.
+      filled in from the checkpoint. A `branch` recorded by `plan` or `set` is
+      used verbatim; only an unrecorded node gets a name derived from its title,
+      and then the header says so. The worktree command printed first matches
+      what the prompt claims about the branch — including whether it exists.
+      The dependency summaries are left as a marked gap — only the orchestrator
+      knows them.
 
 Nodes file format:
 
   {
     "task": "Add user auth",
     "repo": "owner/repo",
+    "max_parallel": 4,
     "nodes": [
       {"id": 1, "title": "db schema", "deps": [], "scope": "internal/db"},
       {"id": 2, "title": "API handler", "deps": [1], "scope": "internal/api",
-       "hot_files": "internal/api/router.go"}
+       "hot_files": "internal/api/router.go", "branch": "feat/issue-42-api"}
     ]
   }
 
@@ -52,6 +59,12 @@ nodes in one wave declare the same hot file, because that is the shape that
 conflicts: "append-only edits merge cleanly" only holds while each node edits
 its own region. Two nodes appending to one import block, or writing one route
 table, are not append-only and will conflict at integration.
+
+`branch` (optional, per node) is the branch the node actually lives on. When it
+is absent the checkpoint records none and `prompt` derives a name from the
+title, disclosing that it did; a node whose real branch differs from the derived
+name should have it recorded, or `prompt` will hand the child a name that does
+not exist.
 
 Statuses: pending | in_progress | shipped | failed | blocked | skipped
 (`shipped` and `skipped` are complete; `failed` and `blocked` stall their
@@ -232,8 +245,9 @@ def render(state: dict) -> str:
     index_of = wave_of(state)
     done = sum(1 for node in state["nodes"].values() if node["status"] in {"shipped", "skipped"})
     total = len(state["nodes"])
+    cap = int(state.get("max_parallel") or 0)
     lines = [f"graph: {state.get('task', '(untitled)')} — {total} nodes, "
-             f"{len(state['waves'])} waves, {done} shipped"]
+             f"{len(state['waves'])} waves, {done} shipped" + (f", cap {cap}" if cap else "")]
     for index, wave in enumerate(state["waves"]):
         parts = []
         for nid in wave:
@@ -275,7 +289,7 @@ def dispatch_list(state: dict, index: int) -> list[str]:
     return out
 
 
-def carry_over(state: dict, path: str) -> list[str]:
+def carry_over(state: dict, previous: dict | None, path: str) -> list[str]:
     """Carry a previous checkpoint's per-node outcomes onto a freshly layered plan.
 
     Re-planning mid-run is normal: a node turns out to be already satisfied,
@@ -284,9 +298,8 @@ def carry_over(state: dict, path: str) -> list[str]:
     is where drift starts. Ids that survive keep their outcome; ids that are new
     start pending; ids that disappeared are reported rather than silently kept.
     """
-    if not os.path.exists(path):
+    if previous is None:
         return ["--keep-shipped: no existing checkpoint to carry over from"]
-    previous = load_json(path, "state file")
     old_nodes = previous.get("nodes") or {}
     notes: list[str] = []
     carried = 0
@@ -315,13 +328,29 @@ def cmd_plan(args: argparse.Namespace) -> int:
 
     by_id, warnings = validate(nodes)
     waves, notes = layer(by_id)
-    if args.max_parallel and args.max_parallel > 0:
+
+    # The concurrency cap shapes the layout, so it belongs in the checkpoint:
+    # re-planning without it would silently re-layer the waves and nobody would
+    # see the change, because every node's status is preserved either way.
+    previous = load_json(args.state, "state file") if os.path.exists(args.state) else None
+    recorded = int((previous or {}).get("max_parallel") or 0)
+    if args.max_parallel is not None:
+        limit = args.max_parallel
+        if recorded and limit != recorded:
+            notes.append(f"--max-parallel {limit} differs from the {recorded} recorded in "
+                         f"{args.state} — the wave layout will change")
+    else:
+        limit = int(spec.get("max_parallel") or 0)
+        if not limit and recorded:
+            limit = recorded
+            notes.append(f"--max-parallel not given: reusing the {recorded} recorded in {args.state}")
+    if limit > 0:
         limited: list[list[int]] = []
         for wave in waves:
-            for start in range(0, len(wave), args.max_parallel):
-                limited.append(wave[start:start + args.max_parallel])
+            for start in range(0, len(wave), limit):
+                limited.append(wave[start:start + limit])
         if len(limited) != len(waves):
-            notes.append(f"waves split to respect --max-parallel {args.max_parallel}")
+            notes.append(f"waves split to respect --max-parallel {limit}")
         waves = limited
 
     state = {
@@ -329,6 +358,7 @@ def cmd_plan(args: argparse.Namespace) -> int:
         "updated_at": now(),
         "task": spec.get("task", "(untitled)"),
         "repo": spec.get("repo", ""),
+        "max_parallel": limit,
         "waves": waves,
         "current_wave": 0,
         "nodes": {
@@ -339,6 +369,10 @@ def cmd_plan(args: argparse.Namespace) -> int:
                 "scope": sorted(scope_set(node)),
                 "hot_files": sorted(hot_set(node)),
                 "criteria": node.get("criteria") or [],
+                # A branch is recorded only when it is known. Synthesizing one at
+                # plan time would put a name in the checkpoint that nothing has
+                # created yet, and `prompt` would then present it as fact.
+                **({"branch": str(node["branch"])} if node.get("branch") else {}),
                 "status": "pending",
             }
             for nid, node in sorted(by_id.items())
@@ -346,8 +380,7 @@ def cmd_plan(args: argparse.Namespace) -> int:
     }
 
     if args.keep_shipped:
-        carried = carry_over(state, args.state)
-        notes.extend(carried)
+        notes.extend(carry_over(state, previous, args.state))
 
     state["current_wave"] = current_wave(state)
     save_state(state, args.state)
@@ -382,6 +415,8 @@ def cmd_set(args: argparse.Namespace) -> int:
     node = state["nodes"][key]
     previous = node["status"]
     node["status"] = args.status
+    if args.branch:
+        node["branch"] = args.branch
     if args.commit:
         node["commit"] = args.commit
     if args.error:
@@ -475,7 +510,14 @@ def cmd_prompt(args: argparse.Namespace) -> int:
 
     worktree = os.path.join(worktree_root(args.worktrees), f"node-{key}")
     slug = node_slug(node.get("title", ""), key)
-    branch = f"feat/node-{key}-{slug}"
+    # The checkpoint is the only place a real branch name can come from: a child
+    # that renamed it (or a node whose branch was created before the plan was
+    # written) must not be contradicted by a name this script invented from the
+    # title. Synthesis is a fallback for a branch nobody has created yet, and the
+    # header says so instead of presenting it as fact.
+    recorded = node.get("branch")
+    branch = str(recorded) if recorded else f"feat/node-{key}-{slug}"
+    exists = os.path.isdir(worktree)
 
     prompt = load_template(args.template)
     criteria = node.get("criteria") or []
@@ -492,6 +534,9 @@ def cmd_prompt(args: argparse.Namespace) -> int:
         ("{WT}", worktree),
         ("{N}", key),
         ("{slug}", slug),
+        ("{branch}", branch),
+        ("{branch_state}", "already created and checked out" if exists else
+         "NOT created yet — create it with the command above before you start"),
         ("{title}", str(node.get("title", ""))),
         ("{type}", str(node.get("type", "task"))),
         ("{scope_hint}", ", ".join(node.get("scope") or []) or "(unscoped)"),
@@ -506,8 +551,16 @@ def cmd_prompt(args: argparse.Namespace) -> int:
         print(f"# hot files: {', '.join(hot)} — shared; expect a conflict with any other node "
               f"in this wave that declares them unless each edits its own region")
     print("#")
-    print("# create the worktree first — this is the branch the prompt below names:")
-    print(f'git worktree add -b {branch} "{worktree}" "$BASE"')
+    if exists:
+        print(f"# the worktree already exists; the prompt below names the branch it should hold:")
+        print(f'# confirm with: git -C "{worktree}" rev-parse --abbrev-ref HEAD')
+    else:
+        print("# create the worktree first — the prompt below names this branch:")
+        print(f'git worktree add -b {branch} "{worktree}" "$BASE"')
+    if not recorded:
+        print("# (that branch name was derived from the title and does not exist yet —")
+        print(f"#  once it does, record it so later prompts stop guessing: "
+              f"graph_state.py set --node {key} --status <same> --branch {branch})")
     print()
     print(prompt)
 
@@ -534,7 +587,8 @@ def main() -> int:
     plan = sub.add_parser("plan", help="validate, layer into waves, write the checkpoint")
     plan.add_argument("--nodes", required=True, help="path to the nodes JSON file")
     plan.add_argument("--state", default=".graph_state", help="checkpoint path (default .graph_state)")
-    plan.add_argument("--max-parallel", type=int, default=0, help="split waves wider than this")
+    plan.add_argument("--max-parallel", type=int, default=None,
+                      help="split waves wider than this (reused from the checkpoint when omitted)")
     plan.add_argument("--keep-shipped", action="store_true",
                       help="carry an existing checkpoint's per-node outcome onto the new layout")
     plan.set_defaults(func=cmd_plan)
@@ -544,6 +598,7 @@ def main() -> int:
     setter.add_argument("--node", required=True)
     setter.add_argument("--status", required=True, choices=STATUSES)
     setter.add_argument("--commit")
+    setter.add_argument("--branch", help="record the branch this node actually lives on")
     setter.add_argument("--error")
     setter.set_defaults(func=cmd_set)
 

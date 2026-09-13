@@ -12,7 +12,7 @@ so they must not appear here.
 You are implementing ONE node of a task graph, working in an ISOLATED git worktree.
 
 Worktree (ABSOLUTE path — use it verbatim): {WT}
-Branch:    feat/node-{N}-{slug}   (already created and checked out)
+Branch:    {branch}   ({branch_state})
 Node #{N}: {title}
 Type:      {type}
 Scope:     {scope_hint}  — stay within these files; do not touch other nodes' scope
@@ -89,7 +89,12 @@ to read the whole report by hand, which is the cost this block exists to remove.
 
 ## Filling the placeholders
 
-- `{WT}` — the absolute worktree path the orchestrator just created. Never a relative path.
+- `{WT}` — the absolute worktree path. Never a relative path.
+- `{branch}` / `{branch_state}` — the branch this node lives on. The checkpoint's recorded
+  `branch` wins; only when nothing is recorded does the renderer derive a name from the title,
+  and then the header says so and `{branch_state}` says the branch does not exist yet. Run the
+  `git worktree add` line the header prints before dispatching — the child cannot create its own
+  worktree without stepping outside its scope.
 - `{scope_hint}` — the node's `scope` from the plan, as a human-readable list. It is a promise
   about which files merge cleanly; a node that needs to leave it should say so in its report
   instead of silently editing elsewhere.
