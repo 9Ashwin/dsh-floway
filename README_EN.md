@@ -87,8 +87,8 @@ Three phases with scopes that do not overlap:
 | Scope | Does | Doesn't |
 | --- | --- | --- |
 | **Node** | Implements in its own worktree, proves itself with the project's gates, and **only commits to its own branch** | No push, no PR, no merge, no self-review |
-| **Wave** | Leak check → merge only the nodes that finished → run gates on the integrated tree → **review once** (one section per node, focused on the seams between nodes) → **ship once** (one PR with a per-item evidence table) | No node-level PRs |
-| **Batch** | The serial path in `/loop-it` works the same way: implement and commit one Issue at a time inline, then review and ship once at the end of the batch | — |
+| **Wave** | Leak check → merge only the nodes that finished → run gates on the integrated tree → **review once** (one section per node, focused on the seams between nodes) → **write the walkthrough once** (what changed, what was run, what it proved — it produces the PR body and the merge checklist) → **ship once** (one PR with a per-item evidence table) | No node-level PRs; no per-node walkthrough |
+| **Batch** | The serial path in `/loop-it` works the same way: implement and commit one Issue at a time inline, then review, walk through and ship once at the end of the batch | — |
 
 A few deliberate design choices:
 
