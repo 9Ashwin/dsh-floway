@@ -2148,7 +2148,7 @@ Wave 2 (并发×1):  #6 集成 (依赖 #4,#5)
                                         └→ <span class="cmd">/graph</span>    <span class="comment"># 并行：整波一起跑</span></code></pre>
 
       <div class="tip">
-        <strong>提示：</strong>把 <code class="inline-code">nodes.json</code>、<code class="inline-code">.graph_state.json</code> 和 <code class="inline-code">graph.html</code> 加入 <code class="inline-code">.gitignore</code>，并在<strong>第一波之前提交这条忽略规则</strong>——/graph 的泄漏检查要求共享检出干净，未提交的 <code class="inline-code">.gitignore</code> 改动会让编排器把自己当成泄漏。派发 subagent 必须在<strong>同一个响应</strong>内发出多个调用才是并发——分成多个响应会退化为串行。
+        <strong>提示：</strong>把 <code class="inline-code">nodes.json</code>、<code class="inline-code">.graph_state*</code> 和 <code class="inline-code">graph.html</code> 加入 <code class="inline-code">.gitignore</code>（检查点用<strong>通配</strong>而不是列名字：默认名、改名前的 <code class="inline-code">.graph_state</code>、按次起的 <code class="inline-code">--state .graph_state-prd015</code>、以及写盘时的瞬时 <code class="inline-code">.tmp</code> 全都覆盖；nodes/graph 若用了非默认名，照原样补上），并在<strong>第一波之前提交这条忽略规则</strong>——/graph 的泄漏检查要求共享检出干净，未提交的 <code class="inline-code">.gitignore</code> 改动会让编排器把自己当成泄漏。派发 subagent 必须在<strong>同一个响应</strong>内发出多个调用才是并发——分成多个响应会退化为串行。
       </div>
     </div>
 

@@ -111,16 +111,19 @@ a layout nobody can reproduce is a layout nobody can check.
 
 
 Keep the plan input out of git along with the checkpoint it produces:
-`grep -qxF 'nodes.json' .gitignore || printf 'nodes.json\n.graph_state.json\n.graph_state\ngraph.html\n' >> .gitignore`,
+`grep -qxF '.graph_state*' .gitignore || printf 'nodes.json\n.graph_state*\ngraph.html\n' >> .gitignore`,
 then **commit that ignore rule before the first wave**. Step 4's leak check wants a clean shared
 checkout, and an uncommitted `.gitignore` edit would make the orchestrator flag itself as the leak.
 (If you would rather not commit an ignore rule, put the same lines in the untracked
-`.git/info/exclude` instead.) The nodes file is per-run working state, like `.graph_state.json`.
+`.git/info/exclude` instead.)
 
-The checkpoint used to be called `.graph_state` (no extension). That name is still **read** — a
-graph that is already running keeps its progress through the rename, and the script says so — but
-every write now goes to `.graph_state.json`, so the next `set`/`plan` migrates it. Both names are
-in the ignore rule above; once a run has migrated, the old file can be deleted.
+`.graph_state*` is a pattern on purpose, not a list of today's names. It covers the checkpoint under
+every name a run can give it — the default `.graph_state.json`, the pre-rename `.graph_state` (still
+**read**, so an in-flight graph keeps its progress and migrates on its next write), a per-run name
+like `--state .graph_state-prd015`, and the transient `<path>.tmp` the script writes before
+`os.replace`. The other two names are yours to choose: if this run passes `--state`/an output name
+that is not the default, add those exact names too (`nodes-prd015.json`, `graph-prd015.html`) —
+`git status --porcelain` after the first write is the check that nothing slipped through.
 
 Show the user the plan and let them adjust nodes, edges or the concurrency cap **before** any
 child starts. Then hand `graph.html` to the user so they can watch it live.

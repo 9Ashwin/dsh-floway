@@ -96,7 +96,7 @@ the default branch (`$BASE`), and that branch is what gets reviewed and shipped.
 
 ## State file and tracker
 
-`.graph_state.json` lives at the repo root and must be in `.gitignore` (the pre-rename name `.graph_state` is still read, so keep it ignored too until a run has migrated). Commit that ignore rule before
+The checkpoint lives at the repo root and must be ignored as `.graph_state*` — a pattern, so the default `.graph_state.json`, the pre-rename `.graph_state` (still read), a per-run `--state .graph_state-prd015`, and the transient `.tmp` are all covered. Commit that ignore rule before
 the first wave: it is a tracked file, so an uncommitted edit would make the Step 4 leak check flag
 the orchestrator itself. The planner script owns it — never hand-write it. Its schema:
 
