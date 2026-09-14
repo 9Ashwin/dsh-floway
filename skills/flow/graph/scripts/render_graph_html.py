@@ -10,10 +10,11 @@ work because the skill's docs use positional arguments while people reach for
 flags; before this, `--state x` was taken as a *path* and the run died on
 FileNotFoundError: '--state', which says nothing about the real mistake.
 
-Called by the /graph skill at every checkpoint (initial plan + each fan-in barrier).
-The state is inlined, so the page is a snapshot of the moment it was rendered —
-re-run this after each wave rather than expecting an open tab to follow along.
-No third-party dependencies — stdlib only.
+Called by the /graph skill at every checkpoint: `plan` and `set` run it after each
+write, so the page tracks the checkpoints without anyone remembering to re-render.
+The state is inlined, so the page is a snapshot of the last write — an open tab
+reloads itself every 5s and therefore follows the checkpoints, but nothing between
+two writes shows up. No third-party dependencies — stdlib only.
 """
 import argparse
 import html
@@ -144,8 +145,9 @@ def render(state, source: str = STATE_DEFAULT):
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<!-- Reloads every 5s. The state below is inlined at render time, so this only picks up
-     changes AFTER render_graph_html.py has been re-run; it is not a live feed. -->
+<!-- Reloads every 5s. The state below is inlined at render time, so a reload only shows
+     checkpoints: `plan` and `set` re-render this file on every write, and nothing between two
+     writes appears here. -->
 <meta http-equiv="refresh" content="5">
 <title>graph · {esc(state.get('task','execution'))}</title>
 <script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
@@ -195,9 +197,10 @@ def render(state, source: str = STATE_DEFAULT):
     </header>
     <div class="diagram"><pre class="mermaid">{esc(mermaid(state))}</pre></div>
     {wave_html}
-    <footer><strong>Snapshot</strong> rendered {rendered_at} by /graph from <code>{esc(source)}</code>.
-      The page reloads every 5s, but the state is baked in at render time — reloading alone never
-      shows new progress. Re-run <code>render_graph_html.py</code> after every checkpoint to update it.</footer>
+    <footer><strong>Snapshot</strong> of the last checkpoint, rendered {rendered_at} by /graph from
+      <code>{esc(source)}</code>. Every <code>plan</code> and <code>set</code> re-renders this file, so an
+      open tab — it reloads every 5s — follows the checkpoints; work between two writes does not
+      appear until the next one.</footer>
   </div>
   <script>mermaid.initialize({{ startOnLoad:true, theme:"neutral" }});</script>
 </body>

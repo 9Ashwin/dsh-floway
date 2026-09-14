@@ -157,14 +157,14 @@ child starts. Then render and hand over `graph.html`:
 python3 <SKILL_DIR>/scripts/render_graph_html.py .graph_state.json graph.html
 ```
 
-Be precise about what that file is: **it is a snapshot**. The state is inlined at render time and
-the page does not reload itself, so an open tab keeps showing the moment it was rendered until
-someone refreshes it. `plan` and `set` now refresh `graph.html` beside the checkpoint on every
-write, so there is no manual step to forget — that obligation used to be attached to closing a
-wave, and the board sat eight hours stale as soon as the work stopped being waves (adding nodes,
-filing issues, deploying). Run the command above only when you want the board somewhere else, or
-to confirm a refresh that reported a failure. A board that silently shows older work is worse than
-no board, because the user believes it.
+Be precise about what that file is: **it is a snapshot of the last checkpoint**. The state is
+inlined at render time, and `plan`/`set` re-render `graph.html` beside the checkpoint on every
+write — that is why there is no manual step to forget (the obligation used to be attached to
+closing a wave, and the board sat eight hours stale as soon as the work stopped being waves:
+adding nodes, filing issues, deploying). The page reloads itself every 5s, so an open tab follows
+those writes; what it cannot show is work between two writes. Run the command above only when you
+want the board somewhere else, or to confirm a refresh that reported a failure. A board that
+silently shows older work is worse than no board, because the user believes it.
 
 ## Step 3: Run a wave
 

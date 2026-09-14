@@ -115,8 +115,14 @@ def test_snapshot_is_stated_and_stamped():
     check("the footer calls itself a snapshot", "Snapshot" in footer, footer[:120])
     check("it carries a render timestamp", re.search(r"rendered \d{4}-\d\d-\d\d \d\d:\d\d:\d\d", footer) is not None,
           footer[:200])
-    check("the reload comment says re-rendering is what updates it",
-          "not a live feed" in html, html[:200])
+    check("the page states that a 5s reload follows the checkpoints",
+          "reloads every 5s" in footer and "re-renders this file" in footer, footer[:260])
+    # Negative control for the sentence this replaced: the board used to tell the
+    # reader that reloading "never shows new progress", which stopped being true
+    # once plan/set began re-rendering it on every write.
+    check("it no longer claims reloading cannot show progress",
+          "never\n      shows new progress" not in footer and "never shows new progress" not in footer,
+          footer[:260])
 
 
 def test_both_argument_spellings_work():
