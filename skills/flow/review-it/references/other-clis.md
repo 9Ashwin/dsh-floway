@@ -20,36 +20,45 @@ environment — DSH from `DSH_SESSION_ID` / `DSH_HOME`, Codex from `CODEX_HOME`,
 `ANTIGRAVITY_CLI` / `GEMINI_CLI`, Claude Code from `CLAUDE_CODE` / `CLAUDE_CLI` — and falls back
 to `dsh`.
 
+## Preparing the target
+
+Every CLI below reviews the same two things, so the target is prepared the same way and only the
+invocation differs. Dirty local work needs no preparation — these CLIs review the working tree in
+place. Branch/PR work needs a diff file, and the base is never the literal `main`: it is the open
+PR's base when there is one, otherwise the repo's resolved default branch, and `main` only as the
+last resort.
+
+```bash
+# One invocation, always: each bash call in these harnesses is a fresh shell, so a
+# `base=…` assignment does not survive into the next one.
+base=$(gh pr view --json baseRefName --jq .baseRefName 2>/dev/null \
+  || git symbolic-ref -q --short refs/remotes/origin/HEAD 2>/dev/null | sed 's|^origin/||' \
+  || echo main)
+diff_file="$(mktemp)"   # 0600 and unpredictable; a fixed /tmp name is world-readable and pre-creatable
+git diff "origin/$base"...HEAD > "$diff_file"
+echo "$diff_file"       # print it — the shell call that runs the review cannot see the variable
+```
+
+This recipe lives here once on purpose. It used to be copy-pasted into each section below, which
+is how the fixed-`/tmp` form outlived the change that replaced it in `SKILL.md`.
+
 ## Claude Code / OpenCode / DeepSeek TUI
 
-Dirty local work (default — `/review` works on uncommitted changes):
+Uncommitted work:
 
 ```
 /review
 ```
 
-Branch/PR work — generate a diff, then review it:
-
-```bash
-git diff "origin/$(git symbolic-ref -q --short refs/remotes/origin/HEAD | sed 's|^origin/||' || echo main)"...HEAD > /tmp/review-it.diff
-```
-
-Then review the diff file with a focused prompt:
+Branch/PR work — prepare the target above, then hand over the path it printed:
 
 ```
-/review the changes in /tmp/review-it.diff against origin/main
-```
-
-If an open PR exists, use its actual base:
-
-```bash
-base=$(gh pr view --json baseRefName --jq .baseRefName)
-git diff "origin/$base"...HEAD > /tmp/review-it.diff
+/review the changes in <the printed diff_file> against origin/<base>
 ```
 
 ## Antigravity CLI (`agy`)
 
-Dirty local work:
+Uncommitted work:
 
 ```
 /code-review
@@ -57,14 +66,8 @@ Dirty local work:
 
 Branch/PR work:
 
-```bash
-git diff "origin/$(git symbolic-ref -q --short refs/remotes/origin/HEAD | sed 's|^origin/||' || echo main)"...HEAD > /tmp/review-it.diff
 ```
-
-Then:
-
-```
-/code-review the changes in /tmp/review-it.diff against origin/main
+/code-review the changes in <the printed diff_file> against origin/<base>
 ```
 
 ## Codex
@@ -73,17 +76,10 @@ Then:
 # Review uncommitted changes
 codex review
 
-# Review branch diff
-git diff "origin/$(git symbolic-ref -q --short refs/remotes/origin/HEAD | sed 's|^origin/||' || echo main)"...HEAD > /tmp/review-it.diff
-codex review /tmp/review-it.diff
+# Review branch diff — prepare the target above first
+codex review <the printed diff_file>
 ```
 
 `<SKILL_DIR>/scripts/review-it --agent codex` prints exactly these two forms, and `auto` selects
 it when `$CODEX_HOME` is set; the loading and delegation mechanics are in
 [`codex-runtime.md`](codex-runtime.md).
-
-## Per-agent branch diff base
-
-All of the above share one rule: the diff base comes from the open PR when there is one
-(`gh pr view --json baseRefName`), otherwise `origin/main`. Keep the assignment and the use in a
-single shell invocation — in each of these harnesses, a separate bash call is a fresh shell.

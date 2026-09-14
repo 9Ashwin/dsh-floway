@@ -14,7 +14,10 @@ DRY_RUN=false
 AGENT="auto"
 
 usage() {
-    cat <<EOF
+    # Quoted delimiter: the text below is static, and an unquoted heredoc runs
+    # backticks — the `` `bash -c` `` in the --parallel-tests line executed itself
+    # and printed "bash: -c: option requires an argument" above the help.
+    cat <<'EOF'
 Usage: review-it [options]
 
 Options:

@@ -1425,7 +1425,10 @@
 <span class="cmd">git diff</span> <span class="flag">--cached</span>
 
 <span class="comment"># Branch / PR: generate the diff against the base, then review it section by section</span>
-<span class="cmd">git diff</span> <span class="value">origin/main...HEAD</span> &gt; <span class="value">/tmp/review-it.diff</span></code></pre>
+<span class="comment"># base = the PR's base, else the repo's default branch — never a hardcoded main</span>
+<span class="cmd">base</span>=$(<span class="cmd">gh pr view</span> <span class="flag">--json</span> <span class="value">baseRefName</span> <span class="flag">--jq</span> <span class="value">.baseRefName</span> 2&gt;/dev/null || <span class="cmd">git symbolic-ref</span> <span class="flag">-q</span> <span class="flag">--short</span> <span class="value">refs/remotes/origin/HEAD</span> | <span class="cmd">sed</span> <span class="value">'s|^origin/||'</span>)
+<span class="cmd">diff_file</span>=$(<span class="cmd">mktemp</span>)  <span class="comment"># a fixed /tmp name is pre-creatable — don't</span>
+<span class="cmd">git diff</span> <span class="value">"origin/$base"...HEAD</span> &gt; <span class="value">"$diff_file"</span></code></pre>
       <p>When the diff is large, or independence matters more, hand the diff file to a <strong>fresh subagent</strong> — it sees none of this conversation, so the prompt must be self-contained.</p>
 
       <h3>Review Principles</h3>

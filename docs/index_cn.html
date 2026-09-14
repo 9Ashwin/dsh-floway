@@ -1408,7 +1408,10 @@
 <span class="cmd">git diff</span> <span class="flag">--cached</span>
 
 <span class="comment"># 分支 / PR：先生成相对 base 的 diff，再逐段审</span>
-<span class="cmd">git diff</span> <span class="value">origin/main...HEAD</span> &gt; <span class="value">/tmp/review-it.diff</span></code></pre>
+<span class="comment"># base 取 PR 的 base，否则取仓库默认分支——不写死 main</span>
+<span class="cmd">base</span>=$(<span class="cmd">gh pr view</span> <span class="flag">--json</span> <span class="value">baseRefName</span> <span class="flag">--jq</span> <span class="value">.baseRefName</span> 2&gt;/dev/null || <span class="cmd">git symbolic-ref</span> <span class="flag">-q</span> <span class="flag">--short</span> <span class="value">refs/remotes/origin/HEAD</span> | <span class="cmd">sed</span> <span class="value">'s|^origin/||'</span>)
+<span class="cmd">diff_file</span>=$(<span class="cmd">mktemp</span>)  <span class="comment"># 固定 /tmp 名可被预创建，别用</span>
+<span class="cmd">git diff</span> <span class="value">"origin/$base"...HEAD</span> &gt; <span class="value">"$diff_file"</span></code></pre>
       <p>diff 较大、或更看重独立性时，可把 diff 文件交给一个<strong>全新的子代理</strong>审——它看不到本会话的上下文，因此提示词必须自包含。</p>
 
       <h3>审查原则</h3>
