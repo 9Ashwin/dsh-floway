@@ -37,6 +37,19 @@
         "给出单点路径：直接改动 → 项目门禁 → 评审 → 交付",
         "说明为什么这里不需要并行编排（一个单元、与其他改动共享同一份文件）"
       ]
+    },
+    {
+      "id": 4,
+      "prompt": "我们有 3 件互不依赖的事：#41 把日志换成结构化日志、#42 给 CI 加缓存、#43 补一份部署文档。用 /graph 并行做，我要能随时看到做到哪了。",
+      "expected_output": "先规划并确认；初始化 checkpoint 与看板；派发前把本波节点标记 in_progress；波次收尾无条件重渲染 graph.html 并写入 shipped/failed。",
+      "files": [],
+      "expectations": [
+        "初始化 .graph_state.json 并渲染 graph.html，让用户打开看板，且把 nodes.json、.graph_state*、graph.html 加进 .gitignore",
+        "在派发每个节点之前运行 set --node {N} --status in_progress，而不是等子代理返回后才标记",
+        "子代理返回后按泄漏检查结果 set --status shipped/failed，并带上真实的 commit 与 branch",
+        "波次收尾无条件重新渲染 graph.html，不依赖 set 的副作用、不因「已刷新过」而跳过",
+        "说明看板是 checkpoint 的快照、只有 plan/set 会写它，用户看到的进度取决于编排者有没有写状态"
+      ]
     }
   ]
 }

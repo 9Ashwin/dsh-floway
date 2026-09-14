@@ -1,6 +1,6 @@
 ---
 name: graph
-description: "Parallel implementation: plan the DAG by script, one subagent per node per wave in its own git worktree, then review and ship each wave once. Triggers: graph, 并发实现, 并行实现, 任务图, DAG, fan-out."
+description: "Parallel implementation: plan the DAG by script, one subagent per node per wave in its own git worktree, then review and ship each wave once, updating the checkpoint and the graph.html progress board at every wave boundary. Triggers: graph, graph engineering, build a graph, task graph, dependency graph, DAG, parallel implement, 并发实现, 并行实现, 任务图, 把任务变成图, fan-out, fan-out fan-in, superstep, dynamic workflow."
 
 ---
 
@@ -168,7 +168,18 @@ silently shows older work is worse than no board, because the user believes it.
 
 ## Step 3: Run a wave
 
-Create one worktree per node in the wave, capturing each **absolute** path:
+**Pre-flight, once, before the first fan-out** (same spirit as `/loop-it`; any hard failure stops
+the run):
+
+```bash
+git rev-parse --is-inside-work-tree   # in a repo?
+git status --porcelain                # clean tree? (dirty → stash or abort)
+git branch --show-current             # on the default branch?
+git ls-remote --heads origin          # remote reachable?
+gh auth status                        # only if the wave will ship to GitHub
+```
+
+Then, for each wave, create one worktree per node, capturing each **absolute** path:
 
 ```bash
 ROOT="$(git rev-parse --show-toplevel)"
@@ -179,6 +190,13 @@ BASE="${BASE:-$(git rev-parse --abbrev-ref HEAD)}"
 mkdir -p "$(dirname "$ROOT")/.graph-worktrees"
 WT="$(cd "$(dirname "$ROOT")/.graph-worktrees" && pwd)/node-{N}"
 git worktree add -b feat/node-{N}-{slug} "$WT" "$BASE"   # `prompt` prints this exact line
+```
+
+**Mark every node in this wave `in_progress` before you dispatch it.** Nothing else writes that
+status, and the board is the only progress signal the user has:
+
+```bash
+python3 <SKILL_DIR>/scripts/graph_state.py set --node {N} --status in_progress
 ```
 
 Then dispatch: **one child per node, all in a single assistant message** — that is what makes
@@ -194,8 +212,9 @@ That fills the worktree path, the branch, the title, the type, the scope, the ho
 acceptance criteria straight out of `.graph_state.json`, and prints the `git worktree add` line for the
 branch it names. **The branch is the checkpoint's, not the script's:** if a `branch` is recorded
 for the node it is used verbatim, and only an unrecorded node gets a name derived from its title —
-in which case the header says the name was derived and that the branch does not exist yet. So
-record the real name as soon as it exists, especially if it diverges from the derived one:
+in which case the header says the name was derived and that the branch does not exist yet. Record
+the real name as soon as it exists, especially if it diverges from the derived one — the same
+`set` that marked the node `in_progress` takes it:
 
 ```bash
 python3 <SKILL_DIR>/scripts/graph_state.py set --node {N} --status in_progress --branch {real-branch}
@@ -276,9 +295,10 @@ nodes; with one node it is pure ceremony.
    skill then opens: one commit/PR, merge, close the issues the wave satisfied. One squash commit buries N features, so the PR body must carry `ship-it`'s
    per-item evidence table (commit, issue, the test that proves it, manual-acceptance status) —
    without it neither you nor the user can audit or revert a single feature afterwards.
-5. Remove finished worktrees (keep failed ones). The board was already refreshed by the status
-   writes that closed the wave; re-run the renderer only if you want it elsewhere, or if one of
-   those writes reported that the refresh failed:
+5. **Update the board — unconditionally.** `set` already wrote each node's outcome, including the
+   last node of the wave, so the checkpoint is current. Re-render anyway: the render is what the
+   user actually looks at, and a `set` that failed silently, a custom `--state`, or an out-of-band
+   edit leaves the file and the page disagreeing.
 
    ```
    python3 <SKILL_DIR>/scripts/render_graph_html.py .graph_state.json graph.html
@@ -286,14 +306,11 @@ nodes; with one node it is pure ceremony.
 
    Re-rendering is the closing act of every wave, not a one-off at plan time: the page is a
    snapshot, so skipping it leaves the user reading the previous wave until they happen to ask.
-   (With a custom `--state`, substitute that name here and in every command in this skill.)
-
-   The checkpoint itself is already current. `set` writes it with each node's outcome, including
-   the last node of the wave, so there is nothing extra to run for durability — and the board
-   derives the wave still in progress from those statuses, so a re-render alone shows the right
-   one. Re-layering with `plan --keep-shipped --only-pending` belongs to the next step, and only
-   when the plan actually changed.
-6. **Re-plan.** Read each node's `NEW_WORK:` line; if any is not `none`, add the node(s) and
+   (With a custom `--state`, substitute that name here and in every command in this skill.) The
+   board derives the wave still in progress from node statuses, so there is no separate
+   `current_wave` write to make.
+6. Remove finished worktrees (keep failed ones).
+7. **Re-plan.** Read each node's `NEW_WORK:` line; if any is not `none`, add the node(s) and
    re-layer the remaining work with the planner before the next wave — `--keep-shipped
    --only-pending` here too, so the nodes that already shipped stop holding their files. Show the
    user the delta.
@@ -311,6 +328,46 @@ node from the wave branch and ship the rest — its siblings are independent by 
 making them wait for a re-plan buys nothing. Never merge the failed branch, and never mark it
 `shipped` just to keep the wave moving. Offer the user the ladder in order: retry in place, retry
 as a fresh node, then drop.
+
+## State file and the live board
+
+`.graph_state.json` is the checkpoint; `graph.html` is a derived view of it — never hand-edit the
+HTML, regenerate it. Both stay out of git (Step 2). The schema lives in
+`references/dsh-runtime.md`; what matters here is **which action writes which status**, because that
+is the one part of the graph no script performs for you. Cycles, scope collisions and wave layering
+are computed; the status transitions are yours.
+
+| status | written when | by |
+|--------|--------------|-----|
+| `pending` | the node is laid out | `plan` |
+| `in_progress` | **before** the node's child is dispatched | you |
+| `shipped` | its branch survived the leak check and entered the wave's merge list | you |
+| `failed` | it exhausted the retry ladder (Step 5) | you |
+| `blocked` | a dependency failed; the planner prints the list | you |
+| `skipped` | dropped from the graph on a re-plan | you |
+
+Only `plan` and `set` write the checkpoint, and each re-renders `graph.html` beside it. So the board
+is exactly as honest as the `set` calls: skip them and the graph still runs, the code still lands,
+and the board silently lies in the meantime. Mark `in_progress` at dispatch, not after the child
+returns — a wave that is half done then reads as untouched.
+
+On resume (a crash, or a new session): run `graph_state.py show`, re-layer what is left with
+`plan --keep-shipped --only-pending` from the same nodes file, leave `shipped`/`skipped` alone, and
+ask the user about each `failed` node before retrying it.
+
+## Common mistakes
+
+| Mistake | Fix |
+|---------|-----|
+| Dispatching the wave's children in separate responses | One response, one call per node — separate responses run them one after another. |
+| Dispatching without marking the nodes `in_progress` | `set --status in_progress` before each child starts. |
+| Rendering the board only at plan time | Re-render at every wave close (Step 4 item 5). |
+| Editing in the shared checkout instead of the node's own worktree | One `git worktree` per node, with its absolute path in the prompt. |
+| Two dependency-free nodes editing the same logic | List the file in both nodes' `scope` so the planner serializes them; shared wiring goes in `hot_files`. |
+| Starting the next wave before every child settled | The fan-in barrier is mandatory. |
+| Merging a `failed` node's branch to keep the wave moving | Never; mark its dependents `blocked` and ship the rest. |
+| Running `/review-it` or `/ship-it` per node | Review and ship once per wave; per-node PRs only when the user asks for them. |
+| Over-decomposing into trivial nodes | Merge tiny units — a node must be worth a child's whole prompt. |
 
 ## Safety guards
 
