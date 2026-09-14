@@ -603,10 +603,10 @@ def test_only_pending_frees_a_settled_nodes_scope():
     before = {nid: i for i, wave in enumerate(without) for nid in wave}
     after = {nid: i for i, wave in enumerate(with_settled) for nid in wave}
     check("a settled owner still serializes without the flag", before[1] != before[2])
-    check("its scope stops reserving a slot with it", after[1] == after[2], str(with_settled))
-    check("an unrelated node keeps its wave", after[3] == 0)
-    check("the settled node is still placed, not dropped",
-          sorted(nid for wave in with_settled for nid in wave) == [1, 2, 3], str(with_settled))
+    check("the two nodes left share the first wave", after[2] == 0 and after[3] == 0,
+          str(with_settled))
+    check("settled work leaves the layout it no longer constrains", 1 not in after,
+          str(with_settled))
 
 
 def test_only_pending_still_serializes_two_pending_nodes():
@@ -648,9 +648,11 @@ def test_only_pending_via_plan_moves_work_into_earlier_waves():
                                                       max_parallel=None, keep_shipped=True))
         state = json.load(open(state_path, encoding="utf-8"))
         check("re-planning with the flag succeeds", freed == 0, str(freed))
-        check("the layout collapses to two waves", len(state["waves"]) == 2, str(state["waves"]))
+        check("the layout collapses to the work that is left", len(state["waves"]) == 2,
+              str(state["waves"]))
         check("the outcome is still carried", state["nodes"]["1"]["status"] == "shipped")
-        check("and it is still placed", any(1 in wave for wave in state["waves"]), str(state["waves"]))
+        check("settled work is out of the wave list",
+              all(1 not in wave for wave in state["waves"]), str(state["waves"]))
 
 
 def test_only_pending_layers_inflight_ahead_of_what_it_blocks():
@@ -684,8 +686,35 @@ def test_only_pending_does_not_invent_a_cycle_across_settled_nodes():
               f"layer() died with {exc.code}")
         return
     index = {nid: i for i, wave in enumerate(waves) for nid in wave}
-    check("layer() survives the settled sibling", sorted(index) == [1, 2], str(waves))
-    check("the real dependency still orders them", index[2] < index[1], str(waves))
+    check("layer() survives the settled sibling", sorted(index) == [1], str(waves))
+    check("the running node is laid out", index[1] == 0, str(waves))
+
+
+def test_a_directory_scope_covers_the_files_inside_it():
+    # Real pair: #174 is scoped to the whole `internal/config` package and #217 to
+    # `internal/config/config.go`. Equality-only comparison called that compatible
+    # and put both in one wave, which is two agents editing one directory.
+    by_id = nodes((1, [], "internal/config"), (2, [], "internal/config/config.go"))
+    waves, notes = gs.layer(by_id)
+    index = {nid: i for i, wave in enumerate(waves) for nid in wave}
+    check("a directory and a file inside it split", index[1] != index[2], str(waves))
+    check("and the collision is reported", any("waits one wave" in n for n in notes), str(notes))
+
+    # Negative control: the fix must not serialize everything sharing a directory.
+    # Two different files in one package are exactly what a parallel wave is for.
+    siblings = nodes((1, [], "internal/config/a.go"), (2, [], "internal/config/b.go"))
+    sibling_waves, _ = gs.layer(siblings)
+    sibling_index = {nid: i for i, wave in enumerate(sibling_waves) for nid in wave}
+    check("two distinct files in one directory still share a wave",
+          sibling_index[1] == sibling_index[2], str(sibling_waves))
+
+
+def test_scopes_overlap_treats_nesting_as_a_collision():
+    check("equal paths collide", gs.scopes_overlap("a/b", "a/b"))
+    check("a child path collides with its parent", gs.scopes_overlap("a/b/c.go", "a/b"))
+    check("and the other way round", gs.scopes_overlap("a/b", "a/b/c.go"))
+    check("siblings do not collide", not gs.scopes_overlap("a/b", "a/c"))
+    check("a name prefix is not a path prefix", not gs.scopes_overlap("a/bc", "a/b"))
 
 
 def main() -> int:
@@ -704,6 +733,8 @@ def main() -> int:
                  test_only_pending_via_plan_moves_work_into_earlier_waves,
                  test_only_pending_layers_inflight_ahead_of_what_it_blocks,
                  test_only_pending_does_not_invent_a_cycle_across_settled_nodes,
+                 test_a_directory_scope_covers_the_files_inside_it,
+                 test_scopes_overlap_treats_nesting_as_a_collision,
                  test_prompt_renders_from_the_checkpoint,
                  test_node_context_fills_the_dependency_slot,
                  test_replan_keeps_criteria_and_context_only_the_checkpoint_holds,

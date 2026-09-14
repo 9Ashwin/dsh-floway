@@ -219,6 +219,23 @@ def validate(nodes: list[dict]) -> tuple[dict[int, dict], list[str]]:
     return by_id, warnings
 
 
+def scopes_overlap(a: str, b: str) -> bool:
+    """Whether two scope entries name the same path or one contains the other.
+
+    Scope entries are directories as often as files, and two nodes writing into
+    one directory collide whether they own it wholesale or name different files
+    inside it. Comparing with `==` misses that, which let a node scoped to
+    `internal/config` share a wave with one scoped to
+    `internal/config/config.go` — the pair two agents would have edited at once.
+    """
+    return a == b or a.startswith(b + "/") or b.startswith(a + "/")
+
+
+def scope_clash(scope: set[str], used: set[str]) -> list[str]:
+    """The entries in `scope` that collide with anything in `used`."""
+    return sorted({entry for entry in scope for other in used if scopes_overlap(entry, other)})
+
+
 def layer(by_id: dict[int, dict], settled: set[int] | None = None,
           inflight: set[int] | None = None) -> tuple[list[list[int]], list[str]]:
     """Lay nodes into waves: dependencies first, then disjoint scopes.
@@ -269,8 +286,17 @@ def layer(by_id: dict[int, dict], settled: set[int] | None = None,
             if scope_set(by_id[nid]) & runner_scope:
                 deps[nid].add(runner)
     notes: list[str] = []
-    remaining = set(by_id)
-    placed: set[int] = set()
+    # Settled work is done, so it neither reserves scope nor occupies a wave: a
+    # pending node whose only unfinished dependency was settled is ready *now*, not
+    # after the layout has walked the settled node's own dependency chain. Without
+    # this the tail stays serialized even though the scopes were freed — #144 sits
+    # at the end of a deep chain, so #146, which depends on it and on nothing
+    # unfinished, was still pushed to a late wave while an unrelated #217 floated
+    # ahead of it. The layout therefore describes the work that is left; settled
+    # nodes stay in the node table with their status, which is what the board's
+    # counts and any later `set` read.
+    remaining = set(by_id) - settled
+    placed: set[int] = set(settled)
     waves: list[list[int]] = []
     while remaining:
         ready = sorted(nid for nid in remaining if deps[nid] <= placed)
@@ -281,7 +307,7 @@ def layer(by_id: dict[int, dict], settled: set[int] | None = None,
         used: set[str] = set()
         for nid in ready:
             scope = scope_set(by_id[nid])
-            clash = scope & used
+            clash = scope_clash(scope, used)
             if clash:
                 notes.append(
                     f"#{nid} waits one wave: scope overlaps {sorted(clash)} "
@@ -306,23 +332,17 @@ def layer(by_id: dict[int, dict], settled: set[int] | None = None,
         # it", which is how a wave resolves the same import block three times.
         # Warn rather than serialize: keeping these files out of scope is what
         # lets a wave stay parallel at all.
-        interests: dict[str, dict[str, list[int]]] = {}
-        for nid in wave:
-            if nid in settled:
-                continue  # already on the branch: it cannot collide with anything left
-            for path in scope_set(by_id[nid]):
-                interests.setdefault(path, {"scope": [], "hot": []})["scope"].append(nid)
-            for path in hot_set(by_id[nid]):
-                interests.setdefault(path, {"scope": [], "hot": []})["hot"].append(nid)
-        for path in sorted(interests):
-            hot = sorted(set(interests[path]["hot"]))
-            if not hot:
-                continue  # a scope-only clash never reaches here: it is serialized above
-            interested = sorted(set(hot) | set(interests[path]["scope"]))
+        for path in sorted({p for nid in wave if nid not in settled for p in hot_set(by_id[nid])}):
+            hot = sorted({nid for nid in wave if nid not in settled and path in hot_set(by_id[nid])})
+            # A scope entry may be a directory (`internal/config`) while the hot
+            # file is one file inside it, so this compares by nesting rather than
+            # by equality — the equality form missed exactly that pair.
+            owners = sorted({nid for nid in wave if nid not in settled
+                             and any(scopes_overlap(entry, path) for entry in scope_set(by_id[nid]))})
+            interested = sorted(set(hot) | set(owners))
             if len(interested) < 2:
                 continue  # only one node cares about this file
             who = ", ".join(f"#{nid}" for nid in interested)
-            owners = sorted(set(interests[path]["scope"]))
             shape = (f"{who} all touch {path} and {', '.join(f'#{nid}' for nid in owners)} "
                      f"have it in scope" if owners else f"{who} all declare {path} as a hot file")
             notes.append(
