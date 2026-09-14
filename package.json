@@ -4,6 +4,7 @@
   "description": "A from-PRD-to-delivery development workflow skill set for coding agents.",
   "license": "MIT",
   "files": [
+    ".claude-plugin",
     "cordis.patch.yml",
     "skills",
     "README.md",

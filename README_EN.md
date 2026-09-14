@@ -49,10 +49,26 @@ The skills land in `~/.agents/skills`, and this route changes nothing in any pro
 cp -R <stream-it>/skills/flow/graph ~/.agents/skills/graph   # flattened, not the bucket
 ```
 
-It can also be installed as **deployment configuration** (a preset that travels with the package, `toolFilter`, persona, commit pinning) — the commands, the flags and the trade-offs between the two routes are in the docs: **<https://9ashwin.github.io/stream-it/#install>**.
+Codex also discovers `~/.agents/skills`, so this route works there too; use Option 2 when you want Codex's native four-plugin grouping.
+
+### Option 2: Install as Codex plugins
+
+```bash
+codex plugin marketplace add 9Ashwin/stream-it
+codex plugin add stream-it-flow --marketplace stream-it
+codex plugin add stream-it-practice --marketplace stream-it
+codex plugin add stream-it-meta --marketplace stream-it
+codex plugin add stream-it-bonus --marketplace stream-it
+```
+
+The four plugins map to the `flow` / `practice` / `meta` / `bonus` buckets, so install only the ones you need. `.claude-plugin/marketplace.json` and each bucket's `.claude-plugin/plugin.json` are also the Codex plugin manifests; there is no separate `.codex-plugin` copy to maintain. In Codex, invoke skills explicitly as **`$graph`**, **`$loop-it`**, and so on — not `/graph` or `/loop-it`.
+
+### Option 3: Install as a DSH bundle (optional)
+
+It can also be installed as **deployment configuration** (a preset that travels with the package, `toolFilter`, persona, commit pinning) — the commands and flags are in the docs: **<https://9ashwin.github.io/stream-it/#install>**.
 
 > [!TIP]
-> Not sure which skill to reach for? Type **`/ask-flow`** — it names the next thing to type and the decisions that are yours to make.
+> Not sure which skill to reach for? In Claude Code / DSH type **`/ask-flow`**; in Codex type **`$ask-flow`** — it names the next thing to type and the decisions that are yours to make.
 >
 > The full usage guide (installation, how to trigger each step, acceptance criteria, FAQ) lives at **<https://9ashwin.github.io/stream-it/>**, which redirects to the Chinese or English version based on your browser language; in the repo it is [docs/index_cn.html](docs/index_cn.html) and [docs/index_en.html](docs/index_en.html).
 
@@ -81,7 +97,9 @@ A few deliberate design choices:
 
 ## Skills
 
-**Not sure which one? Type `/ask-flow` first** — it names the next thing to type and does not act for you.
+The table uses short skill names; Claude Code / DSH prefixes them with `/`, while Codex uses `$` (for example `$ask-flow` or `$graph`).
+
+**Not sure which one? Invoke `ask-flow` first** — it names the next thing to type and does not act for you.
 
 | Stage | Skill | What it does |
 | --- | --- | --- |
@@ -95,9 +113,9 @@ A few deliberate design choices:
 | Reverse engineering & docs | `/code-to-spec` · `/understand` · `/insight-diagram` | Reverse a SPEC out of code · turn the current change into an interactive review page · UML/architecture diagrams |
 | Content | `/humanize-it` · `/article-icons` · `/listenhub-tts` | De-AI-ify documents · article icons · text to speech |
 
-Five skills carry `disable-model-invocation` (`/ask-flow`, `/insight-diagram`, and the three content tools in the last row) and stay **out of the model catalog**: the model will not reach for them on its own, you type the command — which saves the fixed cost every session **and every subagent** would otherwise pay. Across the current 26 skills the catalog is 5,077 characters, of which the model actually sees **3,806**. Those five also ship an `agents/openai.yaml` (`policy.allow_implicit_invocation: false`).
+Five skills carry `disable-model-invocation` (`ask-flow`, `insight-diagram`, and the three content tools in the last row) and stay **out of the model catalog**: the model will not reach for them on its own, you invoke them directly — which saves the fixed cost every session **and every subagent** would otherwise pay. Across the current 26 skills the catalog is 5,077 characters, of which the model actually sees **3,806**. Those five also ship an `agents/openai.yaml` (`policy.allow_implicit_invocation: false`).
 
-`/goal` is a DSH **command**, not a skill: you type it at the prompt to create a persisted goal with automatic continuation rounds. The model side of that surface is `create_goal` / `update_goal`, but `create_goal` only runs in a **direct top-level human turn** — a subagent or a mid-orchestration step cannot mint a long-horizon goal for itself.
+`/goal` is a host **command**, not a skill: in DSH and current Codex a human types it to create a persisted goal with automatic continuation rounds. The model side of that surface is `create_goal` / `update_goal`, but `create_goal` should only be used on an explicit user request — a subagent or a mid-orchestration step must not mint a long-horizon goal for itself.
 
 ## Repository layout
 
