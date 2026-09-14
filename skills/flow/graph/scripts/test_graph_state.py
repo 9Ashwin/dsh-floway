@@ -747,6 +747,30 @@ def test_every_checkpoint_write_refreshes_the_board():
         check("with no stale-render note", "was not refreshed" not in second, second[:200])
 
 
+def test_render_names_settled_work_the_layout_dropped():
+    # The board lost settled nodes because `waves` stopped carrying them. The CLI
+    # summary read the same array, so it lost them too, and the two agreed on a
+    # graph that was only ever what was left. The summary now names them.
+    state = {
+        "version": 1, "task": "t", "repo": "", "max_parallel": 0,
+        "waves": [[3]], "current_wave": 0,
+        "nodes": {
+            "1": {"title": "a", "deps": [], "status": "shipped"},
+            "2": {"title": "b", "deps": [], "status": "shipped"},
+            "3": {"title": "c", "deps": [], "status": "pending"},
+        },
+    }
+    out = gs.render(state)
+    check("the summary names the settled nodes", "settled, not in the layout" in out, out)
+    check("with their outcome", "#1 (ok)" in out and "#2 (ok)" in out, out)
+    check("and still lists the wave that is left", "wave 0" in out, out)
+
+    # Negative control: nothing off-layout, no extra line.
+    state["waves"] = [[1, 2], [3]]
+    check("a graph with everything in the layout says nothing extra",
+          "settled, not in the layout" not in gs.render(state), gs.render(state))
+
+
 def main() -> int:
     print("graph_state.py tests")
     for test in (test_dependencies_hold_across_waves, test_scope_collision_defers_without_breaking_order,
@@ -766,6 +790,7 @@ def main() -> int:
                  test_a_directory_scope_covers_the_files_inside_it,
                  test_scopes_overlap_treats_nesting_as_a_collision,
                  test_every_checkpoint_write_refreshes_the_board,
+                 test_render_names_settled_work_the_layout_dropped,
                  test_prompt_renders_from_the_checkpoint,
                  test_node_context_fills_the_dependency_slot,
                  test_replan_keeps_criteria_and_context_only_the_checkpoint_holds,

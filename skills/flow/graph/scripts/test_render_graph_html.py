@@ -95,6 +95,50 @@ def test_finished_graph_says_so():
     check("and it never claims a wave beyond the last", "wave 2 of 1" not in html)
 
 
+def settled_out_of_layout_state():
+    """The shape `plan --keep-shipped --only-pending` writes.
+
+    Once work settles the layout stops carrying it, so `waves` describes only what
+    is left while every node stays in the node table with its status.
+    """
+    return {
+        "version": 1, "task": "t", "repo": "owner/repo", "current_wave": 0,
+        "waves": [[3]],
+        "nodes": {
+            "1": {"title": "a", "status": "shipped", "commit": "aaa1111"},
+            "2": {"title": "b", "status": "shipped", "commit": "bbb2222"},
+            "3": {"title": "c", "status": "pending"},
+        },
+    }
+
+
+def test_settled_nodes_stay_on_the_board():
+    """Regression: `waves` is the scheduling layout and `--only-pending` drops
+    settled nodes from it, so a board that read `waves` alone lost every finished
+    node the moment the graph was re-layered. The mermaid kept them green — it
+    walks the node table — while the cards below simply stopped existing, which
+    made a half-finished run look like a graph that had only ever had one wave."""
+    html = board(settled_out_of_layout_state())
+    for nid in ("1", "2"):
+        check(f"settled #{nid} still has a card", f'<span class="nid">#{nid}</span>' in html)
+    check("and is reported as settled rather than dropped",
+          '<h2>Settled <span class="wcount">×2' in html,
+          re.search(r"<h2>Settled.*?</h2>", html, re.S).group(0) if "Settled" in html else "")
+    check("the live wave is still the one marked running", marked_current(html) == 0,
+          f"marked={marked_current(html)}")
+
+    # Negative control: no wave number is invented for the settled work. The index
+    # it ran under is gone — `--only-pending` compacts the layout — and reusing the
+    # fresh one would draw a wave that never existed.
+    check("no wave number is invented for them", "Wave 1" not in html,
+          html[html.find("Settled"):][:160])
+
+    # Negative control: a graph with nothing off-layout gains no extra section.
+    intact = settled_out_of_layout_state()
+    intact["waves"] = [[1, 2], [3]]
+    check("nothing settled means no settled section", "<h2>Settled" not in board(intact))
+
+
 def test_footer_names_the_real_source():
     """The footer used to hardcode the default name, so a board rendered from a
     per-run checkpoint claimed to come from `.graph_state.json`."""
@@ -183,6 +227,7 @@ def test_missing_checkpoint_reports_instead_of_raising():
 def main() -> int:
     print("render_graph_html.py tests")
     for test in (test_current_wave_is_derived_not_read, test_finished_graph_says_so,
+                 test_settled_nodes_stay_on_the_board,
                  test_footer_names_the_real_source, test_snapshot_is_stated_and_stamped,
                  test_both_argument_spellings_work, test_a_repeated_value_is_refused,
                  test_an_unknown_flag_is_refused, test_missing_checkpoint_reports_instead_of_raising):

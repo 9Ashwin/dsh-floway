@@ -126,14 +126,34 @@ def render(state, source: str = STATE_DEFAULT):
         for label, fg, bg in STATUS.values()
     )
 
+    # Waves are the scheduling layout, and `--only-pending` deliberately drops
+    # settled nodes from them — so a board that read `waves` alone lost every
+    # completed node the moment the graph was re-layered. A node the layout no
+    # longer carries still belongs on the board, so it renders in a trailing
+    # section instead of vanishing. It is not put back into a numbered wave: those
+    # numbers are not recoverable. `--only-pending` compacts the layout, so the
+    # index a re-plan hands out is not the index the node ran under — grouping by
+    # the stale one merged finished work into a wave of live work under a single
+    # number, which reads as one wave that never existed.
+    scheduled = {nid for wave in waves for nid in wave}
+    loose = sorted((int(key) for key in nodes if int(key) not in scheduled), key=int)
+
     wave_html = ""
-    for wi, wave in enumerate(waves):
-        state_cls = "cur" if wi == cur else ("done" if wi < cur else "future")
+    for index, wave in enumerate(waves):
+        state_cls = "cur" if index == cur else ("done" if index < cur else "future")
+        running = ' <span class="pill">running</span>' if index == cur else ""
         cards = "".join(node_card(str(nid), nodes.get(str(nid), {"title": f"#{nid}"})) for nid in wave)
         wave_html += f"""
       <section class="wave {state_cls}">
-        <h2>Wave {wi} <span class="wcount">×{len(wave)} parallel</span>
-          {'<span class="pill">running</span>' if wi == cur else ''}</h2>
+        <h2>Wave {index} <span class="wcount">×{len(wave)} parallel</span>{running}</h2>
+        <div class="nodes">{cards}</div>
+      </section>"""
+
+    if loose:
+        cards = "".join(node_card(str(nid), nodes.get(str(nid), {"title": f"#{nid}"})) for nid in loose)
+        wave_html += f"""
+      <section class="wave done">
+        <h2>Settled <span class="wcount">×{len(loose)} · no longer in the layout</span></h2>
         <div class="nodes">{cards}</div>
       </section>"""
 

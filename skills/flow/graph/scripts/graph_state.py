@@ -411,6 +411,18 @@ def render(state: dict) -> str:
     blocked = [nid for nid, node in state["nodes"].items() if node["status"] == "blocked"]
     if blocked:
         lines.append("  blocked: " + ", ".join(f"#{nid}" for nid in sorted(blocked, key=int)))
+    # Settled work that the layout no longer carries. It is still part of the run,
+    # so the CLI summary names it rather than letting the waves above imply the
+    # graph is only what is left.
+    scheduled = {nid for wave in state["waves"] for nid in wave}
+    off_layout = sorted((nid for nid in state["nodes"] if int(nid) not in scheduled), key=int)
+    if off_layout:
+        marks = {"shipped": "ok", "skipped": "skipped", "failed": "FAIL",
+                 "blocked": "blocked", "in_progress": "running"}
+        shown = ", ".join(
+            f"#{nid} ({marks.get(state['nodes'][nid]['status'], state['nodes'][nid]['status'])})"
+            for nid in off_layout)
+        lines.append(f"  settled, not in the layout: {shown}")
     return "\n".join(lines)
 
 
