@@ -157,11 +157,14 @@ child starts. Then render and hand over `graph.html`:
 python3 <SKILL_DIR>/scripts/render_graph_html.py .graph_state.json graph.html
 ```
 
-Be precise about what that file is, because the page reloads itself every 5s and that invites the
-wrong assumption: **it is a snapshot**. The state is inlined at render time, so reloading shows the
-same board until you re-run the render command. Say so when you hand it over, and treat
-re-rendering as part of closing a wave (step 5) rather than an optional courtesy — a board that
-silently shows the previous wave is worse than no board, because the user believes it.
+Be precise about what that file is: **it is a snapshot**. The state is inlined at render time and
+the page does not reload itself, so an open tab keeps showing the moment it was rendered until
+someone refreshes it. `plan` and `set` now refresh `graph.html` beside the checkpoint on every
+write, so there is no manual step to forget — that obligation used to be attached to closing a
+wave, and the board sat eight hours stale as soon as the work stopped being waves (adding nodes,
+filing issues, deploying). Run the command above only when you want the board somewhere else, or
+to confirm a refresh that reported a failure. A board that silently shows older work is worse than
+no board, because the user believes it.
 
 ## Step 3: Run a wave
 
@@ -273,7 +276,9 @@ nodes; with one node it is pure ceremony.
    skill then opens: one commit/PR, merge, close the issues the wave satisfied. One squash commit buries N features, so the PR body must carry `ship-it`'s
    per-item evidence table (commit, issue, the test that proves it, manual-acceptance status) —
    without it neither you nor the user can audit or revert a single feature afterwards.
-5. Remove finished worktrees (keep failed ones), then **re-render the board**:
+5. Remove finished worktrees (keep failed ones). The board was already refreshed by the status
+   writes that closed the wave; re-run the renderer only if you want it elsewhere, or if one of
+   those writes reported that the refresh failed:
 
    ```
    python3 <SKILL_DIR>/scripts/render_graph_html.py .graph_state.json graph.html
@@ -330,6 +335,7 @@ as a fresh node, then drop.
   actually lives; `prompt` prefers that over a name derived from the title.
 - `scripts/test_graph_state.py` — the planner's unit tests; run them after any edit to it.
 - `scripts/render_graph_html.py [state.json] [graph.html]` — renders the `graph.html`
-  dashboard. `--state` / `--out` name the same two values. It inlines the checkpoint, so the
-  page is a snapshot of when it ran: **re-render it after every wave**, because an open tab
-  does not follow along. `scripts/test_render_graph_html.py` covers it; run it after any edit.
+  dashboard. `--state` / `--out` name the same two values. It inlines the checkpoint, so the page
+  is a snapshot of when it ran; `plan` and `set` invoke it on every write, so the board is current
+  without anyone remembering to refresh it. `scripts/test_render_graph_html.py` covers it; run it
+  after any edit.

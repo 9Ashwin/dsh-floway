@@ -717,6 +717,36 @@ def test_scopes_overlap_treats_nesting_as_a_collision():
     check("a name prefix is not a path prefix", not gs.scopes_overlap("a/bc", "a/b"))
 
 
+def test_every_checkpoint_write_refreshes_the_board():
+    # Regression: the board inlines the checkpoint, and refreshing it was an
+    # obligation attached to finishing a wave. Once the work stopped being waves
+    # — adding nodes, filing issues, deploying — the state moved and the page did
+    # not: it sat eight hours stale, so whoever opened it saw work that had
+    # already shipped. The refresh now rides the write itself.
+    with tempfile.TemporaryDirectory() as tmp:
+        nodes_path = os.path.join(tmp, "nodes.json")
+        state_path = os.path.join(tmp, ".graph_state.json")
+        board = os.path.join(tmp, "graph.html")
+        with open(nodes_path, "w", encoding="utf-8") as handle:
+            json.dump({"task": "t", "nodes": [{"id": 1, "title": "alpha", "scope": "x"}]}, handle)
+        with contextlib.redirect_stdout(io.StringIO()):
+            gs.cmd_plan(gs.argparse.Namespace(nodes=nodes_path, state=state_path,
+                                              only_pending=False,
+                                              max_parallel=None, keep_shipped=False))
+        check("plan writes the board beside the checkpoint", os.path.exists(board), board)
+        first = open(board, encoding="utf-8").read() if os.path.exists(board) else ""
+        check("and the board shows the node", "alpha" in first, first[:200])
+
+        with contextlib.redirect_stdout(io.StringIO()):
+            gs.cmd_set(gs.argparse.Namespace(state=state_path, node="1", status="shipped",
+                                             commit="abc1234", branch=None, error=None))
+        second = open(board, encoding="utf-8").read()
+        check("a status write refreshes it too", second != first,
+              "the board did not change after a status write")
+        check("and the write is visible in the counts", "1/1 shipped" in second, second[:300])
+        check("with no stale-render note", "was not refreshed" not in second, second[:200])
+
+
 def main() -> int:
     print("graph_state.py tests")
     for test in (test_dependencies_hold_across_waves, test_scope_collision_defers_without_breaking_order,
@@ -735,6 +765,7 @@ def main() -> int:
                  test_only_pending_does_not_invent_a_cycle_across_settled_nodes,
                  test_a_directory_scope_covers_the_files_inside_it,
                  test_scopes_overlap_treats_nesting_as_a_collision,
+                 test_every_checkpoint_write_refreshes_the_board,
                  test_prompt_renders_from_the_checkpoint,
                  test_node_context_fills_the_dependency_slot,
                  test_replan_keeps_criteria_and_context_only_the_checkpoint_holds,

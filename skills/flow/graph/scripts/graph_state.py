@@ -106,6 +106,8 @@ WAVE_DONE = {"shipped", "skipped", "failed", "blocked"}
 # that is already running does not lose its progress; it is never written.
 STATE_DEFAULT = ".graph_state.json"
 LEGACY_STATE = ".graph_state"
+# The rendered board lives beside the checkpoint and is refreshed by every write.
+BOARD_NAME = "graph.html"
 
 
 def die(message: str) -> None:
@@ -163,13 +165,39 @@ def read_previous(requested: str) -> tuple[dict | None, str | None]:
     return None, None
 
 
-def save_state(state: dict, path: str) -> None:
+def save_state(state: dict, path: str) -> str:
+    """Write the checkpoint and refresh the board beside it.
+
+    The board is a snapshot — it inlines the checkpoint — so a write that skips
+    the refresh leaves a page that silently disagrees with the state. That is not
+    hypothetical: the board sat eight hours stale while nodes were added and
+    shipped, because "re-render" was an obligation attached to finishing a wave
+    and the work after that was not a wave. Putting the refresh in the write
+    itself removes the step someone has to remember. It is best effort: a
+    checkpoint that saved must not be reported as failed over a display file.
+    """
     state["updated_at"] = now()
     tmp = f"{path}.tmp"
     with open(tmp, "w", encoding="utf-8") as handle:
         json.dump(state, handle, indent=2, ensure_ascii=False)
         handle.write("\n")
     os.replace(tmp, path)
+    return render_board(path)
+
+
+def render_board(path: str) -> str:
+    """Refresh BOARD_NAME beside `path`. Returns a note to print, or ""."""
+    board = os.path.join(os.path.dirname(os.path.abspath(path)) or ".", BOARD_NAME)
+    renderer = os.path.join(os.path.dirname(os.path.abspath(__file__)), "render_graph_html.py")
+    if not os.path.exists(renderer):
+        return f"note: {os.path.basename(renderer)} is missing, so {BOARD_NAME} was not refreshed"
+    result = subprocess.run([sys.executable, renderer, path, board],
+                            capture_output=True, text=True)
+    if result.returncode != 0:
+        detail = (result.stderr or result.stdout).strip().splitlines()
+        return (f"note: {BOARD_NAME} was not refreshed "
+                f"({detail[-1] if detail else 'unknown error'}); the checkpoint itself is saved")
+    return ""
 
 
 def scope_set(node: dict) -> set[str]:
@@ -554,7 +582,7 @@ def cmd_plan(args: argparse.Namespace) -> int:
         notes.extend(carry_over(state, previous, args.state))
 
     state["current_wave"] = current_wave(state)
-    save_state(state, args.state)
+    board_note = save_state(state, args.state)
 
     max_par = max(len(wave) for wave in waves)
     print(render(state))
@@ -564,6 +592,8 @@ def cmd_plan(args: argparse.Namespace) -> int:
         print(f"warning: {warning}")
     for note in notes:
         print(f"note: {note}")
+    if board_note:
+        print(board_note)
     print("\n" + mermaid(state))
     index = current_wave(state)
     if index < len(state["waves"]):
@@ -599,13 +629,15 @@ def cmd_set(args: argparse.Namespace) -> int:
     # refresh it, so recording the last node of a wave left the file pointing at
     # the wave that had just closed.
     state["current_wave"] = current_wave(state)
-    save_state(state, args.state)
+    board_note = save_state(state, args.state)
 
     index_of = wave_of(state)
     node_wave = index_of.get(int(key))
     index = current_wave(state)
     if legacy_note:
         print(f"note: {legacy_note}")
+    if board_note:
+        print(board_note)
     print(f"node #{key}: {previous} -> {args.status}")
     print(render(state))
 
