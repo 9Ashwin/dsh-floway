@@ -70,12 +70,12 @@ Write a nodes file — this is the planner's only input:
 `scope` is the comma-separated set of files/directories the node expects to touch. It is how
 the planner detects that two dependency-free nodes are not actually independent.
 
-`criteria` is the node's acceptance checklist, copied into the child's prompt verbatim. Put it in
-**this file**, not only in the checkpoint: re-planning rebuilds every node from the nodes file, so a
-criterion that lives only in the checkpoint used to vanish on the next `plan` and the child was then
-told to "write them from the issue" — a silent quality loss on exactly the nodes that were
-re-planned. (The planner now falls back to the checkpoint, but the nodes file is the source of
-truth; keep it there.)
+`criteria` is the node's acceptance checklist, copied into the child's prompt verbatim. It survives a
+re-plan either way — with no nodes file the checkpoint is round-tripped whole, and with one the
+planner falls back to the checkpoint field by field — but write it here anyway. This file is the
+human-authored record of what each node is supposed to do, and it is the one you read when the graph
+is being changed; a criterion that lived only in the checkpoint used to vanish on the next `plan`,
+and the child was then told to "write them from the issue".
 
 `context` is the orchestrator's briefing for the child: one or two lines per dependency — what it
 added, where, and anything this node must know. The child cannot read the earlier nodes'
@@ -111,6 +111,13 @@ layers the waves so dependencies and disjoint scopes both hold, writes `.graph_s
 prints the plan, a Mermaid diagram and the dispatch list for the current wave. It also warns when
 two nodes in one wave declare the same hot file.
 
+`--nodes` is needed only for the **first** plan of a graph. Leave it off afterwards and the planner
+re-layers from the checkpoint itself: the node table already carries every declarative field a plan
+reads (title, deps, scope, hot_files, type, criteria, context, and any branch already recorded), so
+the nodes file is required only when the graph itself changes — a new node, a moved dependency. That
+matters because the nodes file is the gitignored scratch input, and losing it used to make re-planning
+impossible at exactly the moment it is worth most.
+
 **Re-planning mid-run keeps what shipped.** Add `--keep-shipped` when a node turns out to be
 already satisfied, a node has to move, or the graph grew: every id that survives keeps its
 `status`, `branch`, `commit` and error history, only new ids start pending, and ids you removed
@@ -136,19 +143,21 @@ a layout nobody can reproduce is a layout nobody can check.
 
 
 Keep the plan input out of git along with the checkpoint it produces:
-`grep -qxF '.graph_state*' .gitignore || printf 'nodes.json\n.graph_state*\ngraph.html\n' >> .gitignore`,
+`grep -qxF '.graph_state*' .gitignore || printf 'nodes*.json\n.graph_state*\ngraph*.html\n' >> .gitignore`,
 then **commit that ignore rule before the first wave**. Step 4's leak check wants a clean shared
 checkout, and an uncommitted `.gitignore` edit would make the orchestrator flag itself as the leak.
 (If you would rather not commit an ignore rule, put the same lines in the untracked
 `.git/info/exclude` instead.)
 
-`.graph_state*` is a pattern on purpose, not a list of today's names. It covers the checkpoint under
-every name a run can give it — the default `.graph_state.json`, the pre-rename `.graph_state` (still
-**read**, so an in-flight graph keeps its progress and migrates on its next write), a per-run name
-like `--state .graph_state-prd015`, and the transient `<path>.tmp` the script writes before
-`os.replace`. The other two names are yours to choose: if this run passes `--state`/an output name
-that is not the default, add those exact names too (`nodes-prd015.json`, `graph-prd015.html`) —
-`git status --porcelain` after the first write is the check that nothing slipped through.
+All three are wildcards on purpose, and between them they cover every run: `nodes*.json` is the
+planner input, `.graph_state*` the checkpoint (the default `.graph_state.json`, the pre-rename
+`.graph_state` — still **read**, so an in-flight graph keeps its progress and migrates on its next
+write — a per-run `--state .graph_state-prd015`, and the transient `<path>.tmp`), and `graph*.html`
+the board. Because they are wildcards, a second run costs nothing extra: give it `--state
+.graph_state-prd015` and name its input and output `nodes-prd015.json` / `graph-prd015.html`. The
+price is that artifacts have to keep one of those three prefixes — a name outside them needs its own
+exact line, which is the churn these patterns exist to remove. `git status --porcelain` after the
+first write is the check that nothing slipped through.
 
 Show the user the plan and let them adjust nodes, edges or the concurrency cap **before** any
 child starts. Then render and hand over `graph.html`:

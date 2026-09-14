@@ -771,6 +771,72 @@ def test_render_names_settled_work_the_layout_dropped():
           "settled, not in the layout" not in gs.render(state), gs.render(state))
 
 
+def test_plan_re_layers_from_the_checkpoint_alone():
+    # The checkpoint is a strict superset of the nodes file, so that file is only
+    # needed when the graph itself changes. It used to be required on every plan,
+    # which made re-planning impossible exactly when it is worth most: mid-run,
+    # after the gitignored scratch input had been lost.
+    with tempfile.TemporaryDirectory() as tmp:
+        nodes_path = os.path.join(tmp, "nodes.json")
+        state_path = os.path.join(tmp, ".graph_state.json")
+        with open(nodes_path, "w", encoding="utf-8") as handle:
+            json.dump({"task": "t", "repo": "owner/repo", "nodes": [
+                {"id": 1, "title": "a", "deps": [], "scope": "internal/db",
+                 "criteria": ["migration applies"]},
+                {"id": 2, "title": "b", "deps": [], "scope": "internal/db"},
+                {"id": 3, "title": "c", "deps": [1], "scope": "internal/api",
+                 "context": "reads a's schema"},
+            ]}, handle)
+        with contextlib.redirect_stdout(io.StringIO()):
+            gs.cmd_plan(gs.argparse.Namespace(nodes=nodes_path, state=state_path,
+                                              only_pending=False, max_parallel=None,
+                                              keep_shipped=False))
+            gs.cmd_set(gs.argparse.Namespace(state=state_path, node="1", status="shipped",
+                                             commit="aaa1111", branch="feat/a", error=None))
+        os.remove(nodes_path)  # the scratch input is gone
+
+        with contextlib.redirect_stdout(io.StringIO()):
+            code = gs.cmd_plan(gs.argparse.Namespace(nodes=None, state=state_path,
+                                                     only_pending=True, max_parallel=None,
+                                                     keep_shipped=True))
+        rebuilt = json.load(open(state_path, encoding="utf-8"))
+
+        check("planning without a nodes file succeeds", code == 0, str(code))
+        check("every node came back", sorted(rebuilt["nodes"]) == ["1", "2", "3"],
+              str(sorted(rebuilt["nodes"])))
+        check("deps came back", rebuilt["nodes"]["3"]["deps"] == [1],
+              str(rebuilt["nodes"]["3"]["deps"]))
+        check("criteria came back", rebuilt["nodes"]["1"]["criteria"] == ["migration applies"],
+              str(rebuilt["nodes"]["1"]["criteria"]))
+        check("context came back", rebuilt["nodes"]["3"]["context"] == "reads a's schema",
+              str(rebuilt["nodes"]["3"]["context"]))
+        check("the recorded branch came back", rebuilt["nodes"]["1"].get("branch") == "feat/a",
+              str(rebuilt["nodes"]["1"].get("branch")))
+        check("the kept outcome came back", rebuilt["nodes"]["1"]["status"] == "shipped")
+        # Negative control: the graph did not change, so the layer must be the one
+        # the nodes file produced — the shared scope still splits #1 from #2, and the
+        # dependency still orders #3 behind #1 (which is settled, hence absent).
+        check("the re-layered layout is the file's layout", rebuilt["waves"] == [[2, 3]],
+              str(rebuilt["waves"]))
+
+
+def test_plan_without_nodes_or_checkpoint_is_refused():
+    # Negative control for the above: the fallback must not invent an empty graph.
+    with tempfile.TemporaryDirectory() as tmp:
+        state_path = os.path.join(tmp, ".graph_state.json")
+        err = io.StringIO()
+        try:
+            with contextlib.redirect_stderr(err), contextlib.redirect_stdout(io.StringIO()):
+                gs.cmd_plan(gs.argparse.Namespace(nodes=None, state=state_path,
+                                                  only_pending=False, max_parallel=None,
+                                                  keep_shipped=False))
+            check("no nodes file and no checkpoint is refused", False, "cmd_plan returned")
+        except SystemExit as exc:
+            check("no nodes file and no checkpoint is refused", exc.code == 1, str(exc.code))
+            check("and the message says to pass --nodes", "--nodes" in err.getvalue(),
+                  err.getvalue())
+
+
 def main() -> int:
     print("graph_state.py tests")
     for test in (test_dependencies_hold_across_waves, test_scope_collision_defers_without_breaking_order,
@@ -791,6 +857,8 @@ def main() -> int:
                  test_scopes_overlap_treats_nesting_as_a_collision,
                  test_every_checkpoint_write_refreshes_the_board,
                  test_render_names_settled_work_the_layout_dropped,
+                 test_plan_re_layers_from_the_checkpoint_alone,
+                 test_plan_without_nodes_or_checkpoint_is_refused,
                  test_prompt_renders_from_the_checkpoint,
                  test_node_context_fills_the_dependency_slot,
                  test_replan_keeps_criteria_and_context_only_the_checkpoint_holds,

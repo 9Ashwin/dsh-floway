@@ -8,9 +8,13 @@ read the summary".
 
 Subcommands:
 
-  plan --nodes <file> [--state .graph_state.json] [--max-parallel N] [--keep-shipped] [--only-pending]
+  plan [--nodes <file>] [--state .graph_state.json] [--max-parallel N] [--keep-shipped] [--only-pending]
       Read a nodes file, validate it, layer it into waves, write the checkpoint,
       and print the plan (human summary + Mermaid + the wave-0 dispatch list).
+      Without --nodes the graph is rebuilt from the checkpoint itself, which holds
+      every declarative field a plan reads; the nodes file is then needed only when
+      the graph changes (a new node, a moved dependency). The first plan of a graph
+      still needs --nodes, because there is no checkpoint to re-layer from yet.
       With --keep-shipped, an existing checkpoint's per-node outcome is carried
       over for every id that survives, so a re-plan does not reset what shipped.
       With --only-pending, nodes a previous checkpoint already settled (shipped
@@ -482,18 +486,61 @@ def carry_over(state: dict, previous: dict | None, path: str) -> list[str]:
     return notes
 
 
+def nodes_from_state(state: dict) -> list[dict]:
+    """Rebuild the planner's input from a checkpoint.
+
+    The checkpoint is a strict superset of the nodes file: every declarative field
+    a plan reads — title, deps, scope, hot_files, type, criteria, context, and a
+    branch that is already known — is on the node record, and the outcome fields
+    `set` owns are disjoint from them. So a checkpoint can be re-layered without
+    the nodes file it was built from.
+
+    That matters because the nodes file is a scratch input: gitignored, easy to
+    lose, and until now the one thing whose absence made re-planning impossible —
+    which is exactly when `--only-pending` is worth the most.
+    """
+    return [
+        {
+            "id": int(key),
+            "title": node.get("title", ""),
+            "deps": node.get("deps") or [],
+            "scope": node.get("scope") or [],
+            "hot_files": node.get("hot_files") or [],
+            "type": node.get("type", "task"),
+            "criteria": node.get("criteria") or [],
+            "context": node.get("context", ""),
+            # Carried, never synthesized: the checkpoint holds a branch only once
+            # one exists, and the state builder below drops an empty value anyway.
+            "branch": node.get("branch"),
+        }
+        for key, node in state["nodes"].items()
+    ]
+
+
 def cmd_plan(args: argparse.Namespace) -> int:
-    spec = load_json(args.nodes, "nodes file")
-    nodes = spec.get("nodes")
-    if not isinstance(nodes, list) or not nodes:
-        die("nodes file must contain a non-empty 'nodes' array")
+    # The previous checkpoint is read first either way: `--only-pending` needs its
+    # outcomes before layering can decide whose scope still counts, and without a
+    # nodes file it is also where the graph itself comes from.
+    previous, legacy_note = read_previous(args.state)
+    from_state_note = ""
+    if args.nodes:
+        spec = load_json(args.nodes, "nodes file")
+        nodes = spec.get("nodes")
+        if not isinstance(nodes, list) or not nodes:
+            die("nodes file must contain a non-empty 'nodes' array")
+    else:
+        if not previous:
+            die(f"nothing to layer: no nodes file given and no checkpoint at {args.state} — "
+                f"pass --nodes on the first plan of a graph")
+        spec = {"task": previous.get("task", "(untitled)"),
+                "repo": previous.get("repo", ""),
+                "max_parallel": previous.get("max_parallel")}
+        nodes = nodes_from_state(previous)
+        from_state_note = (f"no --nodes: re-layered the {len(nodes)} node(s) recorded in "
+                           f"{args.state}")
 
     by_id, warnings = validate(nodes)
 
-    # The previous checkpoint is read before layering, because --only-pending has
-    # to know which nodes are already finished, and which are mid-flight, before
-    # it can decide whose scope still counts.
-    previous, legacy_note = read_previous(args.state)
     checkout_nodes = (previous or {}).get("nodes") or {}
     settled: set[int] = set()
     inflight: set[int] = set()
@@ -532,6 +579,8 @@ def cmd_plan(args: argparse.Namespace) -> int:
     previous_context = {k: v.get("context") for k, v in checkout_nodes.items() if v.get("context")}
     if legacy_note:
         notes.append(legacy_note)
+    if from_state_note:
+        notes.append(from_state_note)
     recorded = int((previous or {}).get("max_parallel") or 0)
     if args.max_parallel is not None:
         limit = args.max_parallel
@@ -815,7 +864,8 @@ def main() -> int:
     sub = parser.add_subparsers(dest="command", required=True)
 
     plan = sub.add_parser("plan", help="validate, layer into waves, write the checkpoint")
-    plan.add_argument("--nodes", required=True, help="path to the nodes JSON file")
+    plan.add_argument("--nodes", default=None,
+                      help="path to the nodes JSON file; omit to re-layer from the checkpoint itself")
     plan.add_argument("--state", default=STATE_DEFAULT,
                       help=f"checkpoint path (default {STATE_DEFAULT})")
     plan.add_argument("--max-parallel", type=int, default=None,
